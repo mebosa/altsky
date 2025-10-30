@@ -1,60 +1,56 @@
 ﻿<script lang="ts">
-  import { onMount } from 'svelte';
-  import { get, API_BASE } from '$lib/api';
+  import { goto } from '$app/navigation';
+  import { debounce, loadRecent, saveRecent } from '$lib/utils';
 
-  export let params: { name: string };
+  let name = '';
+  let recent: string[] = [];
 
-  let uuid = '';
-  let profile: any = null;
-  let loading = true;
-  let errorMsg = '';
+  function toUser(n: string) {
+    const q = n.trim();
+    if (!q) return;
+    saveRecent(q);
+    recent = loadRecent();
+    goto(`/u/${encodeURIComponent(q)}`);
+  }
 
-  onMount(async () => {
-    loading = true;
-    errorMsg = '';
-    profile = null;
+  const debounced = debounce((v: string) => (name = v), 0); // svelte 바인딩 유지용
 
-    try {
-      // 1) 이름 -> UUID
-      const p = await get<{ name: string; uuid: string }>(`/api/player/${encodeURIComponent(params.name)}`);
-      uuid = p.uuid;
+  function onKey(e: KeyboardEvent) {
+    if (e.key === 'Enter') toUser(name);
+  }
 
-      // 2) Hypixel 프로필
-      const h = await get<{ ok: boolean; data: any }>(`/api/hypixel/profile/${uuid}`);
-      profile = h.data?.profiles ?? h.data ?? h;
-    } catch (e) {
-      errorMsg = (e as Error).message || '요청 실패';
-      console.error('[AltSky] load error:', e);
-    } finally {
-      loading = false;
-    }
-  });
+  $: recent = loadRecent();
 </script>
 
-<svelte:head>
-  <title>AltSky — {params.name}</title>
-</svelte:head>
+<style>
+  .wrap{max-width:720px;margin:48px auto;padding:0 16px}
+  .row{display:flex;gap:8px}
+  input{flex:1;padding:12px 14px;font-size:16px;border:1px solid #d1d5db;border-radius:10px}
+  button{padding:12px 16px;border-radius:10px;border:1px solid #111827;background:#111827;color:white;cursor:pointer}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .chip{padding:6px 10px;border-radius:999px;background:#f3f4f6;cursor:pointer}
+  h1{font-size:42px;margin:0 0 12px}
+  p.muted{color:#6b7280;margin:0 0 24px}
+</style>
 
-<section style="max-width:960px;margin:64px auto;padding:0 16px">
-  <h1 style="font-size:56px;line-height:1.1;margin:0 0 16px">AltSky</h1>
-  <p style="color:#6b7280">플레이어: <code>{uuid ? `${uuid.slice(0,8)}…` : '(불러오는 중)'}</code></p>
+<div class="wrap">
+  <h1>AltSky</h1>
+  <p class="muted">플레이어 이름을 입력하세요.</p>
+  <div class="row">
+    <input
+      placeholder="예: mebosa"
+      value={name}
+      on:input={(e)=>debounced((e.target as HTMLInputElement).value)}
+      on:keydown={onKey}
+    />
+    <button on:click={() => toUser(name)}>검색</button>
+  </div>
 
-  {#if loading}
-    <p>불러오는 중…</p>
-  {:else if errorMsg}
-    <p style="color:#ef4444">에러: {errorMsg}</p>
-  {:else if profile}
-    <div style="display:grid;gap:12px">
-      <details open>
-        <summary style="cursor:pointer">Raw profiles</summary>
-        <pre style="background:#0b1020;color:#e5e7eb;padding:12px;overflow:auto;border-radius:8px">
-{JSON.stringify(profile, null, 2)}
-        </pre>
-      </details>
+  {#if recent.length}
+    <div class="chips">
+      {#each recent as r}
+        <span class="chip" on:click={() => toUser(r)}>{r}</span>
+      {/each}
     </div>
-  {:else}
-    <p>데이터가 없습니다.</p>
   {/if}
-
-  <p style="margin-top:24px;font-size:12px;opacity:.6">API_BASE: {API_BASE}</p>
-</section>
+</div>
