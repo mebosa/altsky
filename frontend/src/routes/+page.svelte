@@ -1,52 +1,60 @@
 ﻿<script lang="ts">
-  import { get, API_BASE } from "$lib/api";
-  let name = "";
-  let data: any = null;
+  import { onMount } from 'svelte';
+  import { get, API_BASE } from '$lib/api';
+
+  export let params: { name: string };
+
+  let uuid = '';
   let profile: any = null;
-  let errorMsg = "";
+  let loading = true;
+  let errorMsg = '';
 
-  async function lookup() {
-    errorMsg = "";
+  onMount(async () => {
+    loading = true;
+    errorMsg = '';
     profile = null;
-    data = null;
-    const q = name.trim();
-    if (!q) return;
-    try {
-      data = await get(`/api/player/${encodeURIComponent(q)}`);
-    } catch (e) {
-      console.error(e);
-      errorMsg = "검색 실패: " + (e as Error).message;
-    }
-  }
 
-  async function loadProfile() {
-    if (!data?.uuid) return;
-    errorMsg = "";
-    profile = null;
     try {
-      profile = await get(`/api/profile/${data.uuid}`);
+      // 1) 이름 -> UUID
+      const p = await get<{ name: string; uuid: string }>(`/api/player/${encodeURIComponent(params.name)}`);
+      uuid = p.uuid;
+
+      // 2) Hypixel 프로필
+      const h = await get<{ ok: boolean; data: any }>(`/api/hypixel/profile/${uuid}`);
+      profile = h.data?.profiles ?? h.data ?? h;
     } catch (e) {
-      console.error(e);
-      errorMsg = "프로필 로드 실패: " + (e as Error).message;
+      errorMsg = (e as Error).message || '요청 실패';
+      console.error('[AltSky] load error:', e);
+    } finally {
+      loading = false;
     }
-  }
+  });
 </script>
 
-<h1>AltSky</h1>
-<p style="font-size:12px;opacity:.7">API_BASE: {API_BASE}</p>
+<svelte:head>
+  <title>AltSky — {params.name}</title>
+</svelte:head>
 
-<input placeholder="Player name" bind:value={name} />
-<button on:click={lookup}>Search</button>
-<button on:click={loadProfile} disabled={!data}>Load profile</button>
+<section style="max-width:960px;margin:64px auto;padding:0 16px">
+  <h1 style="font-size:56px;line-height:1.1;margin:0 0 16px">AltSky</h1>
+  <p style="color:#6b7280">플레이어: <code>{uuid ? `${uuid.slice(0,8)}…` : '(불러오는 중)'}</code></p>
 
-{#if errorMsg}<p>{errorMsg}</p>{/if}
+  {#if loading}
+    <p>불러오는 중…</p>
+  {:else if errorMsg}
+    <p style="color:#ef4444">에러: {errorMsg}</p>
+  {:else if profile}
+    <div style="display:grid;gap:12px">
+      <details open>
+        <summary style="cursor:pointer">Raw profiles</summary>
+        <pre style="background:#0b1020;color:#e5e7eb;padding:12px;overflow:auto;border-radius:8px">
+{JSON.stringify(profile, null, 2)}
+        </pre>
+      </details>
+    </div>
+  {:else}
+    <p>데이터가 없습니다.</p>
+  {/if}
 
-{#if data}
-  <h3>Player</h3>
-  <pre>{JSON.stringify(data, null, 2)}</pre>
-{/if}
-
-{#if profile}
-  <h3>SkyBlock Profiles (summary)</h3>
-  <pre>{JSON.stringify(profile, null, 2)}</pre>
-{/if}
+  <p style="margin-top:24px;font-size:12px;opacity:.6">API_BASE: {API_BASE}</p>
+</section>
