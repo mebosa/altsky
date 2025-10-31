@@ -29,30 +29,63 @@
 <style>
   .wrap {
     max-width: 720px;
-    margin: 48px auto;
+    margin: 64px auto;
     padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: var(--theme-text-primary);
   }
 
   .row {
     display: flex;
     gap: 8px;
+    backdrop-filter: blur(16px);
   }
 
   input {
     flex: 1;
     padding: 12px 14px;
     font-size: 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 10px;
+    border: 1px solid var(--theme-form-border);
+    border-radius: 12px;
+    background: var(--theme-form-bg);
+    color: var(--theme-text-primary);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  }
+
+  input::placeholder {
+    color: var(--theme-text-soft);
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--theme-accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
   }
 
   button {
     padding: 12px 16px;
-    border-radius: 10px;
-    border: 1px solid #111827;
-    background: #111827;
-    color: white;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
+    color: #ffffff;
     cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 18px 32px rgba(15, 23, 42, 0.32);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 36px rgba(15, 23, 42, 0.4);
+  }
+
+  button:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.35);
+    outline-offset: 2px;
   }
 
   .chips {
@@ -65,27 +98,42 @@
   .chip {
     padding: 6px 12px;
     border-radius: 999px;
-    background: #f3f4f6;
-    border: 1px solid transparent;
+    background: var(--theme-chip-bg);
+    border: 1px solid var(--theme-chip-border);
     cursor: pointer;
-    transition: background 0.15s ease, border 0.15s ease;
+    transition: background 0.25s ease, border 0.25s ease, transform 0.2s ease;
+    color: var(--theme-chip-text);
+    box-shadow: 0 12px 20px rgba(15, 23, 42, 0.18);
   }
 
   .chip:hover,
   .chip:focus-visible {
-    background: #e0e7ff;
-    border-color: #6366f1;
+    transform: translateY(-2px);
+    background: var(--theme-accent-alpha-22);
+    border-color: var(--theme-accent);
     outline: none;
   }
 
   h1 {
     font-size: 42px;
     margin: 0 0 12px;
+    letter-spacing: -0.03em;
+    color: var(--theme-text-primary);
   }
 
   p.muted {
-    color: #6b7280;
+    color: var(--theme-text-soft);
     margin: 0 0 24px;
+  }
+
+  @media (max-width: 640px) {
+    .row {
+      flex-direction: column;
+    }
+
+    button {
+      width: 100%;
+    }
   }
 </style>
 

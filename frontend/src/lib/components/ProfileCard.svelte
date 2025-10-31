@@ -1,5 +1,6 @@
 <script lang="ts">
   import StatChip from './StatChip.svelte';
+  import { ClockIcon, CoinIcon } from '$lib/icons';
 
   export let cuteName = '(unknown)';
   export let lastSave: number | undefined;
@@ -20,21 +21,23 @@
   </div>
 
   <div class="chips">
-    <StatChip label="Last Saved" value={formatTime(lastSave)} />
-    <StatChip label="Coins on Hand" value={formatCoins(purse)} />
+    <StatChip label="Last Saved" value={formatTime(lastSave)} icon={ClockIcon} />
+    <StatChip label="Coins on Hand" value={formatCoins(purse)} icon={CoinIcon} />
   </div>
 </div>
 
 <style>
   .card {
-    border: 1px solid #1f2937;
+    border: 1px solid var(--theme-surface-border);
     border-radius: 16px;
     padding: 16px;
-    background: rgba(15, 23, 42, 0.8);
-    color: #e2e8f0;
+    background: var(--theme-surface);
+    color: var(--theme-text-primary);
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-shadow: var(--theme-card-shadow);
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
   }
 
   .header {
@@ -47,11 +50,12 @@
   h3 {
     margin: 0;
     font-size: 1.1rem;
+    color: var(--theme-text-primary);
   }
 
   code {
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: var(--theme-text-soft);
   }
 
   .chips {

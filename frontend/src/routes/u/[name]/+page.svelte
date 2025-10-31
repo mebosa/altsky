@@ -66,18 +66,143 @@
 </script>
 
 <style>
-  .wrap{max-width:960px;margin:48px auto;padding:0 16px}
-  h1{font-size:42px;margin:0 0 24px}
-  .muted{color:#6b7280}
-  .row{display:flex;gap:8px;align-items:center}
-  button{padding:10px 14px;border-radius:10px;border:1px solid #111827;background:#111827;color:#fff;cursor:pointer}
-  .ghost{background:white;color:#111827;border:1px solid #d1d5db}
-  .card{border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
-  .spinner{width:20px;height:20px;border:3px solid #e5e7eb;border-top-color:#111827;border-radius:50%;animation:sp 1s linear infinite}
-  @keyframes sp{to{transform:rotate(360deg)}}
-  .err{padding:12px 14px;border-radius:12px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
-  .row-end{display:flex;gap:8px;margin-top:10px}
+  .wrap {
+    max-width: 960px;
+    margin: 48px auto;
+    padding: 0 16px 48px;
+    color: var(--theme-text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  h1 {
+    font-size: 42px;
+    margin: 0;
+    letter-spacing: -0.02em;
+    color: var(--theme-text-primary);
+  }
+
+  .muted {
+    color: var(--theme-text-soft);
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 8px 0 20px;
+  }
+
+  button {
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease, opacity 0.25s ease;
+    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.32);
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 34px rgba(15, 23, 42, 0.4);
+  }
+
+  button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
+
+  .ghost {
+    background: var(--theme-control-bg);
+    color: var(--theme-text-secondary);
+    border: 1px solid var(--theme-control-border);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  }
+
+  .ghost:hover {
+    background: var(--theme-control-hover);
+    transform: translateY(-2px);
+  }
+
+  .card {
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    background: var(--theme-surface);
+    box-shadow: var(--theme-card-shadow);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+  }
+
+  .card strong {
+    color: var(--theme-text-primary);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(148, 163, 184, 0.28);
+    border-top-color: var(--theme-accent);
+    border-radius: 50%;
+    animation: sp 1s linear infinite;
+  }
+
+  @keyframes sp {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .err {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.32);
+    color: #fecaca;
+    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.24);
+  }
+
+  .row-end {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .card .muted {
+    color: var(--theme-text-soft);
+  }
+
+  @media (max-width: 640px) {
+    .row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    button,
+    .ghost {
+      width: 100%;
+      text-align: center;
+    }
+  }
 </style>
 
 <div class="wrap">
@@ -88,7 +213,7 @@
     {#if player}&nbsp;(<span class="muted">{shortUUID(player.uuid)}</span>){/if}
   </p>
 
-  <div class="row" style="margin:8px 0 20px">
+  <div class="row">
     <button class="ghost" on:click={() => history.back()}>← Back</button>
     <button on:click={() => load(true)} disabled={loading}>
       {#if loading}<span class="spinner" style="vertical-align:-3px;margin-right:6px;"></span>{/if}

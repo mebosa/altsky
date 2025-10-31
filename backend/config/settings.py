@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +25,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gn4fby4+6fn3h74stgflp&@z)e%gfr*g3f94ahmcocv398q%^9'
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET", "django-insecure-gn4fby4+6fn3h74stgflp&@z)e%gfr*g3f94ahmcocv398q%^9"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "1").lower() not in {"0", "false", "no"}
 
-ALLOWED_HOSTS = []
+_allowed_hosts = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()]
+ALLOWED_HOSTS = _allowed_hosts or ["localhost", "127.0.0.1"]
+
+_csrf_trusted = [
+    origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()
+]
+if _csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = _csrf_trusted
 
 
 # Application definition
@@ -123,7 +137,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
-REST_FRAMEWORK = {'DEFAULT_PAGINATION_CLASS':'rest_framework.pagination.PageNumberPagination','PAGE_SIZE':50}
+CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "1").lower() not in {"0", "false", "no"}
+if not CORS_ALLOW_ALL_ORIGINS:
+    _cors_allowed = [
+        origin.strip() for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if origin.strip()
+    ]
+    CORS_ALLOWED_ORIGINS = _cors_allowed
 
-from dotenv import load_dotenv; load_dotenv()
+REST_FRAMEWORK = {'DEFAULT_PAGINATION_CLASS':'rest_framework.pagination.PageNumberPagination','PAGE_SIZE':50}

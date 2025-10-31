@@ -36,21 +36,24 @@
   button {
     padding: 8px 16px;
     border-radius: 999px;
-    border: 1px solid #1f2933;
-    background: #0f172a;
-    color: #e2e8f0;
+    border: 1px solid var(--theme-control-border);
+    background: var(--theme-control-bg);
+    color: var(--theme-text-secondary);
     cursor: pointer;
     font-size: 0.95rem;
-    transition: background 0.15s ease, color 0.15s ease, border 0.15s ease;
+    transition: background 0.25s ease, color 0.25s ease, border 0.25s ease, transform 0.2s ease;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
   }
 
   button:hover {
-    background: #1f2a44;
+    background: var(--theme-control-hover);
+    transform: translateY(-2px);
   }
 
   .value-active {
-    background: linear-gradient(135deg, #2563eb, #9333ea);
-    color: white;
+    background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
+    color: #ffffff;
     border-color: transparent;
+    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.28);
   }
 </style>

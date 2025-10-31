@@ -1,0 +1,12 @@
+tunnel: TUNNEL_ID_GOES_HERE
+credentials-file: C:/Users/USERNAME/.cloudflared/TUNNEL_ID_GOES_HERE.json
+
+ingress:
+  # Public SvelteKit frontend
+  - hostname: app.example.com
+    service: http://localhost:5173
+  # Public API endpoint
+  - hostname: api.example.com
+    service: http://localhost:8000
+  # Default rule
+  - service: http_status:404

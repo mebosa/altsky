@@ -29,18 +29,20 @@
     width: 64px;
     height: 64px;
     border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    background: rgba(15, 23, 42, 0.1);
+    border: 1px solid var(--theme-control-border);
+    background: var(--theme-control-bg);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.24);
   }
 
   h1 {
     margin: 0;
     font-size: 2rem;
+    color: var(--theme-text-primary);
   }
 
   .uuid {
     margin: 4px 0 0;
-    color: #94a3b8;
+    color: var(--theme-text-soft);
     font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     font-size: 0.8rem;
   }

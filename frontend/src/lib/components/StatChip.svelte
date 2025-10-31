@@ -1,13 +1,67 @@
 <script lang="ts">
+  import type { ComponentType } from 'svelte';
+
   export let label: string;
-  export let value: string | number | undefined = "-";
+  export let value: string | number | undefined = '-';
+  export let icon: ComponentType | null = null;
 </script>
 
-<span style="
-  display:inline-flex;align-items:center;gap:.4rem;
-  padding:.25rem .6rem;border:1px solid #e5e7eb;border-radius:9999px;
-  background:#fafafa;font-size:.9rem;
-">
-  <strong style="font-weight:600;color:#111827">{label}</strong>
-  <span style="color:#374151">{value ?? "-"}</span>
+<span class="chip">
+  {#if icon}
+    <span class="icon">
+      <svelte:component this={icon} />
+    </span>
+  {/if}
+  <strong>{label}</strong>
+  <span class="value">{value ?? '-'}</span>
 </span>
+
+<style>
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 9999px;
+    background: var(--theme-chip-bg);
+    border: 1px solid var(--theme-chip-border);
+    color: var(--theme-chip-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+    backdrop-filter: blur(12px);
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease,
+      transform 0.3s ease;
+  }
+
+  .chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--theme-text-secondary);
+  }
+
+  .value {
+    color: var(--theme-text-soft);
+  }
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .icon :global(svg) {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    color: var(--theme-text-secondary);
+  }
+</style>

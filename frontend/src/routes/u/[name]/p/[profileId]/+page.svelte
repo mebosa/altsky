@@ -3,6 +3,7 @@
   import { get } from '$lib/api';
   import Tabs from '$lib/ui/Tabs.svelte';
   import StatChip from '$lib/components/StatChip.svelte';
+  import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
   import { timeAgo, formatNumber, formatPercent, formatLargeNumber } from '$lib/utils';
 
   export let params: { name: string; profileId: string };
@@ -61,9 +62,11 @@
     wardrobe: {
       equipped_slot: number | null;
       items: (WardrobeItem | null)[];
-      slots: number;
+    slots: number;
     };
   };
+
+  const SITE_BASE = import.meta.env.VITE_SITE_BASE ?? 'https://altsky.dev';
 
   const tabs = [
     { id: 'summary', label: 'Overview' },
@@ -120,25 +123,30 @@
     tank: 'Tank'
   };
 
-  let loading = true;
+  let player: Player | null = data.player;
+  let summary: ProfileSummaryResponse | null = data.summary;
+  let errorMsg = data.errorMsg ?? '';
+  let loading = !summary && !errorMsg;
   let refreshing = false;
-  let errorMsg = '';
-  let player: Player | null = null;
-  let summary: ProfileSummaryResponse | null = null;
   let activeTab = 'summary';
 
-  async function load(force = false) {
-    loading = !force;
+  async function fetchProfile(force = false) {
+    if (!player) {
+      try {
+        player = await get<Player>(`/api/player/${encodeURIComponent(params.name)}`);
+      } catch (err) {
+        errorMsg = `Failed to resolve player: ${(err as Error).message}`;
+        return;
+      }
+    }
+
+    loading = !summary && !force;
     refreshing = force;
     errorMsg = '';
-    summary = null;
 
     try {
-      const fetchedPlayer = await get<Player>(`/api/player/${encodeURIComponent(params.name)}`);
-      player = fetchedPlayer;
-
       summary = await get<ProfileSummaryResponse>(
-        `/api/hypixel/profile/${encodeURIComponent(fetchedPlayer.uuid)}/${encodeURIComponent(params.profileId)}`,
+        `/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(params.profileId)}`,
         { query: force ? { refresh: 1 } : undefined }
       );
     } catch (err) {
@@ -150,7 +158,7 @@
   }
 
   function refresh() {
-    if (!refreshing) load(true);
+    if (!refreshing) fetchProfile(true);
   }
 
   function rarityClass(rarity?: string | null) {
@@ -159,12 +167,42 @@
   }
 
   onMount(() => {
-    load();
+    if (!summary && !errorMsg) {
+      fetchProfile();
+    }
   });
+
+  $: profileTitle =
+    summary && player
+      ? `AltSky - ${player.name} (${summary.profile.cute_name ?? 'SkyBlock'})`
+      : 'AltSky Profile';
+
+  $: profileDescription = summary
+    ? `Level ${summary.skyblock_level.level} | Avg Skill ${summary.skills.average_level} | Slayer XP ${formatNumber(summary.slayer.total_xp)} | Coins ${formatLargeNumber(summary.currencies.total_coins)}`
+    : 'Inspect Hypixel SkyBlock stats with AltSky.';
+
+  $: shareImage = player
+    ? `https://dummyimage.com/1200x630/020617/E2E8F0.png&text=${encodeURIComponent(`${player.name}+SkyBlock`)}`
+    : 'https://dummyimage.com/1200x630/020617/E2E8F0.png&text=AltSky';
+
+  const canonicalUrl = `${SITE_BASE}/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(params.profileId)}`;
 </script>
 
 <svelte:head>
-  <title>{player ? `${player.name} | AltSky` : 'AltSky Profile'}</title>
+  <title>{profileTitle}</title>
+  <link rel="canonical" href={canonicalUrl} />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content={profileTitle} />
+  <meta property="og:description" content={profileDescription} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:image" content={shareImage} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="AltSky" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={profileTitle} />
+  <meta name="twitter:description" content={profileDescription} />
+  <meta name="twitter:image" content={shareImage} />
 </svelte:head>
 
 <div class="page">
@@ -195,7 +233,7 @@
     <div class="actions">
       <a class="ghost" href={`/u/${params.name}`}>Back to profiles</a>
       <button class:loading={refreshing} on:click={refresh} type="button">
-        {refreshing ? 'Refreshing…' : 'Refresh'}
+        {refreshing ? 'Refreshing...' : 'Refresh'}
       </button>
     </div>
   </header>
@@ -222,12 +260,12 @@
             <div class="progress-bar" style={`width:${Math.min(100, summary.skyblock_level.progress * 100).toFixed(1)}%`}></div>
           </div>
           <div class="progress-label">
-            {formatPercent(summary.skyblock_level.progress * 100, 1)} · Total XP {formatNumber(summary.skyblock_level.experience)}
+            {formatPercent(summary.skyblock_level.progress * 100, 1)} | Total XP {formatNumber(summary.skyblock_level.experience)}
           </div>
           <div class="chips">
-            <StatChip label="Avg Skill Level" value={summary.skills.average_level.toFixed(2)} />
-            <StatChip label="Catacombs" value={`Lv. ${summary.dungeons.catacombs.level}`} />
-            <StatChip label="Total Slayer XP" value={formatNumber(summary.slayer.total_xp)} />
+            <StatChip label="Avg Skill Level" value={summary.skills.average_level.toFixed(2)} icon={StarIcon} />
+            <StatChip label="Catacombs" value={`Lv. ${summary.dungeons.catacombs.level}`} icon={DungeonIcon} />
+            <StatChip label="Total Slayer XP" value={formatNumber(summary.slayer.total_xp)} icon={SkullIcon} />
           </div>
         </div>
 
@@ -284,7 +322,7 @@
                 <div class="progress-bar" style={`width:${Math.min(100, data.progress * 100).toFixed(1)}%`}></div>
               </div>
               <div class="progress-label">
-                {formatPercent(data.progress * 100, 1)} · {formatNumber(data.current)} / {formatNumber(data.to_next)}
+                {formatPercent(data.progress * 100, 1)} | {formatNumber(data.current)} / {formatNumber(data.to_next)}
               </div>
             </div>
           {/if}
@@ -386,43 +424,42 @@
 </div>
 
 <style>
-  :global(body) {
-    background: #020617;
-    color: #e2e8f0;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    margin: 0;
-  }
-
   a {
     color: inherit;
+    text-decoration: none;
   }
 
   .page {
     max-width: 1200px;
     margin: 48px auto;
     padding: 0 20px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    color: var(--theme-text-primary);
   }
 
   .header-card {
-    background: linear-gradient(135deg, rgba(30, 64, 175, 0.25), rgba(147, 51, 234, 0.25));
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    border-radius: 20px;
-    padding: 28px 32px;
+    background: var(--theme-header-gradient);
+    border: 1px solid var(--theme-secondary-alpha-32);
+    border-radius: 24px;
+    padding: 32px 36px;
     display: flex;
     justify-content: space-between;
     gap: 32px;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--theme-card-shadow);
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
   }
 
   .breadcrumb {
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--theme-text-soft);
     margin: 0 0 6px;
   }
 
   .breadcrumb a {
-    text-decoration: none;
-    color: inherit;
+    color: var(--theme-text-soft);
   }
 
   .header-card h1 {
@@ -435,7 +472,7 @@
 
   .profile-name {
     font-size: 1.1rem;
-    color: #cbd5f5;
+    color: var(--theme-text-soft);
   }
 
   .meta {
@@ -443,65 +480,113 @@
     gap: 12px;
     margin-top: 12px;
     flex-wrap: wrap;
-    color: #cbd5f5;
+    color: var(--theme-text-soft);
   }
 
   .meta .tag {
-    background: rgba(59, 130, 246, 0.2);
-    border: 1px solid rgba(59, 130, 246, 0.4);
+    background: var(--theme-tag-bg);
+    border: 1px solid var(--theme-tag-border);
     padding: 2px 10px;
     border-radius: 999px;
     font-size: 0.8rem;
+    letter-spacing: 0.05em;
   }
 
   .updated {
     margin-top: 10px;
-    color: #cbd5f5;
+    color: var(--theme-text-soft);
   }
 
   .updated.muted {
-    color: #9ba3be;
+    opacity: 0.7;
   }
 
   .actions {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
   .actions a,
   .actions button {
-    padding: 10px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
     border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    background: rgba(15, 23, 42, 0.6);
-    color: #e2e8f0;
-    text-decoration: none;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s ease;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+  }
+
+  .actions a {
+    background: var(--theme-control-bg);
+    border: 1px solid var(--theme-control-border);
+    color: var(--theme-text-secondary);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  }
+
+  .actions a:hover {
+    background: var(--theme-control-hover);
+    transform: translateY(-2px);
   }
 
   .actions button {
-    border: 1px solid rgba(59, 130, 246, 0.5);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(147, 51, 234, 0.4));
+    border: none;
+    background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
+    color: #ffffff;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.35);
+  }
+
+  .actions button:hover {
+    transform: translateY(-2px);
   }
 
   .actions button.loading {
-    opacity: 0.7;
+    opacity: 0.65;
     cursor: wait;
   }
 
   .card {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(51, 65, 85, 0.6);
-    border-radius: 18px;
-    padding: 20px 24px;
-    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.45);
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 20px;
+    padding: 22px 24px;
+    box-shadow: var(--theme-card-shadow);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
   }
 
   .featured {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(147, 51, 234, 0.25));
-    border: 1px solid rgba(99, 102, 241, 0.35);
+    background: var(--theme-featured-gradient);
+    border-color: var(--theme-secondary-alpha-32);
+  }
+
+  .level-number {
+    font-size: 3.2rem;
+    font-weight: 800;
+    margin: 6px 0 8px;
+    letter-spacing: -0.04em;
+    color: var(--theme-text-primary);
+  }
+
+  .card h2,
+  .card h3 {
+    margin: 0;
+    color: var(--theme-text-primary);
+  }
+
+  .card strong {
+    color: var(--theme-text-primary);
   }
 
   .grid {
@@ -511,6 +596,13 @@
 
   .summary-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
   }
 
   .skill-card,
@@ -530,38 +622,32 @@
 
   .skill-name {
     font-weight: 600;
+    color: var(--theme-text-secondary);
   }
 
   .skill-level {
     font-size: 1.4rem;
     font-weight: 700;
-    color: #f472b6;
+    color: var(--theme-accent);
   }
 
   .progress {
     width: 100%;
     height: 8px;
-    background: rgba(30, 41, 59, 0.8);
+    background: rgba(148, 163, 184, 0.28);
     border-radius: 999px;
     overflow: hidden;
   }
 
   .progress-bar {
     height: 100%;
-    background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+    background: linear-gradient(135deg, var(--theme-progress-start), var(--theme-progress-end));
     border-radius: inherit;
   }
 
   .progress-label {
-    color: #9ca3af;
+    color: var(--theme-text-soft);
     font-size: 0.85rem;
-  }
-
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
   }
 
   .stat-card {
@@ -571,7 +657,7 @@
 
   .stat-name {
     font-size: 0.95rem;
-    color: #94a3b8;
+    color: var(--theme-text-soft);
   }
 
   .stat-value {
@@ -590,15 +676,16 @@
   }
 
   .stat-list .label {
-    color: #9ca3af;
+    color: var(--theme-text-soft);
   }
 
   .stat-list .value {
     font-weight: 600;
+    color: var(--theme-text-primary);
   }
 
   .stat-list .value.accent {
-    color: #fbbf24;
+    color: var(--theme-accent-secondary);
   }
 
   .essence-card .essence-grid {
@@ -612,33 +699,31 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 
-  .slayer-name {
+  .slayer-name,
+  .dungeon-name {
     font-weight: 600;
+    color: var(--theme-text-secondary);
   }
 
-  .slayer-level {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #f87171;
-  }
-
-  .slayer-xp {
-    color: #cbd5f5;
-  }
-
-  .dungeon-card .dungeon-name {
-    font-weight: 600;
-  }
-
-  .dungeon-level,
+  .slayer-level,
   .catacombs-level {
     font-size: 2rem;
     font-weight: 700;
-    color: #34d399;
+    color: var(--theme-accent);
+  }
+
+  .slayer-xp {
+    color: var(--theme-text-soft);
+  }
+
+  .dungeon-level {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--theme-accent-secondary);
   }
 
   .sub {
-    color: #94a3b8;
+    color: var(--theme-text-soft);
   }
 
   .wardrobe-grid {
@@ -663,7 +748,7 @@
   .wardrobe-top {
     display: flex;
     justify-content: space-between;
-    color: #cbd5f5;
+    color: var(--theme-text-soft);
   }
 
   .item-name {
@@ -672,19 +757,20 @@
   }
 
   .item-meta {
-    color: #94a3b8;
+    color: var(--theme-text-soft);
     font-size: 0.85rem;
   }
 
   .lore {
     margin-top: 6px;
     padding: 10px 12px;
-    background: rgba(15, 23, 42, 0.65);
+    background: var(--theme-control-bg);
     border-radius: 12px;
     max-height: 160px;
     overflow: auto;
     font-size: 0.8rem;
-    color: #cbd5f5;
+    color: var(--theme-text-soft);
+    border: 1px solid var(--theme-control-border);
   }
 
   .lore p {
@@ -694,7 +780,7 @@
 
   .wardrobe-empty {
     text-align: center;
-    color: #94a3b8;
+    color: var(--theme-text-soft);
   }
 
   .alert {
@@ -716,7 +802,7 @@
 
   .bar {
     height: 16px;
-    background: rgba(30, 41, 59, 0.8);
+    background: rgba(148, 163, 184, 0.14);
     border-radius: 8px;
     animation: pulse 1.6s infinite;
   }
