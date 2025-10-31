@@ -1,3 +1,4 @@
+export { default as CaretDownIcon } from './CaretDownIcon.svelte';
 export { default as ClockIcon } from './ClockIcon.svelte';
 export { default as CoinIcon } from './CoinIcon.svelte';
 export { default as DungeonIcon } from './DungeonIcon.svelte';

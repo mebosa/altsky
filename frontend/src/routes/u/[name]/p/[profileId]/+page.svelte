@@ -7,6 +7,11 @@
   import { timeAgo, formatNumber, formatPercent, formatLargeNumber } from '$lib/utils';
 
   export let params: { name: string; profileId: string };
+  export let data: {
+    player: Player | null;
+    summary: ProfileSummaryResponse | null;
+    errorMsg?: string;
+  };
 
   type Player = { name: string; uuid: string };
 
@@ -90,6 +95,20 @@
     { key: 'runecrafting', label: 'Runecrafting' },
     { key: 'social', label: 'Social' }
   ];
+
+  const skillIcons: Record<string, string> = {
+    farming: '/skills/farming.png',
+    mining: '/skills/mining.png',
+    combat: '/skills/combat.png',
+    foraging: '/skills/foraging.png',
+    fishing: '/skills/fishing.png',
+    enchanting: '/skills/enchanting.png',
+    alchemy: '/skills/alchemy.png',
+    taming: '/skills/taming.png',
+    carpentry: '/skills/carpentry.png',
+    runecrafting: '/skills/runecrafting.png',
+    social: '/skills/social.png'
+  };
 
   const statLabels: Record<string, string> = {
     health: 'Health',
@@ -315,8 +334,19 @@
           {#if data}
             <div class="card skill-card">
               <div class="skill-header">
-                <span class="skill-name">{skill.label}</span>
-                <span class="skill-level">Lv. {data.level}</span>
+                <span class="skill-icon" aria-hidden="true">
+                  <img
+                    src={skillIcons[skill.key]}
+                    alt=""
+                    loading="lazy"
+                    width="28"
+                    height="28"
+                  />
+                </span>
+                <div class="skill-info">
+                  <span class="skill-name">{skill.label}</span>
+                  <span class="skill-level">Lv. {data.level}</span>
+                </div>
               </div>
               <div class="progress">
                 <div class="progress-bar" style={`width:${Math.min(100, data.progress * 100).toFixed(1)}%`}></div>
@@ -611,29 +641,55 @@
   .dungeon-card {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   .skill-header {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .skill-icon {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.32);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.32);
+  }
+
+  .skill-icon img {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+  }
+
+  .skill-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .skill-name {
     font-weight: 600;
     color: var(--theme-text-secondary);
+    font-size: 0.95rem;
   }
 
   .skill-level {
-    font-size: 1.4rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--theme-accent);
+    letter-spacing: 0.01em;
   }
 
   .progress {
     width: 100%;
-    height: 8px;
+    height: 7px;
     background: rgba(148, 163, 184, 0.28);
     border-radius: 999px;
     overflow: hidden;

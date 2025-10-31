@@ -22,6 +22,7 @@
 
     let frame = 0;
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    let idleTimeout: ReturnType<typeof setTimeout> | null = null;
     let pointerActive = false;
 
     const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
@@ -47,22 +48,41 @@
       frame = window.requestAnimationFrame(() => setPositions(x, y));
     };
 
+    const clearIdle = () => {
+      if (idleTimeout) {
+        window.clearTimeout(idleTimeout);
+        idleTimeout = null;
+      }
+    };
+
+    const scheduleIdle = () => {
+      clearIdle();
+      idleTimeout = window.setTimeout(() => {
+        idleTimeout = null;
+        startRandom();
+      }, 4200);
+    };
+
     const pointerMove = (event: PointerEvent) => {
+      stopRandom();
       const x = (event.clientX / window.innerWidth) * 100;
       const y = (event.clientY / window.innerHeight) * 100;
       animateTo(x, y);
+      scheduleIdle();
     };
 
     const enablePointer = () => {
       if (pointerActive) return;
       window.addEventListener('pointermove', pointerMove, { passive: true });
       pointerActive = true;
+      scheduleIdle();
     };
 
     const disablePointer = () => {
       if (!pointerActive) return;
       window.removeEventListener('pointermove', pointerMove);
       pointerActive = false;
+      clearIdle();
     };
 
     const randomize = () => {
@@ -73,6 +93,7 @@
 
     const startRandom = () => {
       if (intervalId) return;
+      clearIdle();
       randomize();
       intervalId = window.setInterval(() => randomize(), 2600 + Math.random() * 1600);
     };
@@ -90,6 +111,7 @@
       } else {
         stopRandom();
         enablePointer();
+        scheduleIdle();
       }
     };
 
@@ -105,8 +127,15 @@
     }
 
     const handleVisibility = () => {
-      if (document.hidden) stopRandom();
-      else if (pointerQuery.matches) startRandom();
+      if (document.hidden) {
+        stopRandom();
+        clearIdle();
+      } else if (pointerQuery.matches) {
+        startRandom();
+      } else {
+        scheduleIdle();
+        enablePointer();
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
@@ -114,11 +143,13 @@
     applyMode(pointerQuery.matches);
     if (!pointerQuery.matches) {
       animateTo(32, 28);
+      scheduleIdle();
     }
 
     return () => {
       disablePointer();
       stopRandom();
+      clearIdle();
       if (pointerQuery.removeEventListener) {
         pointerQuery.removeEventListener('change', handlePointerPreferenceChange);
       } else {
@@ -173,6 +204,15 @@
     --theme-tag-bg: rgba(59, 130, 246, 0.2);
     --theme-tag-border: rgba(59, 130, 246, 0.35);
     --theme-glow: rgba(59, 130, 246, 0.34);
+    --cursor-x: 40%;
+    --cursor-y: 32%;
+    --cursor-secondary-x: 68%;
+    --cursor-secondary-y: 20%;
+    --cursor-tertiary-x: 24%;
+    --cursor-tertiary-y: 70%;
+    --bg-radial-1: rgba(37, 99, 235, 0.32);
+    --bg-radial-2: rgba(147, 51, 234, 0.26);
+    --bg-radial-3: rgba(14, 165, 233, 0.2);
   }
 
   :global(html),
@@ -183,8 +223,9 @@
   :global(body) {
     margin: 0;
     background:
-      radial-gradient(circle at 15% 12%, var(--theme-glow), transparent 52%),
-      radial-gradient(circle at 78% 8%, rgba(255, 255, 255, 0.08), transparent 62%),
+      radial-gradient(circle at var(--cursor-x) var(--cursor-y), var(--bg-radial-1), transparent 58%),
+      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), var(--bg-radial-2), transparent 64%),
+      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), var(--bg-radial-3), transparent 72%),
       var(--theme-bg);
     color: var(--theme-text-primary);
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -206,8 +247,12 @@
   }
 
   :global(body[data-theme-mode='light']) {
-    background: linear-gradient(135deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.92)),
-      var(--theme-bg);
+    background:
+      radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(96, 165, 250, 0.28), transparent 58%),
+      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), rgba(148, 163, 184, 0.22), transparent 64%),
+      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), rgba(167, 139, 250, 0.2), transparent 70%),
+      linear-gradient(135deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.92)),
+      #f8fafc;
   }
 
   :global(body[data-theme-mode='light'])::before {
@@ -217,8 +262,9 @@
 
   :global(body[data-theme='catgirl']) {
     background:
-      radial-gradient(circle at 20% 18%, rgba(244, 114, 182, 0.4), transparent 58%),
-      radial-gradient(circle at 82% 12%, rgba(168, 85, 247, 0.32), transparent 62%),
+      radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(244, 114, 182, 0.42), transparent 58%),
+      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), rgba(168, 85, 247, 0.34), transparent 64%),
+      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), rgba(59, 130, 246, 0.18), transparent 72%),
       linear-gradient(135deg, rgba(24, 4, 31, 0.94), rgba(37, 8, 52, 0.92)),
       var(--theme-bg);
   }
