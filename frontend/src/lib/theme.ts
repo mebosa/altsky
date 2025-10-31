@@ -205,8 +205,8 @@ export const themeOptions: ThemeDefinition[] = [
     label: 'Catgirl Neon',
     primary: '#f472b6',
     secondary: '#a855f7',
-    headerGradient: 'linear-gradient(135deg, rgba(244, 114, 182, 0.26), rgba(168, 85, 247, 0.3))',
-    featuredGradient: 'linear-gradient(135deg, rgba(244, 114, 182, 0.34), rgba(250, 204, 255, 0.32))',
+    headerGradient: 'linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(168, 85, 247, 0.25))',
+    featuredGradient: 'linear-gradient(135deg, rgba(244, 114, 182, 0.25), rgba(168, 85, 247, 0.3))',
     progressStart: '#f9a8d4',
     progressEnd: '#c4b5fd',
     special: true,
@@ -215,7 +215,6 @@ export const themeOptions: ThemeDefinition[] = [
     backgroundMuted: '#24072d',
     surface: 'rgba(39, 10, 52, 0.88)',
     surfaceElevated: 'rgba(44, 12, 60, 0.82)',
-    cardShadow: '0 18px 48px rgba(244, 114, 182, 0.22)',
     controlBg: 'rgba(79, 22, 104, 0.65)',
     controlHover: 'rgba(101, 32, 132, 0.78)',
     controlBorder: 'rgba(244, 114, 182, 0.38)',
@@ -226,7 +225,7 @@ export const themeOptions: ThemeDefinition[] = [
     chipText: '#fce7f3',
     tagBg: 'rgba(244, 114, 182, 0.28)',
     tagBorder: 'rgba(244, 114, 182, 0.4)',
-    glow: 'rgba(244, 114, 182, 0.48)'
+    glow: 'rgba(244, 114, 182, 0.2)'
   },
   {
     id: 'starlight',

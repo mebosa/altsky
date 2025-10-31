@@ -4,6 +4,7 @@
   import Tabs from '$lib/ui/Tabs.svelte';
   import StatChip from '$lib/components/StatChip.svelte';
   import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
+  import { iconPack, iconPath } from '$lib/iconPack';
   import { timeAgo, formatNumber, formatPercent, formatLargeNumber } from '$lib/utils';
 
   export let params: { name: string; profileId: string };
@@ -31,6 +32,8 @@
     count: number;
     rarity?: string | null;
     lore: string[];
+    icon_url?: string | null;
+    leather_color?: string | null;
   };
 
   type ProfileSummaryResponse = {
@@ -73,14 +76,14 @@
 
   const SITE_BASE = import.meta.env.VITE_SITE_BASE ?? 'https://altsky.dev';
 
-  const tabs = [
-    { id: 'summary', label: 'Overview' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'stats', label: 'Stats' },
-    { id: 'slayer', label: 'Slayer' },
-    { id: 'dungeons', label: 'Dungeons' },
-    { id: 'wardrobe', label: 'Wardrobe' }
-  ];
+const tabs = [
+  { id: 'summary', label: 'Overview' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'stats', label: 'Stats' },
+  { id: 'slayer', label: 'Slayer' },
+  { id: 'dungeons', label: 'Dungeons' },
+  { id: 'wardrobe', label: 'Wardrobe' }
+];
 
   const skillOrder: { key: string; label: string }[] = [
     { key: 'farming', label: 'Farming' },
@@ -95,20 +98,6 @@
     { key: 'runecrafting', label: 'Runecrafting' },
     { key: 'social', label: 'Social' }
   ];
-
-  const skillIcons: Record<string, string> = {
-    farming: '/skills/farming.png',
-    mining: '/skills/mining.png',
-    combat: '/skills/combat.png',
-    foraging: '/skills/foraging.png',
-    fishing: '/skills/fishing.png',
-    enchanting: '/skills/enchanting.png',
-    alchemy: '/skills/alchemy.png',
-    taming: '/skills/taming.png',
-    carpentry: '/skills/carpentry.png',
-    runecrafting: '/skills/runecrafting.png',
-    social: '/skills/social.png'
-  };
 
   const statLabels: Record<string, string> = {
     health: 'Health',
@@ -134,16 +123,43 @@
     vampire: 'Riftstalker Bloodfiend'
   };
 
-  const dungeonClassLabels: Record<string, string> = {
-    healer: 'Healer',
-    mage: 'Mage',
-    berserk: 'Berserk',
-    archer: 'Archer',
-    tank: 'Tank'
-  };
+const dungeonClassLabels: Record<string, string> = {
+  healer: 'Healer',
+  mage: 'Mage',
+  berserk: 'Berserk',
+  archer: 'Archer',
+  tank: 'Tank'
+};
 
-  let player: Player | null = data.player;
+const WARDROBE_NUM_COLUMNS = 9;
+
+function buildWardrobeColumns(items: (WardrobeItem | null)[]) {
+  const columns: (WardrobeItem | null)[][] = Array.from({ length: WARDROBE_NUM_COLUMNS }, () => []);
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item) {
+      const columnIndex = item.slot % WARDROBE_NUM_COLUMNS;
+      columns[columnIndex].push(item);
+    }
+  }
+  return columns.filter(col => col.length > 0);
+}
+
+let player: Player | null = data.player;
   let summary: ProfileSummaryResponse | null = data.summary;
+  let wardrobeItems: (WardrobeItem | null)[] = [];
+  let wardrobeHasItems = false;
+  let firstBankColumns: (WardrobeItem | null)[][] = [];
+  let secondBankColumns: (WardrobeItem | null)[][] = [];
+
+  $: wardrobeItems = summary?.wardrobe?.items ?? [];
+  $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
+  $: {
+    const firstBankRaw = wardrobeItems.filter(item => item && item.slot < 36);
+    const secondBankRaw = wardrobeItems.filter(item => item && item.slot >= 36);
+    firstBankColumns = buildWardrobeColumns(firstBankRaw);
+    secondBankColumns = buildWardrobeColumns(secondBankRaw);
+  }
   let errorMsg = data.errorMsg ?? '';
   let loading = !summary && !errorMsg;
   let refreshing = false;
@@ -250,7 +266,7 @@
     </div>
 
     <div class="actions">
-      <a class="ghost" href={`/u/${params.name}`}>Back to profiles</a>
+      <a class="ghost" href="/">Back to home</a>
       <button class:loading={refreshing} on:click={refresh} type="button">
         {refreshing ? 'Refreshing...' : 'Refresh'}
       </button>
@@ -336,7 +352,7 @@
               <div class="skill-header">
                 <span class="skill-icon" aria-hidden="true">
                   <img
-                    src={skillIcons[skill.key]}
+                    src={iconPath($iconPack, skill.key)}
                     alt=""
                     loading="lazy"
                     width="28"
@@ -419,36 +435,116 @@
     {/if}
 
     {#if activeTab === 'wardrobe'}
-      <section class="wardrobe-grid">
-        {#each summary.wardrobe.items as item}
-          {#if item}
-            <div class={`card wardrobe-card ${rarityClass(item.rarity)} ${summary.wardrobe.equipped_slot === item.slot ? 'equipped' : ''}`}>
-              <div class="wardrobe-top">
-                <span class="slot">Slot {item.slot + 1}</span>
-                <span class="rarity">{item.rarity ?? 'Unknown'}</span>
-              </div>
-              <div class="item-name">{item.name}</div>
-              <div class="item-meta">Item ID: {item.id}</div>
-              {#if item.count > 1}
-                <div class="item-meta">Count: {item.count}</div>
-              {/if}
-              {#if item.lore.length}
-                <div class="lore">
-                  {#each item.lore.slice(0, 8) as line}
-                    <p>{line}</p>
-                  {/each}
-                </div>
-              {/if}
+      {#if wardrobeHasItems}
+        <section class="wardrobe-grid">
+          {#each firstBankColumns as column}
+            <div class="wardrobe-column">
+              {#each column as item}
+                {#if item}
+                  <div class={`card wardrobe-card ${rarityClass(item.rarity)} ${summary.wardrobe.equipped_slot === item.slot ? 'equipped' : ''}`}>
+                    <div class="wardrobe-head">
+                      <div
+                        class={`wardrobe-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
+                        style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}>
+                        {#if item.icon_url}
+                          <img
+                            src={item.icon_url}
+                            alt={`${item.name} icon`}
+                            loading="lazy"
+                            width="64"
+                            height="64"
+                            on:error={(event) => {
+                              const target = event.currentTarget as HTMLImageElement;
+                              target.dataset.failed = '1';
+                              target.parentElement?.classList.add('placeholder');
+                            }} />
+                        {/if}
+                        <span class="placeholder-letter">{item.name.slice(0, 1).toUpperCase()}</span>
+                      </div>
+                      <div class="wardrobe-info">
+                        <div class="wardrobe-top">
+                          <span class="slot">Slot {item.slot + 1}</span>
+                          <span class="rarity">{item.rarity ?? 'Unknown'}</span>
+                        </div>
+                        <div class="item-name">{item.name}</div>
+                        <div class="item-meta">Item ID: {item.id}</div>
+                        {#if item.count > 1}
+                          <div class="item-meta">Count: {item.count}</div>
+                        {/if}
+                      </div>
+                    </div>
+                    {#if item.lore.length}
+                      <div class="lore">
+                        {#each item.lore.slice(0, 8) as line}
+                          <p>{line}</p>
+                        {/each}
+                      </div>
+                    {/if}
+                  </div>
+                {/if}
+              {/each}
             </div>
-          {/if}
-        {/each}
+          {/each}
+        </section>
 
-        {#if !summary.wardrobe.items.filter(Boolean).length}
-          <div class="card wardrobe-empty">
-            <p>The wardrobe is empty.</p>
-          </div>
+        {#if secondBankColumns.length > 0}
+          <h3 class="wardrobe-bank-title">Additional Wardrobe Slots</h3>
+          <section class="wardrobe-grid">
+            {#each secondBankColumns as column}
+              <div class="wardrobe-column">
+                {#each column as item}
+                  {#if item}
+                    <div class={`card wardrobe-card ${rarityClass(item.rarity)} ${summary.wardrobe.equipped_slot === item.slot ? 'equipped' : ''}`}>
+                      <div class="wardrobe-head">
+                        <div
+                          class={`wardrobe-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
+                          style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}>
+                          {#if item.icon_url}
+                            <img
+                              src={item.icon_url}
+                              alt={`${item.name} icon`}
+                              loading="lazy"
+                              width="64"
+                              height="64"
+                              on:error={(event) => {
+                                const target = event.currentTarget as HTMLImageElement;
+                                target.dataset.failed = '1';
+                                target.parentElement?.classList.add('placeholder');
+                              }} />
+                          {/if}
+                          <span class="placeholder-letter">{item.name.slice(0, 1).toUpperCase()}</span>
+                        </div>
+                        <div class="wardrobe-info">
+                          <div class="wardrobe-top">
+                            <span class="slot">Slot {item.slot + 1}</span>
+                            <span class="rarity">{item.rarity ?? 'Unknown'}</span>
+                          </div>
+                          <div class="item-name">{item.name}</div>
+                          <div class="item-meta">Item ID: {item.id}</div>
+                          {#if item.count > 1}
+                            <div class="item-meta">Count: {item.count}</div>
+                          {/if}
+                        </div>
+                      </div>
+                      {#if item.lore.length}
+                        <div class="lore">
+                          {#each item.lore.slice(0, 8) as line}
+                            <p>{line}</p>
+                          {/each}
+                        </div>
+                      {/if}
+                    </div>
+                  {/if}
+                {/each}
+              </div>
+            {/each}
+          </section>
         {/if}
-      </section>
+      {:else}
+        <div class="card wardrobe-empty">
+          <p>The wardrobe is empty.</p>
+        </div>
+      {/if}
     {/if}
   {/if}
 </div>
@@ -477,8 +573,6 @@
     display: flex;
     justify-content: space-between;
     gap: 32px;
-    backdrop-filter: blur(18px);
-    box-shadow: var(--theme-card-shadow);
     transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
   }
 
@@ -584,8 +678,6 @@
     border: 1px solid var(--theme-surface-border);
     border-radius: 20px;
     padding: 22px 24px;
-    box-shadow: var(--theme-card-shadow);
-    backdrop-filter: blur(12px);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -783,22 +875,130 @@
   }
 
   .wardrobe-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    display: flex;
     gap: 18px;
+    overflow-x: auto;
+    padding-bottom: 10px; /* Add some padding for scrollbar */
+  }
+
+  .wardrobe-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 280px;
+  }
+
+  .wardrobe-bank-title {
+    margin-top: 32px;
+    margin-bottom: 16px;
+    color: var(--theme-text-primary);
+    font-size: 1.5rem;
   }
 
   .wardrobe-card {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     border-width: 1px;
   }
 
   .wardrobe-card.equipped {
     border-width: 2px;
     box-shadow: 0 0 20px rgba(250, 204, 21, 0.35);
+  }
+
+  .wardrobe-head {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .wardrobe-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .wardrobe-icon img {
+    width: min(90%, 56px);
+    height: min(90%, 56px);
+    object-fit: contain;
+    border-radius: 18px;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.38);
+    background:
+      radial-gradient(120% 120% at 30% 25%, rgba(255, 255, 255, 0.32), rgba(59, 130, 246, 0) 58%),
+      radial-gradient(100% 100% at 75% 80%, rgba(147, 51, 234, 0.22), rgba(15, 23, 42, 0) 62%),
+      rgba(15, 23, 42, 0.7);
+    padding: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .wardrobe-icon img[data-failed='1'] {
+    display: none;
+  }
+
+  .wardrobe-icon.leather {
+    border-color: rgba(148, 163, 184, 0.45);
+    background:
+      radial-gradient(140% 140% at 28% 18%, rgba(255, 255, 255, 0.25), transparent 72%),
+      linear-gradient(160deg, color-mix(in srgb, var(--leather-color, #8b5cf6) 70%, rgba(15, 23, 42, 0.6)), rgba(15, 23, 42, 0.65));
+  }
+
+  .wardrobe-icon.leather::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 16px;
+    background: var(--leather-color, rgba(59, 130, 246, 0.6));
+    opacity: 0.55;
+    filter: saturate(1.1);
+  }
+
+  .wardrobe-icon.leather img {
+    filter: saturate(1.35) brightness(1.1);
+  }
+
+  .wardrobe-icon.leather.placeholder {
+    background: linear-gradient(150deg, color-mix(in srgb, var(--leather-color, rgba(59, 130, 246, 0.6)) 65%, rgba(15, 23, 42, 0.58)), rgba(15, 23, 42, 0.62));
+  }
+
+  .wardrobe-icon.leather.placeholder::before {
+    opacity: 0.75;
+  }
+
+  .placeholder-letter {
+    display: none;
+    font-weight: 700;
+    font-size: 2.5rem;
+    color: var(--theme-text-secondary);
+    position: relative;
+    z-index: 2;
+  }
+
+  .wardrobe-icon.placeholder {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.26), rgba(147, 51, 234, 0.28));
+    border-color: rgba(148, 163, 184, 0.35);
+  }
+
+  .wardrobe-icon.placeholder .placeholder-letter {
+    display: block;
+  }
+
+  .wardrobe-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .wardrobe-top {
@@ -837,6 +1037,14 @@
   .wardrobe-empty {
     text-align: center;
     color: var(--theme-text-soft);
+  }
+
+  :global(body[data-icon-pack='flufsky']) .wardrobe-icon img {
+    filter: saturate(1.12) contrast(1.05) brightness(1.08);
+  }
+
+  :global(body[data-icon-pack='flufsky']) .wardrobe-icon.placeholder {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.32), rgba(56, 189, 248, 0.28));
   }
 
   .alert {

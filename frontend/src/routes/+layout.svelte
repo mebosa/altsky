@@ -2,16 +2,25 @@
   import { onMount, onDestroy } from 'svelte';
   import ThemePicker from '$lib/components/ThemePicker.svelte';
   import { theme } from '$lib/theme';
+  import { iconPack } from '$lib/iconPack';
 
   let teardownBackground: (() => void) | undefined;
+  let teardownIconPack: (() => void) | undefined;
 
   onMount(() => {
     theme.init();
+    iconPack.init();
+    teardownIconPack = iconPack.subscribe((pack) => {
+      if (typeof document !== 'undefined') {
+        document.body.dataset.iconPack = pack.id;
+      }
+    });
     teardownBackground = initDynamicBackground();
   });
 
   onDestroy(() => {
     teardownBackground?.();
+    teardownIconPack?.();
   });
 
   function initDynamicBackground() {
@@ -277,20 +286,7 @@
     mix-blend-mode: lighten;
   }
 
-  :global(body[data-theme='catgirl'])::after {
-    content: '';
-    position: fixed;
-    width: 220px;
-    height: 120px;
-    top: -20px;
-    right: 10%;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at 30% 70%, rgba(255, 228, 251, 0.65), transparent 72%),
-      radial-gradient(circle at 70% 68%, rgba(223, 173, 255, 0.55), transparent 80%);
-    clip-path: polygon(50% 10%, 65% 0, 80% 12%, 100% 50%, 80% 90%, 50% 70%, 20% 90%, 0 50%, 20% 12%, 35% 0);
-    filter: drop-shadow(0 18px 26px rgba(244, 114, 182, 0.35));
-  }
+
 
   :global(html.theme-animating *),
   :global(html.theme-animating *::before),

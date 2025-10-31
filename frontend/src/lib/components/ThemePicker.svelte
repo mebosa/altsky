@@ -1,11 +1,32 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import CaretDownIcon from '$lib/icons/CaretDownIcon.svelte';
   import { theme, themeOptions } from '$lib/theme';
+  import { iconPack, iconPackOptions } from '$lib/iconPack';
 
   let expanded = false;
   let pointerCoarse = false;
   let mediaQuery: MediaQueryList | null = null;
+
+  const dispatch = createEventDispatcher();
+
+  function clickOutside(node: HTMLElement) {
+    const handleClick = (event: MouseEvent) => {
+      if (!node.contains(event.target as Node)) {
+        setTimeout(() => {
+          expanded = false;
+        }, 0);
+      }
+    };
+
+    document.addEventListener('click', handleClick);
+
+    return {
+      destroy() {
+        document.removeEventListener('click', handleClick);
+      }
+    };
+  }
 
   onMount(() => {
     if (typeof window === 'undefined') return;
@@ -34,7 +55,7 @@
     theme.select(id);
   }
 
-  function showPalette() {
+  function showFromToggle() {
     if (!pointerCoarse) {
       expanded = true;
     }
@@ -61,24 +82,28 @@
       expanded = !expanded;
     }
   }
+
+  function selectPack(id: string) {
+    iconPack.select(id);
+  }
 </script>
 
 <aside
   class="palette-shell"
-  class:expanded={expanded}
+  class:expanded
   data-mode={$theme.mode}
-  on:mouseenter={showPalette}
   on:mouseleave={hidePalette}
   on:focusin={() => (expanded = true)}
   on:focusout={handleFocusOut}
->
+  use:clickOutside
+  style={`pointer-events: ${expanded ? 'auto' : 'none'}`}>
   <button
     type="button"
     class="toggle"
     on:click={togglePalette}
+    on:mouseenter={showFromToggle}
     aria-label={expanded ? 'Hide theme palette' : 'Show theme palette'}
-    aria-expanded={expanded}
-  >
+    aria-expanded={expanded}>
     <CaretDownIcon />
   </button>
   <div class="panel" aria-hidden={!expanded}>
@@ -105,6 +130,21 @@
           {/if}
         </button>
       {/each}
+    </div>
+    <div class="icon-pack">
+      <span class="subtitle">Item Style</span>
+      <div class="pack-options">
+        {#each iconPackOptions as pack}
+          <button
+            type="button"
+            class:active={$iconPack.id === pack.id}
+            on:click={() => selectPack(pack.id)}
+            aria-pressed={$iconPack.id === pack.id}
+          >
+            {pack.label}
+          </button>
+        {/each}
+      </div>
     </div>
   </div>
 </aside>
@@ -134,6 +174,7 @@
     justify-content: center;
     cursor: pointer;
     backdrop-filter: blur(10px);
+    pointer-events: auto;
     transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
   }
 
@@ -192,7 +233,7 @@
     gap: 6px;
   }
 
-  button {
+  .swatches button {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -208,33 +249,33 @@
       background 0.25s ease;
   }
 
-  button.light {
+  .swatches button.light {
     background: rgba(255, 255, 255, 0.78);
     color: var(--theme-text-secondary);
   }
 
-  button.special {
+  .swatches button.special {
     background: rgba(244, 114, 182, 0.22);
   }
 
-  button:hover,
-  button:focus-visible {
+  .swatches button:hover,
+  .swatches button:focus-visible {
     transform: translateY(-2px);
     outline: none;
   }
 
-  button.selected {
+  .swatches button.selected {
     border-color: var(--theme-accent);
     box-shadow: 0 12px 26px var(--theme-glow);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
   }
 
-  button.light.selected {
+  .swatches button.light.selected {
     box-shadow: 0 12px 22px rgba(15, 23, 42, 0.16);
     border-color: rgba(15, 23, 42, 0.2);
   }
 
-  button.special.selected {
+  .swatches button.special.selected {
     box-shadow: 0 14px 30px rgba(244, 114, 182, 0.4);
   }
 
@@ -249,9 +290,10 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    isolation: isolate;
   }
 
-  button.selected .chip {
+  .swatches button.selected .chip {
     box-shadow: 0 8px 18px var(--theme-glow);
   }
 
@@ -263,8 +305,8 @@
     pointer-events: none;
   }
 
-  button[data-theme='catgirl'] .chip::before,
-  button[data-theme='catgirl'] .chip::after {
+  .swatches button[data-theme='catgirl'] .chip::before,
+  .swatches button[data-theme='catgirl'] .chip::after {
     content: '';
     position: absolute;
     width: 9px;
@@ -273,20 +315,21 @@
     background: var(--swatch-primary);
     clip-path: polygon(50% 0, 0 100%, 100% 100%);
     filter: drop-shadow(0 2px 6px rgba(244, 114, 182, 0.45));
+    z-index: -1;
   }
 
-  button[data-theme='catgirl'] .chip::before {
+  .swatches button[data-theme='catgirl'] .chip::before {
     left: 5px;
     transform: rotate(-8deg);
   }
 
-  button[data-theme='catgirl'] .chip::after {
+  .swatches button[data-theme='catgirl'] .chip::after {
     right: 5px;
     transform: rotate(8deg);
     background: var(--swatch-secondary);
   }
 
-  button[data-theme='catgirl'] .face {
+  .swatches button[data-theme='catgirl'] .face {
     display: block;
   }
 
@@ -300,13 +343,13 @@
     text-align: center;
   }
 
-  button:hover .name,
-  button:focus-visible .name {
+  .swatches button:hover .name,
+  .swatches button:focus-visible .name {
     opacity: 0.45;
     transform: translateY(0);
   }
 
-  button.selected .name {
+  .swatches button.selected .name {
     opacity: 1;
     transform: translateY(0);
   }
@@ -318,8 +361,59 @@
     transition: opacity 0.2s ease;
   }
 
-  button.special.selected .marker {
+  .swatches button.special.selected .marker {
     opacity: 1;
+  }
+
+  .icon-pack {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .subtitle {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    opacity: 0.6;
+  }
+
+  .pack-options {
+    display: inline-flex;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.4);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+  }
+
+  .pack-options button {
+    border: none;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--theme-text-soft);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  .pack-options button:hover,
+  .pack-options button:focus-visible {
+    color: var(--theme-text-secondary);
+    background: rgba(59, 130, 246, 0.18);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .pack-options button.active {
+    background: rgba(59, 130, 246, 0.26);
+    color: #fff;
+    box-shadow: 0 10px 18px rgba(59, 130, 246, 0.32);
   }
 
   @media (max-width: 720px) {

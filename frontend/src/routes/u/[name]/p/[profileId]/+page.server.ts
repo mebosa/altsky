@@ -1,14 +1,15 @@
 import type { PageServerLoad } from './$types';
-import { API_BASE } from '$lib/api';
+import { resolveApiBase } from '$lib/api';
 
 type PlayerResponse = { name: string; uuid: string };
 
-export const load: PageServerLoad = async ({ params, fetch }) => {
+export const load: PageServerLoad = async ({ params, fetch, url }) => {
+  const apiBase = resolveApiBase({ url });
   const name = params.name;
   const profileId = params.profileId;
 
   try {
-    const playerRes = await fetch(`${API_BASE}/api/player/${encodeURIComponent(name)}`);
+    const playerRes = await fetch(`${apiBase}/api/player/${encodeURIComponent(name)}`);
 
     if (!playerRes.ok) {
       return {
@@ -21,7 +22,7 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
     const player = (await playerRes.json()) as PlayerResponse;
 
     const summaryRes = await fetch(
-      `${API_BASE}/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(profileId)}`
+      `${apiBase}/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(profileId)}`
     );
 
     if (!summaryRes.ok) {

@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional
 
 import nbtlib
 
+from .item_textures import resolve_item_icon
+
 RARITY_KEYWORDS = {
     "COMMON",
     "UNCOMMON",
@@ -97,6 +99,25 @@ def _detect_rarity(extra: Dict[str, Any], lore: List[str]) -> Optional[str]:
     return None
 
 
+def _extract_leather_color(display: nbtlib.Compound, extra: nbtlib.Compound) -> Optional[str]:
+    color_tag = None
+    if display and "color" in display:
+        color_tag = display.get("color")
+    elif extra and "color" in extra:
+        color_tag = extra.get("color")
+
+    if color_tag is None:
+        return None
+
+    try:
+        value = int(_tag_value(color_tag))
+    except (TypeError, ValueError):
+        return None
+
+    value = max(0, min(value, 0xFFFFFF))
+    return f"#{value:06x}"
+
+
 def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Decode the wardrobe NBT payload into a list of slots with plain text metadata.
@@ -131,6 +152,7 @@ def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
 
         extra_id = _tag_value(extra.get("id")) if extra else None
         rarity = _detect_rarity(extra, lore)
+        leather_color = _extract_leather_color(display, extra)
 
         slots.append(
             {
@@ -141,6 +163,8 @@ def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
                 "count": count,
                 "rarity": rarity,
                 "lore": lore,
+                "icon_url": resolve_item_icon(str(extra_id or item_id), item_id),
+                "leather_color": leather_color,
             }
         )
 
