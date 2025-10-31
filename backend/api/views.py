@@ -1,59 +1,112 @@
-﻿from rest_framework.decorators import api_view
-from rest_framework.response import Response
+import os
+from typing import Any, Dict, Optional, Tuple
+
+import requests
 from django.core.cache import cache
-import requests, os
+from rest_framework.decorators import api_view
+from rest_framework.request import Request
+from rest_framework.response import Response
 
-@api_view(['GET'])
-def health(_):
-    return Response({'ok': True})
+from .domain.profile_summary import summarize_profile
 
-@api_view(['GET'])
-def player_lookup(_, name: str):
-    key = f'uuid:{name.lower()}'
-    uuid = cache.get(key)
-    if not uuid:
-        r = requests.get(f'https://api.mojang.com/users/profiles/minecraft/{name}', timeout=5)
-        if r.status_code == 204 or r.status_code == 404:
-            return Response({'error': 'player_not_found'}, status=404)
-        r.raise_for_status()
-        uuid = r.json().get('id')
-        cache.set(key, uuid, 3600)
-    return Response({'name': name, 'uuid': uuid})
+HYPIXEL_PROFILES_URL = "https://api.hypixel.net/v2/skyblock/profiles"
 
-@api_view(['GET'])
-def hypixel_profile(_, uuid: str):
-    """
-    SkyBlock profile(s) from Hypixel for the given Minecraft UUID.
-    """
-    key = os.getenv('HYPIXEL_API_KEY')
-    if not key:
-        return Response({'error': 'HYPIXEL_API_KEY missing'}, status=500)
+
+def _fetch_hypixel_profiles(uuid: str) -> Tuple[Optional[Dict[str, Any]], Optional[Response]]:
+    api_key = os.getenv("HYPIXEL_API_KEY")
+    if not api_key:
+        return None, Response({"error": "HYPIXEL_API_KEY missing"}, status=500)
 
     try:
-        r = requests.get(
-            'https://api.hypixel.net/v2/skyblock/profiles',
-            params={'uuid': uuid},
-            headers={'API-Key': key},
-            timeout=12
+        response = requests.get(
+            HYPIXEL_PROFILES_URL,
+            params={"uuid": uuid},
+            headers={"API-Key": api_key},
+            timeout=12,
         )
-    except requests.RequestException as e:
-        return Response({'error': 'hypixel_request_failed', 'detail': str(e)}, status=502)
+    except requests.RequestException as exc:
+        return None, Response({"error": "hypixel_request_failed", "detail": str(exc)}, status=502)
 
-    # 과도한 요청
-    if r.status_code == 429:
-        return Response({'error': 'rate_limited'}, status=429)
+    if response.status_code == 429:
+        return None, Response({"error": "rate_limited"}, status=429)
 
-    # v2는 보통 200을 주고 success 플래그/데이터로 상태를 알려줌
-    if r.status_code == 200:
-        body = r.json()
-        # success가 False면 응답 본문 통째로 전달(키 오류 등)
-        if body.get('success') is False:
-            return Response({'error': 'hypixel_error', 'detail': body}, status=502)
-        profiles = body.get('profiles')
-        if not profiles:
-            # 스카이블럭을 한 번도 안 한 계정
-            return Response({'error': 'no_profiles'}, status=404)
-        return Response(body)
+    if response.status_code != 200:
+        return None, Response(
+            {"error": "hypixel_http_error", "status": response.status_code, "text": response.text},
+            status=502,
+        )
 
-    # 그 외 상태코드(400/404 등)도 메시지 노출
-    return Response({'error': 'hypixel_http_error', 'status': r.status_code, 'text': r.text}, status=502)
+    body = response.json()
+    if body.get("success") is False:
+        return None, Response({"error": "hypixel_error", "detail": body}, status=502)
+
+    profiles = body.get("profiles") or []
+    if not profiles:
+        return None, Response({"error": "no_profiles"}, status=404)
+
+    return body, None
+
+
+@api_view(["GET"])
+def health(_: Request) -> Response:
+    return Response({"ok": True})
+
+
+@api_view(["GET"])
+def player_lookup(_: Request, name: str) -> Response:
+    cache_key = f"uuid:{name.lower()}"
+    uuid = cache.get(cache_key)
+    if not uuid:
+        result = requests.get(
+            f"https://api.mojang.com/users/profiles/minecraft/{name}",
+            timeout=5,
+        )
+        if result.status_code in (204, 404):
+            return Response({"error": "player_not_found"}, status=404)
+        result.raise_for_status()
+        uuid = result.json().get("id")
+        cache.set(cache_key, uuid, 3600)
+    return Response({"name": name, "uuid": uuid})
+
+
+@api_view(["GET"])
+def hypixel_profile(_: Request, uuid: str) -> Response:
+    """
+    Raw SkyBlock profile list from Hypixel for the given Minecraft UUID.
+    """
+    body, error = _fetch_hypixel_profiles(uuid)
+    if error:
+        return error
+    return Response(body)
+
+
+@api_view(["GET"])
+def hypixel_profile_summary(_: Request, uuid: str, profile_id: str) -> Response:
+    """
+    Enriched summary for a specific profile belonging to the given UUID.
+    """
+    body, error = _fetch_hypixel_profiles(uuid)
+    if error:
+        return error
+
+    profiles = body.get("profiles") or []
+    target = None
+    for candidate in profiles:
+        if candidate.get("profile_id") == profile_id or candidate.get("uuid") == profile_id:
+            target = candidate
+            break
+
+    if not target:
+        return Response({"error": "profile_not_found"}, status=404)
+
+    summary = summarize_profile(uuid, target)
+    if not summary:
+        return Response({"error": "member_not_in_profile"}, status=404)
+
+    return Response(
+        {
+            "ok": True,
+            "last_updated": body.get("last_updated") or body.get("lastUpdated"),
+            **summary,
+        }
+    )

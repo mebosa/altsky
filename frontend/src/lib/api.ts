@@ -1,20 +1,25 @@
-﻿export const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:8000').replace(/\/$/,'');
-type Json = any;
+﻿// src/lib/api.ts
+export const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:8000').replace(/\/$/,'');
 
-export async function get<T = Json>(path: string, opts?: { query?: Record<string, string | number | boolean> }) {
-  let url = `${API_BASE}${path}`;
-  if (opts?.query) {
-    const qs = new URLSearchParams();
-    for (const [k,v] of Object.entries(opts.query)) qs.set(k, String(v));
-    url += `?${qs.toString()}`;
-  }
-  const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  let body: any = null;
-  try { body = await r.json(); } catch { /* ignore */ }
+type GetOpts = {
+  query?: Record<string, string | number | boolean | undefined | null>;
+  signal?: AbortSignal;
+};
 
-  if (!r.ok) {
-    const msg = body?.error || body?.detail || `${r.status}`;
-    throw new Error(String(msg));
+function buildQuery(q?: GetOpts['query']) {
+  if (!q) return '';
+  const usp = new URLSearchParams();
+  for (const [k, v] of Object.entries(q)) {
+    if (v === undefined || v === null) continue;
+    usp.set(k, String(v));
   }
-  return body as T;
+  const s = usp.toString();
+  return s ? `?${s}` : '';
+}
+
+export async function get<T>(path: string, opts: GetOpts = {}): Promise<T> {
+  const url = `${API_BASE}${path}${buildQuery(opts.query)}`;
+  const r = await fetch(url, { signal: opts.signal });
+  if (!r.ok) throw new Error(`${r.status}`);
+  return r.json();
 }

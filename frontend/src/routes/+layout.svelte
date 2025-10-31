@@ -1,8 +1,4 @@
-﻿<script>
-  // 글로벌 레이아웃
-</script>
-
-<div class='container'>
+<div class="container">
   <slot />
 </div>
 
