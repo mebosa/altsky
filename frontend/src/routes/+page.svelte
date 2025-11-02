@@ -24,38 +24,12 @@
         return;
       }
 
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
-
-        const response = await fetch(`/api/player/${encodeURIComponent(sanitizedValue)}`, {
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            searchError = `Player "${sanitizedValue}" not found`;
-            return;
-          }
-          throw new Error('Failed to search player');
-        }
-
-        const data = await response.json();
-
-        await saveRecent(sanitizedValue);
-        recent = loadRecent();
-        await goto(`/u/${encodeURIComponent(sanitizedValue)}`, { replaceState: false });
-      } catch (error) {
-        console.error('API error:', error);
-        if (error.name === 'AbortError') {
-          searchError = 'Request timed out. Please try again.';
-        } else {
-          searchError = error instanceof Error ? error.message : 'Failed to search player';
-        }
-        return;
-      }
+      // Don't prefetch player on the home page. Navigate immediately to the player route
+      // and let the player page handle loading / errors. This ensures the search box
+      // is removed as soon as we navigate.
+      await saveRecent(sanitizedValue);
+      recent = loadRecent();
+      await goto(`/u/${encodeURIComponent(sanitizedValue)}`, { replaceState: false });
     } catch (error) {
       console.error('Navigation error:', error);
       searchError = 'An unexpected error occurred';
