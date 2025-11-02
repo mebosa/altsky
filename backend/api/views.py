@@ -62,7 +62,9 @@ def player_lookup(_: Request, name: str) -> Response:
     if not name.replace('_', '').isalnum():  # Only alphanumeric and underscore allowed
         return Response({'error': 'invalid_username', 'message': 'Username contains invalid characters'}, status=400)
     
-    cache_key = f'uuid:{name.lower()}'
+    # Case-insensitive search
+    name = name.lower()
+    cache_key = f'uuid:{name}'
     try:
         uuid = cache.get(cache_key)
         
@@ -110,14 +112,16 @@ def player_lookup(_: Request, name: str) -> Response:
         # Fetch Hypixel profiles after successful UUID lookup
         body, error = _fetch_hypixel_profiles(uuid)
         if error:
+            detail = error.get('detail')
             payload = {
                 'name': name,
                 'uuid': uuid,
                 'profiles': None,
                 'error': error.get('error'),
+                'message': detail if isinstance(detail, str) else error.get('error'),
             }
-            if 'detail' in error:
-                payload['error_detail'] = error['detail']
+            if detail is not None:
+                payload['error_detail'] = detail
             if 'status' in error:
                 payload['error_status'] = error['status']
 

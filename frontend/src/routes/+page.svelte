@@ -25,33 +25,53 @@
       }
 
       try {
-        const response = await fetch(`/api/player/${encodeURIComponent(sanitizedValue)}`);
-        const data = await response.json();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+
+        const response = await fetch(`/api/player/${encodeURIComponent(sanitizedValue)}`, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           if (response.status === 404) {
             searchError = `Player "${sanitizedValue}" not found`;
             return;
           }
-          throw new Error(data.message || 'Failed to search player');
+          throw new Error('Failed to search player');
         }
+
+        const data = await response.json();
 
         await saveRecent(sanitizedValue);
         recent = loadRecent();
         await goto(`/u/${encodeURIComponent(sanitizedValue)}`, { replaceState: false });
       } catch (error) {
         console.error('API error:', error);
-        searchError = error instanceof Error ? error.message : 'Failed to search player';
+        if (error.name === 'AbortError') {
+          searchError = 'Request timed out. Please try again.';
+        } else {
+          searchError = error instanceof Error ? error.message : 'Failed to search player';
+        }
+        return;
       }
     } catch (error) {
       console.error('Navigation error:', error);
       searchError = 'An unexpected error occurred';
+      return;
+    }
+  }
+
+  async function handleSearch() {
+    if (name.trim()) {
+      await toUser(name);
     }
   }
 
   function onKey(event: KeyboardEvent) {
     if (event.key === 'Enter') {
-      toUser(name);
+      handleSearch();
     }
   }
 
@@ -185,11 +205,11 @@
   <div class="row">
     <input
       placeholder="e.g. Technoblade"
-      value={name}
-      on:input={(event) => (name = (event.target as HTMLInputElement).value)}
+      bind:value={name}
+      on:input={() => (searchError = '')}
       on:keydown={onKey}
     />
-    <button type="button" on:click={() => toUser(name)}>Search</button>
+    <button type="button" on:click={handleSearch}>Search</button>
   </div>
   
   {#if searchError}

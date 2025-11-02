@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-  import { onMount, afterNavigate } from 'svelte';
+  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { get } from '$lib/api';
   import { timeAgo, saveRecent } from '$lib/utils';
@@ -140,14 +140,6 @@
     padding: 8px 16px;
   }
 
-  .row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin: 8px 0 20px;
-  }
-
   button {
     padding: 10px 16px;
     border-radius: 12px;
@@ -245,11 +237,6 @@
   }
 
   @media (max-width: 640px) {
-    .row {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
     button,
     button.ghost {
       width: 100%;
