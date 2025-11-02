@@ -183,10 +183,26 @@ function buildQuery(q?: GetOpts['query']) {
 }
 
 export async function get<T>(path: string, opts: GetOpts = {}): Promise<T> {
-  const base = resolveApiBase();
-  const url = `${base}${path}${buildQuery(opts.query)}`;
-  const r = await fetch(url, { signal: opts.signal });
-  if (!r.ok) throw new Error(`${r.status}`);
-  return r.json();
+  try {
+    const base = resolveApiBase();
+    const url = `${base}${path}${buildQuery(opts.query)}`;
+    const r = await fetch(url, { 
+      signal: opts.signal,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    const data = await r.json();
+    
+    if (!r.ok) {
+      throw new Error(data.error || `HTTP error! status: ${r.status}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
+  }
 }
 

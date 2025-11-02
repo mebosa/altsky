@@ -1,17 +1,52 @@
-<script lang="ts">
+﻿<script lang="ts">
   import { goto } from '$app/navigation';
   import { debounce, loadRecent, saveRecent } from '$lib/utils';
 
   let name = '';
   let recent: string[] = [];
+  let searchError = '';
 
-  function toUser(raw: string) {
-    console.log('toUser called with:', raw);
+  async function toUser(raw: string) {
     const value = raw.trim();
     if (!value) return;
-    saveRecent(value);
-    recent = loadRecent();
-    goto(`/u/${encodeURIComponent(value)}`);
+    
+    try {
+      searchError = '';
+      // 마인크래프트 유저네임 검증 (영문, 숫자, _만 허용)
+      const sanitizedValue = value.replace(/[^a-zA-Z0-9_]/g, '');
+      if (!sanitizedValue) {
+        searchError = 'Invalid username format. Only letters, numbers, and underscores are allowed.';
+        return;
+      }
+
+      if (sanitizedValue.length > 16) {
+        searchError = 'Username is too long. Maximum length is 16 characters.';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/player/${encodeURIComponent(sanitizedValue)}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            searchError = `Player "${sanitizedValue}" not found`;
+            return;
+          }
+          throw new Error(data.message || 'Failed to search player');
+        }
+
+        await saveRecent(sanitizedValue);
+        recent = loadRecent();
+        await goto(`/u/${encodeURIComponent(sanitizedValue)}`, { replaceState: false });
+      } catch (error) {
+        console.error('API error:', error);
+        searchError = error instanceof Error ? error.message : 'Failed to search player';
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      searchError = 'An unexpected error occurred';
+    }
   }
 
   const debounced = debounce((value: string) => {
@@ -127,6 +162,15 @@
     margin: 0 0 24px;
   }
 
+  .error-message {
+    padding: 12px 16px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: rgb(239, 68, 68);
+    border-radius: 12px;
+    font-size: 0.95rem;
+  }
+
   @media (max-width: 640px) {
     .row {
       flex-direction: column;
@@ -149,8 +193,14 @@
       on:input={(event) => debounced((event.target as HTMLInputElement).value)}
       on:keydown={onKey}
     />
-    <button type="button" on:click={(event) => toUser((event.currentTarget.previousElementSibling as HTMLInputElement).value)}>Search</button>
+    <button type="button" on:click={() => toUser(name)}>Search</button>
   </div>
+  
+  {#if searchError}
+    <div class="error-message">
+      {searchError}
+    </div>
+  {/if}
 
   {#if recent.length}
     <div class="chips">

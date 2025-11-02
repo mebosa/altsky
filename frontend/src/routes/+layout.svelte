@@ -33,6 +33,11 @@
     let intervalId: ReturnType<typeof setInterval> | null = null;
     let idleTimeout: ReturnType<typeof setTimeout> | null = null;
     let pointerActive = false;
+    let currentX = 50;
+    let currentY = 50;
+    let targetX = 50;
+    let targetY = 50;
+    let isIdle = false;
 
     const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -41,7 +46,9 @@
       const primaryY = clamp(y, 0, 100);
       const secondaryX = clamp(primaryX + 26, 0, 100);
       const secondaryY = clamp(primaryY - 18, 0, 100);
-      const tertiaryX = clamp(primaryX + (primaryX > 50 ? -18 : 18), 0, 100);
+      // 부드러운 전환을 위해 sin 함수 사용
+      const offsetMultiplier = Math.sin((primaryX / 100) * Math.PI) * 18;
+      const tertiaryX = clamp(primaryX + offsetMultiplier, 0, 100);
       const tertiaryY = clamp(primaryY + 28, 0, 100);
 
       root.style.setProperty('--cursor-x', `${primaryX}%`);
@@ -52,22 +59,44 @@
       root.style.setProperty('--cursor-tertiary-y', `${tertiaryY}%`);
     };
 
+    const lerp = (start: number, end: number, t: number) => {
+      return start * (1 - t) + end * t;
+    };
+
     const animateTo = (x: number, y: number) => {
-      if (frame) window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => setPositions(x, y));
+      targetX = x;
+      targetY = y;
+      
+      if (!frame) {
+        const animate = () => {
+          const speed = isIdle ? 0.02 : 0.15;
+          currentX = lerp(currentX, targetX, speed);
+          currentY = lerp(currentY, targetY, speed);
+          setPositions(currentX, currentY);
+
+          if (Math.abs(currentX - targetX) > 0.01 || Math.abs(currentY - targetY) > 0.01) {
+            frame = requestAnimationFrame(animate);
+          } else {
+            frame = 0;
+          }
+        };
+        frame = requestAnimationFrame(animate);
+      }
     };
 
     const randomize = () => {
-      const x = 18 + Math.random() * 64;
-      const y = 14 + Math.random() * 60;
-      animateTo(x, y);
+      const angle = Math.random() * Math.PI * 2;
+      const distance = isIdle ? 15 : 5;
+      const x = targetX + Math.cos(angle) * distance;
+      const y = targetY + Math.sin(angle) * distance;
+      animateTo(clamp(x, 0, 100), clamp(y, 0, 100));
     };
 
     const startRandom = () => {
       if (intervalId) return;
       clearIdle();
       randomize();
-      intervalId = window.setInterval(() => randomize(), 2600 + Math.random() * 1600);
+      intervalId = window.setInterval(() => randomize(), isIdle ? 2000 : 800);
     };
 
     const stopRandom = () => {
@@ -76,14 +105,43 @@
       intervalId = null;
     };
 
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!pointerActive) return;
+      const { clientX, clientY } = event;
+      const x = (clientX / window.innerWidth) * 100;
+      const y = (clientY / window.innerHeight) * 100;
+      animateTo(x, y);
+
+      // Reset idle state
+      isIdle = false;
+      if (idleTimeout) {
+        clearTimeout(idleTimeout);
+      }
+      idleTimeout = setTimeout(() => {
+        isIdle = true;
+        startRandom();
+      }, 300); // 0.3초 후에 idle 상태로 전환
+    };
+
+    const enablePointer = () => {
+      if (pointerActive) return;
+      pointerActive = true;
+      window.addEventListener('pointermove', handlePointerMove);
+    };
+
+    const disablePointer = () => {
+      if (!pointerActive) return;
+      pointerActive = false;
+      window.removeEventListener('pointermove', handlePointerMove);
+    };
+
     const applyMode = (coarse: boolean) => {
       if (coarse) {
-        enablePointer(); // Enable pointermove for touch devices
-        startRandom();    // Also start random movement when idle
+        enablePointer();
+        startRandom();
       } else {
         stopRandom();
         enablePointer();
-        scheduleIdle();
       }
     };
 
@@ -94,18 +152,16 @@
     if (pointerQuery.addEventListener) {
       pointerQuery.addEventListener('change', handlePointerPreferenceChange);
     } else {
-      // Safari
       pointerQuery.addListener(handlePointerPreferenceChange);
     }
 
     const handleVisibility = () => {
       if (document.hidden) {
         stopRandom();
-        clearIdle();
+        isIdle = false;
       } else if (pointerQuery.matches) {
         startRandom();
       } else {
-        scheduleIdle();
         enablePointer();
       }
     };

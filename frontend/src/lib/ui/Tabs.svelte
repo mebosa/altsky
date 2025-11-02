@@ -4,12 +4,13 @@
   export let tabs: { id: string; label: string }[] = [];
   export let value: string;
 
-  const dispatch = createEventDispatcher<{ change: string }>();
+  const dispatch = createEventDispatcher<{ change: string; value: string }>();
 
   function select(id: string) {
     if (id === value) return;
     value = id;
     dispatch('change', id);
+    dispatch('value', id);
   }
 </script>
 
@@ -41,13 +42,19 @@
     color: var(--theme-text-secondary);
     cursor: pointer;
     font-size: 0.95rem;
-    transition: background 0.25s ease, color 0.25s ease, border 0.25s ease, transform 0.2s ease;
+    transition: all 0.25s ease;
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
   }
 
   button:hover {
     background: var(--theme-control-hover);
     transform: translateY(-2px);
+  }
+
+  button.value-active {
+    background: var(--theme-accent);
+    color: white;
+    border-color: var(--theme-accent);
   }
 
   .value-active {

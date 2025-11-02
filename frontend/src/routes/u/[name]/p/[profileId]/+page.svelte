@@ -319,6 +319,10 @@ let player: Player | null = data.player;
   let refreshing = false;
   let activeTab = 'summary';
 
+  $: {
+    console.log('Active tab changed:', activeTab);
+  }
+
   async function fetchProfile(force = false) {
     if (!player) {
       try {

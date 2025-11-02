@@ -1,208 +1,186 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import CaretDownIcon from '$lib/icons/CaretDownIcon.svelte';
   import { theme, themeOptions } from '$lib/theme';
   import { iconPack, iconPackOptions } from '$lib/iconPack';
 
   let expanded = false;
   let pointerCoarse = false;
-  let mediaQuery: MediaQueryList | null = null;
   let paletteShell: HTMLElement | null = null;
-  let idleRaf: number | null = null;
+  let idleFrame: number | null = null;
   let idleTimeout: number | null = null;
-  let ignoreNextFocus = false;
+  let mediaQuery: MediaQueryList | null = null;
+  let detachMedia: (() => void) | null = null;
 
   const dispatch = createEventDispatcher();
 
-  function clickOutside(node: HTMLElement) {
-    const handleClick = (event: MouseEvent) => {
-      if (!node.contains(event.target as Node)) {
-        setTimeout(() => {
-          expanded = false;
-        }, 0);
-      }
-    };
-
-    document.addEventListener('click', handleClick);
-
-    return {
-      destroy() {
-        document.removeEventListener('click', handleClick);
-      }
-    };
+  function clamp(value: number) {
+    return Math.max(0, Math.min(100, value));
   }
 
   function applyGlow(xPercent: number, yPercent: number) {
     if (!paletteShell) return;
-    const clamp = (value: number) => Math.max(0, Math.min(100, value));
     paletteShell.style.setProperty('--glow-x', `${clamp(xPercent)}%`);
     paletteShell.style.setProperty('--glow-y', `${clamp(yPercent)}%`);
   }
 
-  function stopIdleAnimation() {
-    if (idleRaf !== null) {
-      cancelAnimationFrame(idleRaf);
-      idleRaf = null;
-    }
-  }
-
-  function scheduleIdleAnimation(delay = 1600) {
-    if (idleTimeout !== null) {
-      clearTimeout(idleTimeout);
-    }
-    idleTimeout = window.setTimeout(() => {
-      stopIdleAnimation();
-      const tick = () => {
-        const t = performance.now() / 1000;
-        const x = 50 + Math.cos(t * 0.35) * 20;
-        const y = 48 + Math.sin(t * 0.28) * 18;
-        applyGlow(x, y);
-        idleRaf = requestAnimationFrame(tick);
-      };
-      idleRaf = requestAnimationFrame(tick);
-    }, delay);
-  }
-
-  function cancelIdleSchedule() {
+  function cancelIdleAnimation() {
     if (idleTimeout !== null) {
       clearTimeout(idleTimeout);
       idleTimeout = null;
     }
-  }
-
-  onMount(() => {
-    if (typeof window === 'undefined') return;
-
-    const setMode = (matches: boolean) => {
-      pointerCoarse = matches;
-      if (!pointerCoarse) {
-        expanded = false;
-      }
-    };
-
-    mediaQuery = window.matchMedia('(pointer: coarse)');
-    setMode(mediaQuery.matches);
-
-    const handler = (event: MediaQueryListEvent) => setMode(event.matches);
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery?.removeEventListener('change', handler);
+    if (idleFrame !== null) {
+      cancelAnimationFrame(idleFrame);
+      idleFrame = null;
     }
-
-    mediaQuery.addListener(handler);
-    return () => mediaQuery?.removeListener(handler);
-  });
-
-  onMount(() => {
-    applyGlow(50, 45);
-    scheduleIdleAnimation(0);
-  });
-
-  onDestroy(() => {
-    stopIdleAnimation();
-    cancelIdleSchedule();
-  });
-
-  function selectTheme(id: string) {
-    theme.select(id);
   }
 
-  function showFromToggle() {
+  function startIdleAnimation(delay = 1200) {
     if (pointerCoarse) return;
+    cancelIdleAnimation();
+    idleTimeout = window.setTimeout(() => {
+      const loop = (time: number) => {
+        const t = time / 1000;
+        const x = 50 + Math.cos(t * 0.4) * 18;
+        const y = 46 + Math.sin(t * 0.32) * 20;
+        applyGlow(x, y);
+        idleFrame = requestAnimationFrame(loop);
+      };
+      idleFrame = requestAnimationFrame(loop);
+    }, delay);
+  }
+
+  function openPalette() {
+    if (expanded) return;
     expanded = true;
+    cancelIdleAnimation();
   }
 
-  function hidePalette() {
-    if (pointerCoarse) return;
+  function closePalette() {
+    if (!expanded) return;
     expanded = false;
+    startIdleAnimation();
   }
 
   function togglePalette() {
-    if (pointerCoarse) {
-      expanded = !expanded;
-    } else {
-      expanded = !expanded;
-    }
-
     if (expanded) {
-      cancelIdleSchedule();
-      stopIdleAnimation();
-      scheduleIdleAnimation(0);
+      closePalette();
     } else {
-      ignoreNextFocus = true;
-      scheduleIdleAnimation(600);
-      // remove focus so focusin handler does not immediately reopen
-      queueMicrotask(() => {
-        const active = document.activeElement as HTMLElement | null;
-        if (active && paletteShell && paletteShell.contains(active)) {
-          active.blur();
-        }
-      });
+      openPalette();
     }
+  }
+
+  function handleToggleKey(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      togglePalette();
+    }
+  }
+
+  function handlePointerMove(event: MouseEvent) {
+    if (pointerCoarse || !paletteShell) return;
+    cancelIdleAnimation();
+    const rect = paletteShell.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    applyGlow(x, y);
+    startIdleAnimation();
+  }
+
+  function handleMouseEnter() {
+    if (pointerCoarse) return;
+    openPalette();
+    cancelIdleAnimation();
+  }
+
+  function handleMouseLeave() {
+    if (pointerCoarse) return;
+    closePalette();
+  }
+
+  function handleFocusOut(event: FocusEvent) {
+    if (!expanded) return;
+    const next = event.relatedTarget as Node | null;
+    if (next && paletteShell?.contains(next)) return;
+    closePalette();
+  }
+
+  function selectTheme(id: string) {
+    theme.select(id);
+    dispatch('theme', { id });
   }
 
   function selectPack(id: string) {
     iconPack.select(id);
   }
 
-  function handleFocusIn() {
-    if (pointerCoarse) return;
-    if (ignoreNextFocus) {
-      ignoreNextFocus = false;
-      return;
-    }
-    expanded = true;
+  function clickOutside(node: HTMLElement) {
+    const handle = (event: MouseEvent) => {
+      if (!expanded) return;
+      if (!node.contains(event.target as Node)) {
+        closePalette();
+      }
+    };
+    document.addEventListener('click', handle);
+    return {
+      destroy() {
+        document.removeEventListener('click', handle);
+      }
+    };
   }
 
-  function handleFocusOut(event: FocusEvent) {
-    if (pointerCoarse) return;
-    const target = event.relatedTarget as HTMLElement | null;
-    const current = event.currentTarget as HTMLElement;
-    if (target && current.contains(target)) {
-      return;
-    }
-    expanded = false;
-  }
+  onMount(() => {
+    if (typeof window === 'undefined') return;
+    applyGlow(50, 45);
+    startIdleAnimation(0);
 
-  function handlePointerMove(event: MouseEvent) {
-    if (pointerCoarse || !paletteShell) return;
-    const rect = paletteShell.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-    stopIdleAnimation();
-    cancelIdleSchedule();
-    applyGlow(x, y);
-    scheduleIdleAnimation();
-  }
+    const mq = window.matchMedia('(pointer: coarse)');
+    const updatePointerMode = (event?: MediaQueryListEvent) => {
+      pointerCoarse = event ? event.matches : mq.matches;
+      if (pointerCoarse) {
+        closePalette();
+      }
+    };
+    updatePointerMode();
 
-  function handleMouseLeave() {
-    if (!pointerCoarse) {
-      hidePalette();
+    if (mq.addEventListener) {
+      mq.addEventListener('change', updatePointerMode);
+      detachMedia = () => mq.removeEventListener('change', updatePointerMode);
+    } else {
+      // @ts-ignore addListener fallback for older browsers
+      mq.addListener(updatePointerMode);
+      detachMedia = () => {
+        // @ts-ignore removeListener fallback
+        mq.removeListener(updatePointerMode);
+      };
     }
-    scheduleIdleAnimation(600);
-  }
+
+    return () => {
+      detachMedia?.();
+      cancelIdleAnimation();
+    };
+  });
 </script>
+
 
 <aside
   bind:this={paletteShell}
   class="palette-shell"
   class:expanded
   data-mode={$theme.mode}
+  on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
   on:mousemove={handlePointerMove}
-  on:focusin={handleFocusIn}
-  on:focusout={handleFocusOut}
-  on:mouseenter={() => {
-    cancelIdleSchedule();
-    stopIdleAnimation();
-    if (!pointerCoarse) expanded = true;
+  on:focusin={() => {
+    if (!pointerCoarse) openPalette();
   }}
+  on:focusout={handleFocusOut}
   use:clickOutside>
   <button
     type="button"
     class="toggle"
-    on:click={togglePalette}
-    on:mouseenter={showFromToggle}
+    on:click|stopPropagation={togglePalette}
+    on:keydown={handleToggleKey}
     aria-label={expanded ? 'Hide theme palette' : 'Show theme palette'}
     aria-expanded={expanded}>
     <CaretDownIcon />
@@ -227,7 +205,7 @@
           </span>
           <span class="name">{option.label}</span>
           {#if option.special}
-            <span class="marker" aria-hidden="true">★</span>
+            <span class="marker" aria-hidden="true">*</span>
           {/if}
         </button>
       {/each}
@@ -256,13 +234,26 @@
     top: 20px;
     left: 20px;
     display: flex;
-    align-items: stretch;
+    align-items: flex-start;
     gap: 8px;
     z-index: 20;
     color: var(--theme-text-secondary);
     pointer-events: auto;
     --glow-x: 50%;
     --glow-y: 45%;
+  }
+
+  .panel {
+    display: none;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .palette-shell.expanded .panel {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .toggle {
@@ -572,3 +563,4 @@
     }
   }
 </style>
+

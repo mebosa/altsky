@@ -1,17 +1,18 @@
-<script lang="ts">
-  import { onMount } from 'svelte';
+﻿<script lang="ts">
+  import { onMount, afterNavigate } from 'svelte';
+  import { goto } from '$app/navigation';
   import { get } from '$lib/api';
   import { timeAgo, saveRecent } from '$lib/utils';
 
   export let params: { name: string };
 
-  type Player = { name: string; uuid: string };
-  type ProfilesResponse = {
-    ok?: boolean;
-    last_updated?: string;
+  type Player = {
+    name: string;
+    uuid: string;
     profiles?: any[];
+    last_updated?: string;
     error?: string;
-    reason?: string;
+    error_detail?: any;
   };
 
   let loading = false;
@@ -27,25 +28,32 @@
     lastUpdated = '';
 
     try {
-      const fetchedPlayer = await get<Player>(`/api/player/${encodeURIComponent(params.name)}`);
-      player = fetchedPlayer;
-      saveRecent(fetchedPlayer.name);
-
-      const res = await get<ProfilesResponse>(`/api/hypixel/profile/${encodeURIComponent(fetchedPlayer.uuid)}`, {
-        query: force ? { refresh: 1 } : undefined
-      });
-
-      if (res.error) {
-        if (res.reason === 'player_not_found') errorMsg = 'Player not found.';
-        else if (res.reason === 'no_profiles') errorMsg = 'SkyBlock profiles were not found.';
-        else if (res.reason === 'rate_limited') errorMsg = 'Hypixel API rate limit hit. Please try again in a moment.';
-        else errorMsg = res.error;
-        return;
+      // Safely encode the player name and make the API call
+      const encodedName = encodeURIComponent(params.name).replace(/%20/g, '+');
+      const fetchedPlayer = await get<Player>(`/api/player/${encodedName}`);
+      
+      if (!fetchedPlayer || !fetchedPlayer.uuid) {
+        throw new Error('Invalid player data received');
       }
 
-      profiles = res.profiles ?? [];
-      lastUpdated = res.last_updated || '';
-      if (!profiles.length) errorMsg = 'No profiles available.';
+      player = fetchedPlayer;
+      await saveRecent(fetchedPlayer.name);
+
+      profiles = fetchedPlayer.profiles ?? [];
+      lastUpdated = fetchedPlayer.last_updated || '';
+
+      // Surface known backend errors with user-friendly messages
+      if (fetchedPlayer.error) {
+        if (fetchedPlayer.error === 'no_profiles') {
+          errorMsg = 'SkyBlock profiles were not found.';
+        } else if (fetchedPlayer.error === 'rate_limited') {
+          errorMsg = 'Hypixel API rate limit hit. Please try again in a moment.';
+        } else {
+          errorMsg = fetchedPlayer.error;
+        }
+      } else if (!profiles.length) {
+        errorMsg = 'No profiles available.';
+      }
     } catch (err) {
       errorMsg = `Failed to load: ${(err as Error).message}`;
     } finally {
@@ -73,18 +81,54 @@
     color: var(--theme-text-primary);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 24px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   h1 {
-    font-size: 42px;
+    font-size: 24px;
     margin: 0;
     letter-spacing: -0.02em;
     color: var(--theme-text-primary);
   }
 
+  h1 strong {
+    display: block;
+    font-size: 32px;
+    margin-top: 4px;
+  }
+
+  .uuid {
+    font-size: 14px;
+    color: var(--theme-text-soft);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
   .muted {
     color: var(--theme-text-soft);
+  }
+
+  .back-button {
+    width: auto;
+    padding: 8px 16px;
   }
 
   .row {
@@ -198,7 +242,7 @@
     }
 
     button,
-    .ghost {
+    button.ghost {
       width: 100%;
       text-align: center;
     }
@@ -206,22 +250,34 @@
 </style>
 
 <div class="wrap">
-  <h1>AltSky</h1>
-
-  <p class="muted">
-    Player: <strong>{params.name}</strong>
-    {#if player}&nbsp;(<span class="muted">{shortUUID(player.uuid)}</span>){/if}
-  </p>
-
-  <div class="row">
-    <button class="ghost" on:click={() => history.back()}>← Back</button>
-    <button on:click={() => load(true)} disabled={loading}>
-      {#if loading}<span class="spinner" style="vertical-align:-3px;margin-right:6px;"></span>{/if}
-      Refresh
-    </button>
-    {#if lastUpdated}
-      <span class="muted">Cached: {timeAgo(lastUpdated)}</span>
-    {/if}
+  <div class="header">
+    <div class="title-section">
+      <button 
+        class="ghost back-button" 
+        on:click={async () => {
+          try {
+            await goto('/', { replaceState: true });
+          } catch (error) {
+            console.error('Navigation error:', error);
+            // Fallback to simple location change if SvelteKit navigation fails
+            window.location.href = '/';
+          }
+        }}
+      >
+        ← Back
+      </button>
+      <h1>Player: <strong>{params.name}</strong></h1>
+      {#if player}<span class="uuid">UUID: {shortUUID(player.uuid)}</span>{/if}
+    </div>
+    <div class="actions">
+      <button on:click={() => load(true)} disabled={loading}>
+        {#if loading}<span class="spinner" style="vertical-align:-3px;margin-right:6px;"></span>{/if}
+        Refresh
+      </button>
+      {#if lastUpdated}
+        <span class="muted">Cached: {timeAgo(lastUpdated)}</span>
+      {/if}
+    </div>
   </div>
 
   {#if errorMsg}

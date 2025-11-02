@@ -32,14 +32,25 @@ SECRET_KEY = os.getenv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "1").lower() not in {"0", "false", "no"}
 
-_allowed_hosts = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()]
-ALLOWED_HOSTS = _allowed_hosts or ["localhost", "127.0.0.1"]
+# --- 호스트/CSRF 설정 시작 ---
 
-_csrf_trusted = [
-    origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()
-]
-if _csrf_trusted:
-    CSRF_TRUSTED_ORIGINS = _csrf_trusted
+# ALLOWED_HOSTS: 환경변수 → 기본값(로컬) → trycloudflare 항상 추가
+_allowed_hosts = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
+ALLOWED_HOSTS = _allowed_hosts or ["localhost", "127.0.0.1"]
+if ".trycloudflare.com" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(".trycloudflare.com")
+
+# CSRF_TRUSTED_ORIGINS: 환경변수(스킴 포함) 사용하되, trycloudflare 항상 추가
+_csrf_trusted = [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+CSRF_TRUSTED_ORIGINS = _csrf_trusted or []
+if "https://*.trycloudflare.com" not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append("https://*.trycloudflare.com")
+
+# 프록시(Cloudflare) 뒤의 HTTPS 인식
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# --- 호스트/CSRF 설정 끝 ---
+
 
 
 # Application definition
