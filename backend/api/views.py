@@ -12,10 +12,10 @@ from .domain.profile_summary import summarize_profile
 HYPIXEL_PROFILES_URL = 'https://api.hypixel.net/v2/skyblock/profiles'
 
 
-def _fetch_hypixel_profiles(uuid: str) -> Tuple[Optional[Dict[str, Any]], Optional[Response]]:
+def _fetch_hypixel_profiles(uuid: str) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
     api_key = os.getenv('HYPIXEL_API_KEY')
     if not api_key:
-        return None, Response({'error': 'HYPIXEL_API_KEY missing'}, status=500)
+        return None, {'error': 'hypixel_api_key_missing', 'status': 503, 'fatal': False}
 
     try:
         response = requests.get(
@@ -25,24 +25,26 @@ def _fetch_hypixel_profiles(uuid: str) -> Tuple[Optional[Dict[str, Any]], Option
             timeout=12,
         )
     except requests.RequestException as exc:
-        return None, Response({'error': 'hypixel_request_failed', 'detail': str(exc)}, status=502)
+        return None, {'error': 'hypixel_request_failed', 'detail': str(exc), 'status': 502, 'fatal': True}
 
     if response.status_code == 429:
-        return None, Response({'error': 'rate_limited'}, status=429)
+        return None, {'error': 'rate_limited', 'status': 429, 'fatal': False}
 
     if response.status_code != 200:
-        return None, Response(
-            {'error': 'hypixel_http_error', 'status': response.status_code, 'text': response.text},
-            status=502,
-        )
+        return None, {
+            'error': 'hypixel_http_error',
+            'status': response.status_code,
+            'detail': response.text,
+            'fatal': True,
+        }
 
     body = response.json()
     if body.get('success') is False:
-        return None, Response({'error': 'hypixel_error', 'detail': body}, status=502)
+        return None, {'error': 'hypixel_error', 'detail': body, 'status': 502, 'fatal': True}
 
     profiles = body.get('profiles') or []
     if not profiles:
-        return None, Response({'error': 'no_profiles'}, status=404)
+        return None, {'error': 'no_profiles', 'status': 404, 'fatal': False}
 
     return body, None
 
@@ -108,15 +110,22 @@ def player_lookup(_: Request, name: str) -> Response:
         # Fetch Hypixel profiles after successful UUID lookup
         body, error = _fetch_hypixel_profiles(uuid)
         if error:
-            # Still return the basic player info even if Hypixel lookup fails
-            return Response({
+            payload = {
                 'name': name,
                 'uuid': uuid,
                 'profiles': None,
-                'error': error.data.get('error'),
-                'error_detail': error.data.get('detail')
-            })
-        
+                'error': error.get('error'),
+            }
+            if 'detail' in error:
+                payload['error_detail'] = error['detail']
+            if 'status' in error:
+                payload['error_status'] = error['status']
+
+            if error.get('fatal'):
+                return Response(payload, status=error.get('status') or 502)
+
+            return Response(payload)
+
         return Response({
             'name': name,
             'uuid': uuid,
@@ -138,7 +147,10 @@ def hypixel_profile(_: Request, uuid: str) -> Response:
     """
     body, error = _fetch_hypixel_profiles(uuid)
     if error:
-        return error
+        payload = {'error': error.get('error')}
+        if 'detail' in error:
+            payload['detail'] = error['detail']
+        return Response(payload, status=error.get('status') or 502)
     return Response(body)
 
 
@@ -149,7 +161,10 @@ def hypixel_profile_summary(_: Request, uuid: str, profile_id: str) -> Response:
     """
     body, error = _fetch_hypixel_profiles(uuid)
     if error:
-        return error
+        payload = {'error': error.get('error')}
+        if 'detail' in error:
+            payload['detail'] = error['detail']
+        return Response(payload, status=error.get('status') or 502)
 
     profiles = body.get('profiles') or []
     target = None

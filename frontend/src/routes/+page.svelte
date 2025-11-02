@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
   import { goto } from '$app/navigation';
-  import { debounce, loadRecent, saveRecent } from '$lib/utils';
+  import { loadRecent, saveRecent } from '$lib/utils';
 
   let name = '';
   let recent: string[] = [];
@@ -48,10 +48,6 @@
       searchError = 'An unexpected error occurred';
     }
   }
-
-  const debounced = debounce((value: string) => {
-    name = value;
-  }, 0);
 
   function onKey(event: KeyboardEvent) {
     if (event.key === 'Enter') {
@@ -190,7 +186,7 @@
     <input
       placeholder="e.g. Technoblade"
       value={name}
-      on:input={(event) => debounced((event.target as HTMLInputElement).value)}
+      on:input={(event) => (name = (event.target as HTMLInputElement).value)}
       on:keydown={onKey}
     />
     <button type="button" on:click={() => toUser(name)}>Search</button>

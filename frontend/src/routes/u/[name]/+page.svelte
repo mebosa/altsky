@@ -48,8 +48,17 @@
           errorMsg = 'SkyBlock profiles were not found.';
         } else if (fetchedPlayer.error === 'rate_limited') {
           errorMsg = 'Hypixel API rate limit hit. Please try again in a moment.';
+        } else if (fetchedPlayer.error === 'hypixel_api_key_missing') {
+          errorMsg = 'Hypixel API key is missing on the server.';
         } else {
           errorMsg = fetchedPlayer.error;
+        }
+        if (fetchedPlayer.error_detail) {
+          const detail =
+            typeof fetchedPlayer.error_detail === 'string'
+              ? fetchedPlayer.error_detail
+              : JSON.stringify(fetchedPlayer.error_detail);
+          errorMsg += ` (${detail})`;
         }
       } else if (!profiles.length) {
         errorMsg = 'No profiles available.';
