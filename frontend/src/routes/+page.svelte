@@ -6,6 +6,7 @@
   let recent: string[] = [];
 
   function toUser(raw: string) {
+    console.log('toUser called with:', raw);
     const value = raw.trim();
     if (!value) return;
     saveRecent(value);
@@ -148,7 +149,7 @@
       on:input={(event) => debounced((event.target as HTMLInputElement).value)}
       on:keydown={onKey}
     />
-    <button type="button" on:click={() => toUser(name)}>Search</button>
+    <button type="button" on:click={(event) => toUser((event.currentTarget.previousElementSibling as HTMLInputElement).value)}>Search</button>
   </div>
 
   {#if recent.length}

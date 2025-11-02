@@ -123,13 +123,13 @@ const tabs = [
     vampire: 'Riftstalker Bloodfiend'
   };
 
-const dungeonClassLabels: Record<string, string> = {
-  healer: 'Healer',
-  mage: 'Mage',
-  berserk: 'Berserk',
-  archer: 'Archer',
-  tank: 'Tank'
-};
+  const dungeonClassLabels: Record<string, string> = {
+    healer: 'Healer',
+    mage: 'Mage',
+    berserk: 'Berserk',
+    archer: 'Archer',
+    tank: 'Tank'
+  };
 
 const WARDROBE_NUM_COLUMNS = 9;
 
@@ -145,12 +145,161 @@ function buildWardrobeColumns(items: (WardrobeItem | null)[]) {
   return columns.filter(col => col.length > 0);
 }
 
+const TRACKED_STATS = new Set([
+  'Health',
+  'Defense',
+  'Strength',
+  'Crit Chance',
+  'Crit Damage',
+  'Attack Speed',
+  'Intelligence',
+  'Speed',
+  'Ferocity',
+  'Magic Find',
+  'True Defense',
+  'Ability Damage',
+  'Sea Creature Chance',
+  'Farming Fortune',
+  'Pet Luck'
+]);
+
+function toTitleCase(value: string) {
+  return value
+    .toLowerCase()
+    .split(' ')
+    .map((segment) => segment ? segment[0].toUpperCase() + segment.slice(1) : segment)
+    .join(' ');
+}
+
+function baseSetNameFromId(id: string) {
+  const parts = id.split('_');
+  if (parts.length <= 1) return toTitleCase(id);
+  const piece = parts.pop(); // discard slot descriptor
+  if (!piece) return toTitleCase(parts.join(' '));
+  return toTitleCase(parts.join(' '));
+}
+
+type ParsedStatLine = {
+  label: string;
+  value: number;
+  suffix: '' | '%';
+};
+
+function parseStatLine(line: string): ParsedStatLine | null {
+  const colonIndex = line.indexOf(':');
+  if (colonIndex === -1) return null;
+  const label = line.slice(0, colonIndex).trim();
+  if (!TRACKED_STATS.has(label)) return null;
+
+  const rawValue = line.slice(colonIndex + 1).split('(')[0].trim(); // use primary value before any parentheses
+  const hasPercent = rawValue.includes('%');
+  const numeric = parseFloat(rawValue.replace(/[^0-9.\-]/g, ''));
+  if (Number.isNaN(numeric)) return null;
+
+  return {
+    label,
+    value: numeric,
+    suffix: hasPercent ? '%' : ''
+  };
+}
+
+type AggregatedStat = {
+  label: string;
+  value: number;
+  suffix: '' | '%';
+  display: string;
+};
+
+function formatStatValue(value: number, suffix: '' | '%') {
+  const fractionDigits = Math.abs(value) % 1 ? 1 : 0;
+  const formatted = formatNumber(value, fractionDigits);
+  return suffix === '%' ? `${formatted}${suffix}` : formatted;
+}
+
+function aggregateSetStats(items: WardrobeItem[]): AggregatedStat[] {
+  const totals = new Map<string, { value: number; suffix: '' | '%' }>();
+  for (const item of items) {
+    for (const line of item.lore) {
+      const parsed = parseStatLine(line);
+      if (!parsed) continue;
+      const existing = totals.get(parsed.label);
+      if (existing) {
+        existing.value += parsed.value;
+      } else {
+        totals.set(parsed.label, { value: parsed.value, suffix: parsed.suffix });
+      }
+    }
+  }
+
+  return Array.from(totals.entries())
+    .map(([label, info]) => ({
+      label,
+      value: info.value,
+      suffix: info.suffix,
+      display: formatStatValue(info.value, info.suffix)
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function deriveSetLabel(items: WardrobeItem[]) {
+  if (!items.length) return '';
+  const baseNames = Array.from(new Set(items.map((item) => baseSetNameFromId(item.id))));
+  if (baseNames.length === 1) {
+    return `${baseNames[0]} Set`;
+  }
+  if (baseNames.length === 2) {
+    return `${baseNames[0]} with ${baseNames[1]}`;
+  }
+  return `${baseNames[0]} with ${baseNames.slice(1).join(', ')}`;
+}
+
+function gatherSetBonusLines(items: WardrobeItem[]): string[] {
+  const bonuses = new Set<string>();
+  for (const item of items) {
+    let capturing = false;
+    const buffer: string[] = [];
+    for (const line of item.lore) {
+      if (line.startsWith('Full Set Bonus')) {
+        capturing = true;
+      }
+      if (capturing) {
+        if (!bonuses.has(line)) buffer.push(line);
+        if (!line.trim()) {
+          capturing = false;
+          break;
+        }
+      }
+    }
+    for (const line of buffer) {
+      bonuses.add(line);
+    }
+  }
+  return Array.from(bonuses).filter((line) => line.trim().length);
+}
+
+function toEquippedItems(columnIndex: number | null, items: (WardrobeItem | null)[]): WardrobeItem[] {
+  if (columnIndex === null || columnIndex < 0) return [];
+  return items.filter((item): item is WardrobeItem => !!item && item.slot % WARDROBE_NUM_COLUMNS === columnIndex);
+}
+
+function pieceLabel(item: WardrobeItem) {
+  const parts = item.id.split('_');
+  if (!parts.length) return item.name;
+  const slotName = parts[parts.length - 1].toLowerCase();
+  return toTitleCase(slotName);
+}
+
 let player: Player | null = data.player;
   let summary: ProfileSummaryResponse | null = data.summary;
   let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
   let firstBankColumns: (WardrobeItem | null)[][] = [];
   let secondBankColumns: (WardrobeItem | null)[][] = [];
+  let equippedItems: WardrobeItem[] = [];
+  let equippedSetLabel = '';
+  let equippedStats: AggregatedStat[] = [];
+  let equippedBonuses: string[] = [];
+  let equippedColumnIndex: number | null = null;
 
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
@@ -160,6 +309,11 @@ let player: Player | null = data.player;
     firstBankColumns = buildWardrobeColumns(firstBankRaw);
     secondBankColumns = buildWardrobeColumns(secondBankRaw);
   }
+  $: equippedColumnIndex = summary?.wardrobe?.equipped_slot ?? null;
+  $: equippedItems = toEquippedItems(equippedColumnIndex, wardrobeItems);
+  $: equippedSetLabel = deriveSetLabel(equippedItems);
+  $: equippedStats = aggregateSetStats(equippedItems);
+  $: equippedBonuses = gatherSetBonusLines(equippedItems);
   let errorMsg = data.errorMsg ?? '';
   let loading = !summary && !errorMsg;
   let refreshing = false;
@@ -216,9 +370,8 @@ let player: Player | null = data.player;
     ? `Level ${summary.skyblock_level.level} | Avg Skill ${summary.skills.average_level} | Slayer XP ${formatNumber(summary.slayer.total_xp)} | Coins ${formatLargeNumber(summary.currencies.total_coins)}`
     : 'Inspect Hypixel SkyBlock stats with AltSky.';
 
-  $: shareImage = player
-    ? `https://dummyimage.com/1200x630/020617/E2E8F0.png&text=${encodeURIComponent(`${player.name}+SkyBlock`)}`
-    : 'https://dummyimage.com/1200x630/020617/E2E8F0.png&text=AltSky';
+  $: shareImage =
+    'https://via.placeholder.com/1200x630.png?text=AltSky';
 
   const canonicalUrl = `${SITE_BASE}/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(params.profileId)}`;
 </script>
@@ -407,9 +560,22 @@ let player: Player | null = data.player;
           {#if key !== 'total_xp' && typeof info !== 'number'}
             {@const slayerInfo = info as { level: number; xp: number }}
             <div class="card slayer-card">
-              <span class="slayer-name">{slayerLabels[key] ?? key}</span>
-              <div class="slayer-level">Lv. {slayerInfo.level}</div>
-              <div class="slayer-xp">{formatNumber(slayerInfo.xp)} XP</div>
+              <div class="skill-header">
+                <span class="skill-icon" aria-hidden="true">
+                  <img
+                    src={iconPath($iconPack, key, 'slayer')}
+                    alt=""
+                    loading="lazy"
+                    width="28"
+                    height="28"
+                  />
+                </span>
+                <div class="skill-info">
+                  <span class="slayer-name">{slayerLabels[key] ?? key}</span>
+                  <div class="slayer-level">Lv. {slayerInfo.level}</div>
+                  <div class="slayer-xp">{formatNumber(slayerInfo.xp)} XP</div>
+                </div>
+              </div>
             </div>
           {/if}
         {/each}
@@ -419,14 +585,36 @@ let player: Player | null = data.player;
     {#if activeTab === 'dungeons'}
       <section class="grid dungeon-grid">
         <div class="card dungeon-card featured">
-          <h3>Catacombs</h3>
+          <div class="skill-header">
+            <span class="skill-icon" aria-hidden="true">
+              <img
+                src={iconPath($iconPack, 'catacombs', 'dungeons')}
+                alt=""
+                loading="lazy"
+                width="28"
+                height="28"
+              />
+            </span>
+            <h3>Catacombs</h3>
+          </div>
           <div class="catacombs-level">Lv. {summary.dungeons.catacombs.level}</div>
           <div class="sub">Total XP {formatNumber(summary.dungeons.catacombs.xp)}</div>
         </div>
 
         {#each Object.entries(summary.dungeons.classes) as [key, info]}
           <div class="card dungeon-card">
-            <span class="dungeon-name">{dungeonClassLabels[key] ?? key}</span>
+            <div class="skill-header">
+              <span class="skill-icon" aria-hidden="true">
+                <img
+                  src={iconPath($iconPack, key, 'dungeons')}
+                  alt=""
+                  loading="lazy"
+                  width="28"
+                  height="28"
+                />
+              </span>
+              <span class="dungeon-name">{dungeonClassLabels[key] ?? key}</span>
+            </div>
             <span class="dungeon-level">Lv. {info.level}</span>
             <span class="sub">{formatNumber(info.xp)} XP</span>
           </div>
@@ -436,6 +624,51 @@ let player: Player | null = data.player;
 
     {#if activeTab === 'wardrobe'}
       {#if wardrobeHasItems}
+        {#if equippedItems.length}
+          <section class="equipped-summary">
+            <div class="equipped-heading">
+              <h3>Currently Equipped</h3>
+              {#if equippedColumnIndex !== null}
+                <span class="equipped-slot-pill">Wardrobe Slot {equippedColumnIndex + 1}</span>
+              {/if}
+            </div>
+            <div class="equipped-body">
+              <div class="equipped-icons">
+                {#each equippedItems as item (item.slot)}
+                  <div
+                    class={`equipped-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
+                    style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}>
+                    {#if item.icon_url}
+                      <img src={item.icon_url} alt={`${item.name} icon`} loading="lazy" width="60" height="60" />
+                    {/if}
+                    <span class="equipped-piece">{pieceLabel(item)}</span>
+                  </div>
+                {/each}
+              </div>
+              <div class="equipped-details">
+                <div class="equipped-set-name">{equippedSetLabel || 'Custom Mix'}</div>
+                {#if equippedStats.length}
+                  <ul class="equipped-stats">
+                    {#each equippedStats as stat}
+                      <li>
+                        <span>{stat.label}</span>
+                        <span>{stat.display}</span>
+                      </li>
+                    {/each}
+                  </ul>
+                {/if}
+                {#if equippedBonuses.length}
+                  <div class="equipped-bonuses">
+                    {#each equippedBonuses as line}
+                      <p>{line}</p>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            </div>
+          </section>
+        {/if}
+
         <section class="wardrobe-grid">
           {#each firstBankColumns as column}
             <div class="wardrobe-column">
@@ -874,18 +1107,168 @@ let player: Player | null = data.player;
     color: var(--theme-text-soft);
   }
 
+  .equipped-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 28px;
+    padding: 22px 26px;
+    border-radius: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: linear-gradient(145deg, rgba(23, 37, 84, 0.58), rgba(15, 23, 42, 0.72));
+    box-shadow: 0 22px 40px rgba(15, 23, 42, 0.28);
+  }
+
+  .equipped-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .equipped-heading h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--theme-text-primary);
+  }
+
+  .equipped-slot-pill {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.16);
+    color: rgba(191, 219, 254, 0.9);
+  }
+
+  .equipped-body {
+    display: flex;
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .equipped-icons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .equipped-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.28);
+    display: grid;
+    place-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .equipped-icon img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    padding: 8px;
+    border-radius: 16px;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.38);
+    background:
+      radial-gradient(120% 120% at 30% 25%, rgba(255, 255, 255, 0.28), rgba(59, 130, 246, 0) 58%),
+      radial-gradient(100% 100% at 75% 80%, rgba(147, 51, 234, 0.18), rgba(15, 23, 42, 0) 62%),
+      rgba(15, 23, 42, 0.7);
+    mix-blend-mode: normal;
+  }
+
+  .equipped-icon.leather img {
+    mix-blend-mode: multiply;
+  }
+
+  .equipped-icon.leather::before {
+    content: '';
+    position: absolute;
+    inset: 10px;
+    border-radius: 14px;
+    background: var(--leather-color, rgba(59, 130, 246, 0.6));
+    opacity: 0.58;
+    mix-blend-mode: color;
+  }
+
+  .equipped-icon.placeholder {
+    background: linear-gradient(150deg, rgba(59, 130, 246, 0.16), rgba(15, 23, 42, 0.65));
+  }
+
+  .equipped-piece {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+    color: rgba(226, 232, 240, 0.82);
+    text-transform: uppercase;
+  }
+
+  .equipped-details {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    color: var(--theme-text-primary);
+  }
+
+  .equipped-set-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .equipped-stats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .equipped-stats li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .equipped-bonuses {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: var(--theme-text-soft);
+  }
+
   .wardrobe-grid {
     display: flex;
     gap: 18px;
     overflow-x: auto;
-    padding-bottom: 10px; /* Add some padding for scrollbar */
+    padding-bottom: 10px;
   }
 
   .wardrobe-column {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    min-width: 280px;
+    flex: 0 0 304px;
+    max-width: 304px;
   }
 
   .wardrobe-bank-title {
@@ -901,6 +1284,7 @@ let player: Player | null = data.player;
     flex-direction: column;
     gap: 12px;
     border-width: 1px;
+    min-height: 240px;
   }
 
   .wardrobe-card.equipped {
@@ -915,30 +1299,31 @@ let player: Player | null = data.player;
   }
 
   .wardrobe-icon {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
+    flex: 0 0 72px;
     border-radius: 18px;
     background: rgba(15, 23, 42, 0.65);
     border: 1px solid rgba(148, 163, 184, 0.28);
     box-shadow: 0 16px 32px rgba(15, 23, 42, 0.28);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     position: relative;
     overflow: hidden;
   }
 
   .wardrobe-icon img {
-    width: min(90%, 56px);
-    height: min(90%, 56px);
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
     object-fit: contain;
-    border-radius: 18px;
+    border-radius: 16px;
     box-shadow: 0 10px 22px rgba(15, 23, 42, 0.38);
     background:
       radial-gradient(120% 120% at 30% 25%, rgba(255, 255, 255, 0.32), rgba(59, 130, 246, 0) 58%),
       radial-gradient(100% 100% at 75% 80%, rgba(147, 51, 234, 0.22), rgba(15, 23, 42, 0) 62%),
       rgba(15, 23, 42, 0.7);
-    padding: 6px;
+    padding: 8px;
     position: relative;
     z-index: 1;
   }
@@ -960,12 +1345,14 @@ let player: Player | null = data.player;
     inset: 12px;
     border-radius: 16px;
     background: var(--leather-color, rgba(59, 130, 246, 0.6));
-    opacity: 0.55;
+    opacity: 0.65;
     filter: saturate(1.1);
+    mix-blend-mode: color;
   }
 
   .wardrobe-icon.leather img {
     filter: saturate(1.35) brightness(1.1);
+    mix-blend-mode: multiply;
   }
 
   .wardrobe-icon.leather.placeholder {

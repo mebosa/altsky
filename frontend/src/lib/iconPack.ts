@@ -1,9 +1,17 @@
 import { writable } from 'svelte/store';
 
+export type IconCategoryPaths = {
+	skills: string;
+	slayer: string;
+	dungeons: string;
+};
+
+export type IconCategory = keyof IconCategoryPaths;
+
 export type IconPackDefinition = {
 	id: string;
 	label: string;
-	basePath: string;
+	paths: IconCategoryPaths;
 	description?: string;
 };
 
@@ -11,13 +19,21 @@ export const iconPackOptions: IconPackDefinition[] = [
 	{
 		id: 'vanilla',
 		label: 'Vanilla',
-		basePath: '/skills/vanilla',
+		paths: {
+			skills: '/icons/skills/vanilla',
+			slayer: '/icons/slayer/vanilla',
+			dungeons: '/icons/dungeons/vanilla'
+		},
 		description: 'Classic Minecraft look'
 	},
 	{
 		id: 'flufsky',
 		label: 'Flufsky',
-		basePath: '/skills/flufsky',
+		paths: {
+			skills: '/icons/skills/flufsky',
+			slayer: '/icons/slayer/flufsky',
+			dungeons: '/icons/dungeons/flufsky'
+		},
 		description: 'Soft SkyBlock-style tint'
 	}
 ];
@@ -68,6 +84,6 @@ function createIconPackStore(): IconPackStore {
 
 export const iconPack = createIconPackStore();
 
-export function iconPath(pack: IconPackDefinition, key: string) {
-	return `${pack.basePath}/${key}.png`;
+export function iconPath(pack: IconPackDefinition, key: string, category: IconCategory = 'skills') {
+	return `${pack.paths[category]}/${key}.png`;
 }

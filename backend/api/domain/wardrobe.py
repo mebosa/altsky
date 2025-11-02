@@ -1,4 +1,5 @@
 import base64
+import binascii
 import gzip
 import io
 import json
@@ -7,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import nbtlib
 
-from .item_textures import resolve_item_icon
+from .item_textures import resolve_item_icon, get_item_resource
 
 RARITY_KEYWORDS = {
     "COMMON",
@@ -40,12 +41,21 @@ def _decode_bytes(data: str) -> Optional[bytes]:
 
 
 def _tag_value(tag: Any) -> Any:
+    if tag is None:
+        return None
     if hasattr(tag, "value"):
         return tag.value
+    if hasattr(tag, "unpack"):
+        try:
+            return tag.unpack()
+        except Exception:
+            return tag
     return tag
 
 
 def _strip_color_codes(text: str) -> str:
+    if not text:
+        return ""
     out = []
     skip = False
     for ch in text:
@@ -118,6 +128,100 @@ def _extract_leather_color(display: nbtlib.Compound, extra: nbtlib.Compound) -> 
     return f"#{value:06x}"
 
 
+def _decode_texture_value(encoded: str) -> Optional[str]:
+    if not encoded:
+        return None
+    try:
+        decoded = base64.b64decode(encoded)
+    except (binascii.Error, ValueError, TypeError):
+        return None
+
+    try:
+        payload = json.loads(decoded.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+        return None
+
+    profile_id = payload.get("profileId")
+    if isinstance(profile_id, str):
+        stripped = profile_id.replace("-", "")
+        if len(stripped) == 32:
+            return f"https://crafatar.com/renders/head/{stripped}?overlay&scale=6"
+
+    textures = payload.get("textures")
+    if isinstance(textures, dict):
+        skin = textures.get("SKIN")
+        if isinstance(skin, dict):
+            url = skin.get("url")
+            if isinstance(url, str) and url:
+                return url.replace("http://", "https://")
+    return None
+
+
+def _extract_extra_texture(extra: nbtlib.Compound) -> Optional[str]:
+    if not extra:
+        return None
+
+    texture_value = extra.get("texture") or extra.get("Texture")
+    if texture_value is not None:
+        candidate = _tag_value(texture_value)
+        if isinstance(candidate, dict):
+            candidate = candidate.get("value")
+        if isinstance(candidate, (bytes, bytearray)):
+            try:
+                candidate = candidate.decode("utf-8")
+            except UnicodeDecodeError:
+                candidate = ""
+        if isinstance(candidate, str):
+            decoded = _decode_texture_value(candidate)
+            if decoded:
+                return decoded
+
+    skin_value = extra.get("skin")
+    if isinstance(skin_value, nbtlib.Compound):
+        payload = {str(k): _tag_value(v) for k, v in skin_value.items()}
+        candidate = payload.get("value") or payload.get("texture")
+        if isinstance(candidate, str):
+            decoded = _decode_texture_value(candidate)
+            if decoded:
+                return decoded
+        url_candidate = payload.get("url")
+        if isinstance(url_candidate, str) and url_candidate:
+            return url_candidate.replace("http://", "https://")
+    return None
+
+
+def _extract_skull_icon(tag: nbtlib.Compound) -> Optional[str]:
+    if not tag:
+        return None
+
+    skull_owner = tag.get("SkullOwner")
+    if not isinstance(skull_owner, nbtlib.Compound):
+        return None
+
+    properties = skull_owner.get("Properties")
+    if isinstance(properties, nbtlib.Compound):
+        textures = properties.get("textures")
+        if textures:
+            for entry in textures:
+                value = _tag_value(entry.get("Value") or entry.get("value"))
+                if isinstance(value, (bytes, bytearray)):
+                    try:
+                        value = value.decode("utf-8")
+                    except UnicodeDecodeError:
+                        continue
+                if isinstance(value, str):
+                    decoded = _decode_texture_value(value)
+                    if decoded:
+                        return decoded
+
+    profile_id = _tag_value(skull_owner.get("Id"))
+    if isinstance(profile_id, str) and profile_id:
+        stripped = profile_id.replace("-", "")
+        if len(stripped) == 32:
+            return f"https://crafatar.com/renders/head/{stripped}?overlay&scale=6"
+    return None
+
+
 def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Decode the wardrobe NBT payload into a list of slots with plain text metadata.
@@ -138,8 +242,15 @@ def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
             slots.append(None)
             continue
 
-        item_id = str(_tag_value(compound.get("id")))
-        count = int(_tag_value(compound.get("Count", 1)))
+        item_id_raw = _tag_value(compound.get("id"))
+        item_id = str(item_id_raw) if item_id_raw is not None else ""
+
+        count_raw = _tag_value(compound.get("Count", 1))
+        try:
+            count = int(count_raw)
+        except (TypeError, ValueError):
+            count = 1
+
         tag = compound.get("tag") or nbtlib.Compound()
         display = tag.get("display") or nbtlib.Compound()
         extra = tag.get("ExtraAttributes") or nbtlib.Compound()
@@ -150,20 +261,45 @@ def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
             for line in (display.get("Lore") or [])
         ]
 
-        extra_id = _tag_value(extra.get("id")) if extra else None
+        extra_id_raw = _tag_value(extra.get("id")) if extra else None
+        extra_id = str(extra_id_raw) if extra_id_raw else None
         rarity = _detect_rarity(extra, lore)
         leather_color = _extract_leather_color(display, extra)
+        if not leather_color:
+            resource = get_item_resource(extra_id or item_id)
+            color_meta = resource.get("color") if isinstance(resource, dict) else None
+            if isinstance(color_meta, str):
+                parts = [p.strip() for p in color_meta.split(",") if p.strip()]
+                if len(parts) == 3:
+                    try:
+                        r, g, b = (int(part) for part in parts)
+                    except ValueError:
+                        pass
+                    else:
+                        r = max(0, min(r, 255))
+                        g = max(0, min(g, 255))
+                        b = max(0, min(b, 255))
+                        leather_color = f"#{r:02x}{g:02x}{b:02x}"
+        damage_raw = _tag_value(compound.get("Damage"))
+        try:
+            damage = int(damage_raw)
+        except (TypeError, ValueError):
+            damage = None
+
+        icon_url = resolve_item_icon(extra_id or item_id, item_id or None, damage)
+        if not icon_url:
+            icon_url = _extract_extra_texture(extra) or _extract_skull_icon(tag)
 
         slots.append(
             {
                 "slot": index,
-                "id": str(extra_id or item_id),
+                "id": extra_id or item_id,
                 "mc_id": item_id,
                 "name": name or item_id,
                 "count": count,
                 "rarity": rarity,
                 "lore": lore,
-                "icon_url": resolve_item_icon(str(extra_id or item_id), item_id),
+                "icon_url": icon_url,
                 "leather_color": leather_color,
             }
         )

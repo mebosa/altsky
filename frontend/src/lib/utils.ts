@@ -25,22 +25,24 @@ export function timeAgo(ts?: string | number | Date) {
   return `${day}d ago`;
 }
 
-export function saveRecent(name: string, limit = 8) {
-  const key = 'altsky_recent';
-  const list: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-  const trimmed = name.trim();
-  if (!trimmed) return;
-  const next = [trimmed, ...list.filter((value) => value.toLowerCase() !== trimmed.toLowerCase())].slice(0, limit);
-  localStorage.setItem(key, JSON.stringify(next));
-  return next;
+import { browser } from '$app/environment'; // Used for SSR checks
+
+const RECENT_KEY = 'altsky_recent'; // Key for recent searches
+
+export function saveRecent(name: string) {
+  if (typeof window !== 'undefined') {
+    const recent = loadRecent();
+    const newRecent = [name, ...recent.filter((n) => n !== name)].slice(0, 5);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(newRecent));
+  }
 }
 
 export function loadRecent(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem('altsky_recent') || '[]');
-  } catch {
-    return [];
+  if (typeof window !== 'undefined') {
+    const recent = localStorage.getItem(RECENT_KEY);
+    return recent ? JSON.parse(recent) : [];
   }
+  return [];
 }
 
 export function formatNumber(value: number, fraction = 0) {

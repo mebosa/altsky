@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import CaretDownIcon from '$lib/icons/CaretDownIcon.svelte';
   import { theme, themeOptions } from '$lib/theme';
   import { iconPack, iconPackOptions } from '$lib/iconPack';
@@ -7,6 +7,10 @@
   let expanded = false;
   let pointerCoarse = false;
   let mediaQuery: MediaQueryList | null = null;
+  let paletteShell: HTMLElement | null = null;
+  let idleRaf: number | null = null;
+  let idleTimeout: number | null = null;
+  let ignoreNextFocus = false;
 
   const dispatch = createEventDispatcher();
 
@@ -26,6 +30,44 @@
         document.removeEventListener('click', handleClick);
       }
     };
+  }
+
+  function applyGlow(xPercent: number, yPercent: number) {
+    if (!paletteShell) return;
+    const clamp = (value: number) => Math.max(0, Math.min(100, value));
+    paletteShell.style.setProperty('--glow-x', `${clamp(xPercent)}%`);
+    paletteShell.style.setProperty('--glow-y', `${clamp(yPercent)}%`);
+  }
+
+  function stopIdleAnimation() {
+    if (idleRaf !== null) {
+      cancelAnimationFrame(idleRaf);
+      idleRaf = null;
+    }
+  }
+
+  function scheduleIdleAnimation(delay = 1600) {
+    if (idleTimeout !== null) {
+      clearTimeout(idleTimeout);
+    }
+    idleTimeout = window.setTimeout(() => {
+      stopIdleAnimation();
+      const tick = () => {
+        const t = performance.now() / 1000;
+        const x = 50 + Math.cos(t * 0.35) * 20;
+        const y = 48 + Math.sin(t * 0.28) * 18;
+        applyGlow(x, y);
+        idleRaf = requestAnimationFrame(tick);
+      };
+      idleRaf = requestAnimationFrame(tick);
+    }, delay);
+  }
+
+  function cancelIdleSchedule() {
+    if (idleTimeout !== null) {
+      clearTimeout(idleTimeout);
+      idleTimeout = null;
+    }
   }
 
   onMount(() => {
@@ -51,20 +93,65 @@
     return () => mediaQuery?.removeListener(handler);
   });
 
+  onMount(() => {
+    applyGlow(50, 45);
+    scheduleIdleAnimation(0);
+  });
+
+  onDestroy(() => {
+    stopIdleAnimation();
+    cancelIdleSchedule();
+  });
+
   function selectTheme(id: string) {
     theme.select(id);
   }
 
   function showFromToggle() {
-    if (!pointerCoarse) {
-      expanded = true;
-    }
+    if (pointerCoarse) return;
+    expanded = true;
   }
 
   function hidePalette() {
-    if (!pointerCoarse) {
-      expanded = false;
+    if (pointerCoarse) return;
+    expanded = false;
+  }
+
+  function togglePalette() {
+    if (pointerCoarse) {
+      expanded = !expanded;
+    } else {
+      expanded = !expanded;
     }
+
+    if (expanded) {
+      cancelIdleSchedule();
+      stopIdleAnimation();
+      scheduleIdleAnimation(0);
+    } else {
+      ignoreNextFocus = true;
+      scheduleIdleAnimation(600);
+      // remove focus so focusin handler does not immediately reopen
+      queueMicrotask(() => {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && paletteShell && paletteShell.contains(active)) {
+          active.blur();
+        }
+      });
+    }
+  }
+
+  function selectPack(id: string) {
+    iconPack.select(id);
+  }
+
+  function handleFocusIn() {
+    if (pointerCoarse) return;
+    if (ignoreNextFocus) {
+      ignoreNextFocus = false;
+      return;
+    }
+    expanded = true;
   }
 
   function handleFocusOut(event: FocusEvent) {
@@ -77,26 +164,40 @@
     expanded = false;
   }
 
-  function togglePalette() {
-    if (pointerCoarse) {
-      expanded = !expanded;
-    }
+  function handlePointerMove(event: MouseEvent) {
+    if (pointerCoarse || !paletteShell) return;
+    const rect = paletteShell.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    stopIdleAnimation();
+    cancelIdleSchedule();
+    applyGlow(x, y);
+    scheduleIdleAnimation();
   }
 
-  function selectPack(id: string) {
-    iconPack.select(id);
+  function handleMouseLeave() {
+    if (!pointerCoarse) {
+      hidePalette();
+    }
+    scheduleIdleAnimation(600);
   }
 </script>
 
 <aside
+  bind:this={paletteShell}
   class="palette-shell"
   class:expanded
   data-mode={$theme.mode}
-  on:mouseleave={hidePalette}
-  on:focusin={() => (expanded = true)}
+  on:mouseleave={handleMouseLeave}
+  on:mousemove={handlePointerMove}
+  on:focusin={handleFocusIn}
   on:focusout={handleFocusOut}
-  use:clickOutside
-  style={`pointer-events: ${expanded ? 'auto' : 'none'}`}>
+  on:mouseenter={() => {
+    cancelIdleSchedule();
+    stopIdleAnimation();
+    if (!pointerCoarse) expanded = true;
+  }}
+  use:clickOutside>
   <button
     type="button"
     class="toggle"
@@ -160,9 +261,12 @@
     z-index: 20;
     color: var(--theme-text-secondary);
     pointer-events: auto;
+    --glow-x: 50%;
+    --glow-y: 45%;
   }
 
   .toggle {
+    position: relative;
     width: 34px;
     height: 34px;
     border-radius: 10px;
@@ -175,6 +279,7 @@
     cursor: pointer;
     backdrop-filter: blur(10px);
     pointer-events: auto;
+    overflow: hidden;
     transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
   }
 
@@ -183,6 +288,25 @@
     background: rgba(37, 99, 235, 0.35);
     border-color: var(--theme-accent);
     outline: none;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: radial-gradient(
+      60% 60% at var(--glow-x) var(--glow-y),
+      rgba(59, 130, 246, 0.38),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  .toggle:hover::after,
+  .palette-shell.expanded .toggle::after {
+    opacity: 0.85;
   }
 
   .toggle :global(svg) {
@@ -211,12 +335,32 @@
     transform: translateX(-12px) scale(0.96);
     pointer-events: none;
     transition: opacity 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: -35%;
+    background: radial-gradient(
+      45% 45% at var(--glow-x) var(--glow-y),
+      rgba(59, 130, 246, 0.35),
+      rgba(99, 102, 241, 0.22),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
   }
 
   .palette-shell.expanded .panel {
     opacity: 1;
     transform: translateX(0) scale(1);
     pointer-events: auto;
+  }
+
+  .palette-shell.expanded .panel::before {
+    opacity: 0.95;
   }
 
   .title {

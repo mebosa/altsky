@@ -57,43 +57,6 @@
       frame = window.requestAnimationFrame(() => setPositions(x, y));
     };
 
-    const clearIdle = () => {
-      if (idleTimeout) {
-        window.clearTimeout(idleTimeout);
-        idleTimeout = null;
-      }
-    };
-
-    const scheduleIdle = () => {
-      clearIdle();
-      idleTimeout = window.setTimeout(() => {
-        idleTimeout = null;
-        startRandom();
-      }, 4200);
-    };
-
-    const pointerMove = (event: PointerEvent) => {
-      stopRandom();
-      const x = (event.clientX / window.innerWidth) * 100;
-      const y = (event.clientY / window.innerHeight) * 100;
-      animateTo(x, y);
-      scheduleIdle();
-    };
-
-    const enablePointer = () => {
-      if (pointerActive) return;
-      window.addEventListener('pointermove', pointerMove, { passive: true });
-      pointerActive = true;
-      scheduleIdle();
-    };
-
-    const disablePointer = () => {
-      if (!pointerActive) return;
-      window.removeEventListener('pointermove', pointerMove);
-      pointerActive = false;
-      clearIdle();
-    };
-
     const randomize = () => {
       const x = 18 + Math.random() * 64;
       const y = 14 + Math.random() * 60;
@@ -115,8 +78,8 @@
 
     const applyMode = (coarse: boolean) => {
       if (coarse) {
-        disablePointer();
-        startRandom();
+        enablePointer(); // Enable pointermove for touch devices
+        startRandom();    // Also start random movement when idle
       } else {
         stopRandom();
         enablePointer();
@@ -238,7 +201,7 @@
       var(--theme-bg);
     color: var(--theme-text-primary);
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.6s ease;
+    transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.6s ease, background-position 0.8s ease-in-out;
     position: relative;
   }
 
