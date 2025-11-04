@@ -1,10 +1,15 @@
 ﻿<script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import { get } from '$lib/api';
   import { timeAgo, saveRecent } from '$lib/utils';
 
   export let params: { name: string };
+  export let data: {
+    player: Player | null;
+    fetchError?: string;
+  };
 
   type Player = {
     name: string;
@@ -13,6 +18,7 @@
     last_updated?: string;
     error?: string;
     error_detail?: any;
+    message?: string;
   };
 
   let loading = false;
@@ -20,57 +26,122 @@
   let player: Player | null = null;
   let profiles: any[] = [];
   let lastUpdated = '';
+  const REQUEST_TIMEOUT_MS = 15000;
+  let activeController: AbortController | null = null;
+  let hydrated = false;
+  let lastParamsName = params.name;
 
-  async function load(force = false) {
-    loading = true;
-    errorMsg = '';
-    profiles = [];
-    lastUpdated = '';
+  function formatErrorFromPayload(payload: Player | null) {
+    if (!payload) return '';
 
-    try {
-      // Safely encode the player name and make the API call
-      const encodedName = encodeURIComponent(params.name).replace(/%20/g, '+');
-      const fetchedPlayer = await get<Player>(`/api/player/${encodedName}`);
-      
-      if (!fetchedPlayer || !fetchedPlayer.uuid) {
-        throw new Error('Invalid player data received');
+    if (payload.error) {
+      let message: string;
+      if (payload.error === 'no_profiles') {
+        message = 'SkyBlock profiles were not found.';
+      } else if (payload.error === 'rate_limited') {
+        message = 'Hypixel API rate limit hit. Please try again in a moment.';
+      } else if (payload.error === 'hypixel_api_key_missing') {
+        message = 'Hypixel API key is missing on the server.';
+      } else {
+        message = payload.error;
       }
 
-      player = fetchedPlayer;
-      await saveRecent(fetchedPlayer.name);
-
-      profiles = fetchedPlayer.profiles ?? [];
-      lastUpdated = fetchedPlayer.last_updated || '';
-
-      // Surface known backend errors with user-friendly messages
-      if (fetchedPlayer.error) {
-        if (fetchedPlayer.error === 'no_profiles') {
-          errorMsg = 'SkyBlock profiles were not found.';
-        } else if (fetchedPlayer.error === 'rate_limited') {
-          errorMsg = 'Hypixel API rate limit hit. Please try again in a moment.';
-        } else if (fetchedPlayer.error === 'hypixel_api_key_missing') {
-          errorMsg = 'Hypixel API key is missing on the server.';
-        } else {
-          errorMsg = fetchedPlayer.error;
-        }
-        if (fetchedPlayer.error_detail) {
-          const detail =
-            typeof fetchedPlayer.error_detail === 'string'
-              ? fetchedPlayer.error_detail
-              : JSON.stringify(fetchedPlayer.error_detail);
-          errorMsg += ` (${detail})`;
-        }
-      } else if (!profiles.length) {
-        errorMsg = 'No profiles available.';
+      const detailSource = payload.error_detail ?? payload.message;
+      if (detailSource) {
+        const detail =
+          typeof detailSource === 'string' ? detailSource : JSON.stringify(detailSource);
+        message += ` (${detail})`;
       }
-    } catch (err) {
-      errorMsg = `Failed to load: ${(err as Error).message}`;
-    } finally {
-      loading = false;
+      return message;
+    }
+
+    if (!(payload.profiles ?? []).length) {
+      return 'No profiles available.';
+    }
+
+    return '';
+  }
+
+  function applyPlayerPayload(payload: Player | null, fallbackError?: string) {
+    player = payload;
+    profiles = payload?.profiles ?? [];
+    lastUpdated = payload?.last_updated || '';
+    errorMsg = fallbackError ?? '';
+    if (!fallbackError) {
+      errorMsg = formatErrorFromPayload(payload);
     }
   }
 
-  onMount(() => load(false));
+  applyPlayerPayload(data?.player ?? null, data?.fetchError);
+
+  onMount(() => {
+    hydrated = true;
+    lastParamsName = params.name;
+    if (player?.name) {
+      saveRecent(player.name);
+    }
+  });
+
+  $: if (hydrated && params.name !== lastParamsName) {
+    applyPlayerPayload(data?.player ?? null, data?.fetchError);
+    lastParamsName = params.name;
+    if (player?.name) {
+      saveRecent(player.name);
+    }
+  }
+
+  async function refreshPlayer(force = false) {
+    if (activeController) {
+      activeController.abort();
+      activeController = null;
+    }
+
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const signal = controller?.signal;
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+    loading = true;
+    errorMsg = '';
+    if (controller) {
+      activeController = controller;
+    }
+
+    if (typeof window !== 'undefined' && controller) {
+      timeoutHandle = window.setTimeout(() => {
+        if (!controller.signal.aborted) {
+          console.warn(`Player request exceeded ${REQUEST_TIMEOUT_MS}ms, aborting`);
+          controller.abort();
+        }
+      }, REQUEST_TIMEOUT_MS);
+    }
+
+    try {
+      const encodedName = encodeURIComponent(params.name).replace(/%20/g, '+');
+      const fetchedPlayer = await get<Player>(`/api/player/${encodedName}`, {
+        signal,
+        query: force ? { force: '1' } : undefined
+      });
+
+      applyPlayerPayload(fetchedPlayer);
+      if (hydrated && fetchedPlayer?.name) {
+        saveRecent(fetchedPlayer.name);
+      }
+    } catch (err) {
+      const error = err as Error & { name?: string };
+      const isAbortError = error?.name === 'AbortError';
+      errorMsg = isAbortError
+        ? 'Request timed out. Please try again.'
+        : `Failed to load: ${error.message}`;
+    } finally {
+      loading = false;
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+      if (activeController === controller) {
+        activeController = null;
+      }
+    }
+  }
 
   function shortUUID(value?: string) {
     if (!value) return '';
@@ -78,7 +149,7 @@
   }
 
   function toDetail(profileId: string) {
-    location.href = `/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(profileId)}`;
+    goto(`/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(profileId)}`);
   }
 </script>
 
@@ -245,6 +316,7 @@
   }
 </style>
 
+{#if !$page.route.id?.includes('/p/[profileId]')}
 <div class="wrap">
   <div class="header">
     <div class="title-section">
@@ -266,7 +338,7 @@
       {#if player}<span class="uuid">UUID: {shortUUID(player.uuid)}</span>{/if}
     </div>
     <div class="actions">
-      <button on:click={() => load(true)} disabled={loading}>
+      <button on:click={() => refreshPlayer(true)} disabled={loading}>
         {#if loading}<span class="spinner" style="vertical-align:-3px;margin-right:6px;"></span>{/if}
         Refresh
       </button>
@@ -287,27 +359,32 @@
     </div>
   {/if}
 
-  {#if !loading && !errorMsg && profiles.length}
-    <div class="grid">
-      {#each profiles as prf}
-        <div class="card">
-          <div><strong>{prf.cute_name ?? prf.name ?? 'Profile'}</strong></div>
-          {#if prf.members}
-            <div class="muted" style="margin-top:6px">Members: {Object.keys(prf.members).length}</div>
-          {/if}
-          {#if prf.game_mode}<div class="muted">Mode: {prf.game_mode}</div>{/if}
-          {#if prf.last_save}
-            <div class="muted">Last Saved: {timeAgo(prf.last_save)}</div>
-          {/if}
-          {#if prf.profile_id}
-            <div class="row-end">
-              <button class="ghost" on:click={() => toDetail(prf.profile_id)}>
-                Open → /u/{params.name}/p/{prf.profile_id}
-              </button>
-            </div>
-          {/if}
-        </div>
-      {/each}
-    </div>
+  {#if !loading && !errorMsg}
+    {#if profiles.length}
+      <div class="grid">
+        {#each profiles as prf}
+          <div class="card">
+            <div><strong>{prf.cute_name ?? prf.name ?? 'Profile'}</strong></div>
+            {#if prf.member_count !== undefined}
+              <div class="muted" style="margin-top:6px">Members: {prf.member_count}</div>
+            {:else if prf.members}
+              <div class="muted" style="margin-top:6px">Members: {Object.keys(prf.members).length}</div>
+            {/if}
+            {#if prf.game_mode}<div class="muted">Mode: {prf.game_mode}</div>{/if}
+            {#if prf.last_save}
+              <div class="muted">Last Saved: {timeAgo(prf.last_save)}</div>
+            {/if}
+            {#if prf.profile_id}
+              <div class="row-end">
+                <button class="ghost" on:click={() => toDetail(prf.profile_id)}>
+                  View Profile
+                </button>
+              </div>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    {/if}
   {/if}
 </div>
+{/if}

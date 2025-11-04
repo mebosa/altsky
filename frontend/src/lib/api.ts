@@ -2,6 +2,7 @@
 const STORAGE_KEY = 'altsky_api_base_pref';
 const ORIGIN_TOKEN = '__origin__';
 const PARAM_KEYS = ['api_base', 'api', 'backend'];
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
 
 type BasePreference = {
   rawBase: string;
@@ -13,6 +14,36 @@ let cachedBrowserBase: string | undefined;
 
 function stripTrailingSlash(value: string) {
   return value.replace(/\/+$/, '');
+}
+
+function isLoopbackHost(host: string) {
+  return LOOPBACK_HOSTS.has(host.toLowerCase());
+}
+
+function toURL(value: string, origin?: string) {
+  try {
+    return new URL(value);
+  } catch {
+    if (origin) {
+      try {
+        return new URL(value, origin);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+function adaptBaseForBrowser(resolvedBase: string, origin: string) {
+  if (!resolvedBase) return resolvedBase;
+  const originUrl = toURL(origin);
+  const target = toURL(resolvedBase, origin);
+  if (!originUrl || !target) return resolvedBase;
+  if (isLoopbackHost(target.hostname) && !isLoopbackHost(originUrl.hostname)) {
+    return stripTrailingSlash(origin);
+  }
+  return resolvedBase;
 }
 
 function sanitizeRawBase(value: string) {
@@ -112,20 +143,23 @@ function resolveBrowserBase() {
       storeRawBase(pref.rawBase);
     }
     const resolvedPref = materializeRawBase(pref.rawBase, window.location.origin);
-    cachedBrowserBase = resolvedPref;
-    return resolvedPref;
+    const adapted = adaptBaseForBrowser(resolvedPref, window.location.origin);
+    cachedBrowserBase = adapted;
+    return adapted;
   }
 
   const stored = readStoredRawBase();
   if (stored !== undefined) {
     const resolvedStored = materializeRawBase(stored, window.location.origin);
-    cachedBrowserBase = resolvedStored;
-    return resolvedStored;
+    const adapted = adaptBaseForBrowser(resolvedStored, window.location.origin);
+    cachedBrowserBase = adapted;
+    return adapted;
   }
 
   const fallback = materializeRawBase(ORIGIN_TOKEN, window.location.origin);
-  cachedBrowserBase = fallback;
-  return fallback;
+  const adaptedFallback = adaptBaseForBrowser(fallback, window.location.origin);
+  cachedBrowserBase = adaptedFallback;
+  return adaptedFallback;
 }
 
 export function resolveApiBase(context?: { url?: URL }) {
@@ -133,7 +167,11 @@ export function resolveApiBase(context?: { url?: URL }) {
   if (envRaw !== undefined) {
     const rawBase = normalizeConfiguredBase(String(envRaw));
     const origin = context?.url?.origin ?? (typeof window !== 'undefined' ? window.location.origin : undefined);
-    return materializeRawBase(rawBase, origin);
+    let resolved = materializeRawBase(rawBase, origin);
+    if (typeof window !== 'undefined' && origin) {
+      resolved = adaptBaseForBrowser(resolved, window.location.origin);
+    }
+    return resolved;
   }
 
   if (context?.url) {
@@ -163,7 +201,8 @@ export function setApiBasePreference(base: string | null, persist = true) {
   } else {
     clearStoredRawBase();
   }
-  cachedBrowserBase = materializeRawBase(rawBase, window.location.origin);
+  const resolved = materializeRawBase(rawBase, window.location.origin);
+  cachedBrowserBase = adaptBaseForBrowser(resolved, window.location.origin);
 }
 
 type GetOpts = {
@@ -205,4 +244,3 @@ export async function get<T>(path: string, opts: GetOpts = {}): Promise<T> {
     throw error;
   }
 }
-

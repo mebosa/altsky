@@ -2,10 +2,15 @@
   import { onMount } from 'svelte';
   import { get } from '$lib/api';
   import Tabs from '$lib/ui/Tabs.svelte';
-  import StatChip from '$lib/components/StatChip.svelte';
-  import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
-  import { iconPack, iconPath } from '$lib/iconPack';
-  import { timeAgo, formatNumber, formatPercent, formatLargeNumber } from '$lib/utils';
+  import { timeAgo, formatNumber, formatLargeNumber } from '$lib/utils';
+  import SummaryTab from './SummaryTab.svelte';
+  import SkillsTab from './SkillsTab.svelte';
+  import StatsTab from './StatsTab.svelte';
+  import SlayerTab from './SlayerTab.svelte';
+  import DungeonsTab from './DungeonsTab.svelte';
+  import WardrobeTab from './WardrobeTab.svelte';
+  import { skillOrder, statLabels, slayerLabels, dungeonClassLabels } from './profileConstants';
+  import type { Player, ProfileSummaryResponse } from './profileTypes';
 
   export let params: { name: string; profileId: string };
   export let data: {
@@ -14,313 +19,39 @@
     errorMsg?: string;
   };
 
-  type Player = { name: string; uuid: string };
-
-  type SkillStat = {
-    level: number;
-    progress: number;
-    xp: number;
-    current: number;
-    to_next: number;
-  };
-
-  type WardrobeItem = {
-    slot: number;
-    id: string;
-    mc_id: string;
-    name: string;
-    count: number;
-    rarity?: string | null;
-    lore: string[];
-    icon_url?: string | null;
-    leather_color?: string | null;
-  };
-
-  type ProfileSummaryResponse = {
-    ok: boolean;
-    last_updated?: string | number;
-    profile: {
-      profile_id: string;
-      cute_name?: string | null;
-      game_mode?: string | null;
-      member_count: number;
-      last_save?: number | null;
-      last_save_iso?: string | null;
-    };
-    skyblock_level: {
-      level: number;
-      progress: number;
-      experience: number;
-    };
-    skills: Record<string, SkillStat> & { average_level: number };
-    slayer: Record<string, { level: number; xp: number }> & { total_xp: number };
-    dungeons: {
-      catacombs: { level: number; xp: number };
-      classes: Record<string, { level: number; xp: number }>;
-    };
-    stats: Record<string, number>;
-    currencies: {
-      purse: number;
-      bank: number;
-      total_coins: number;
-      motes: number;
-      essence_total: number;
-      essence: Record<string, number>;
-    };
-    wardrobe: {
-      equipped_slot: number | null;
-      items: (WardrobeItem | null)[];
-    slots: number;
-    };
-  };
-
   const SITE_BASE = import.meta.env.VITE_SITE_BASE ?? 'https://altsky.dev';
 
-const tabs = [
-  { id: 'summary', label: 'Overview' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'stats', label: 'Stats' },
-  { id: 'slayer', label: 'Slayer' },
-  { id: 'dungeons', label: 'Dungeons' },
-  { id: 'wardrobe', label: 'Wardrobe' }
-];
+  const tabs = [
+    { id: 'summary', label: 'Overview' },
+    { id: 'skills', label: 'Skills' },
+    { id: 'stats', label: 'Stats' },
+    { id: 'slayer', label: 'Slayer' },
+    { id: 'dungeons', label: 'Dungeons' },
+    { id: 'wardrobe', label: 'Wardrobe' }
+  ] as const;
 
-  const skillOrder: { key: string; label: string }[] = [
-    { key: 'farming', label: 'Farming' },
-    { key: 'mining', label: 'Mining' },
-    { key: 'combat', label: 'Combat' },
-    { key: 'foraging', label: 'Foraging' },
-    { key: 'fishing', label: 'Fishing' },
-    { key: 'enchanting', label: 'Enchanting' },
-    { key: 'alchemy', label: 'Alchemy' },
-    { key: 'taming', label: 'Taming' },
-    { key: 'carpentry', label: 'Carpentry' },
-    { key: 'runecrafting', label: 'Runecrafting' },
-    { key: 'social', label: 'Social' }
-  ];
+  type TabId = (typeof tabs)[number]['id'];
 
-  const statLabels: Record<string, string> = {
-    health: 'Health',
-    defense: 'Defense',
-    strength: 'Strength',
-    intelligence: 'Intelligence',
-    speed: 'Speed',
-    crit_chance: 'Crit Chance',
-    crit_damage: 'Crit Damage',
-    attack_speed: 'Attack Speed',
-    ferocity: 'Ferocity',
-    magic_find: 'Magic Find',
-    pet_luck: 'Pet Luck',
-    true_defense: 'True Defense'
-  };
-
-  const slayerLabels: Record<string, string> = {
-    zombie: 'Revenant Horror',
-    spider: 'Tarantula Broodfather',
-    wolf: 'Sven Packmaster',
-    enderman: 'Voidgloom Seraph',
-    blaze: 'Inferno Demonlord',
-    vampire: 'Riftstalker Bloodfiend'
-  };
-
-  const dungeonClassLabels: Record<string, string> = {
-    healer: 'Healer',
-    mage: 'Mage',
-    berserk: 'Berserk',
-    archer: 'Archer',
-    tank: 'Tank'
-  };
-
-const WARDROBE_NUM_COLUMNS = 9;
-
-function buildWardrobeColumns(items: (WardrobeItem | null)[]) {
-  const columns: (WardrobeItem | null)[][] = Array.from({ length: WARDROBE_NUM_COLUMNS }, () => []);
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (item) {
-      const columnIndex = item.slot % WARDROBE_NUM_COLUMNS;
-      columns[columnIndex].push(item);
-    }
-  }
-  return columns.filter(col => col.length > 0);
-}
-
-const TRACKED_STATS = new Set([
-  'Health',
-  'Defense',
-  'Strength',
-  'Crit Chance',
-  'Crit Damage',
-  'Attack Speed',
-  'Intelligence',
-  'Speed',
-  'Ferocity',
-  'Magic Find',
-  'True Defense',
-  'Ability Damage',
-  'Sea Creature Chance',
-  'Farming Fortune',
-  'Pet Luck'
-]);
-
-function toTitleCase(value: string) {
-  return value
-    .toLowerCase()
-    .split(' ')
-    .map((segment) => segment ? segment[0].toUpperCase() + segment.slice(1) : segment)
-    .join(' ');
-}
-
-function baseSetNameFromId(id: string) {
-  const parts = id.split('_');
-  if (parts.length <= 1) return toTitleCase(id);
-  const piece = parts.pop(); // discard slot descriptor
-  if (!piece) return toTitleCase(parts.join(' '));
-  return toTitleCase(parts.join(' '));
-}
-
-type ParsedStatLine = {
-  label: string;
-  value: number;
-  suffix: '' | '%';
-};
-
-function parseStatLine(line: string): ParsedStatLine | null {
-  const colonIndex = line.indexOf(':');
-  if (colonIndex === -1) return null;
-  const label = line.slice(0, colonIndex).trim();
-  if (!TRACKED_STATS.has(label)) return null;
-
-  const rawValue = line.slice(colonIndex + 1).split('(')[0].trim(); // use primary value before any parentheses
-  const hasPercent = rawValue.includes('%');
-  const numeric = parseFloat(rawValue.replace(/[^0-9.\-]/g, ''));
-  if (Number.isNaN(numeric)) return null;
-
-  return {
-    label,
-    value: numeric,
-    suffix: hasPercent ? '%' : ''
-  };
-}
-
-type AggregatedStat = {
-  label: string;
-  value: number;
-  suffix: '' | '%';
-  display: string;
-};
-
-function formatStatValue(value: number, suffix: '' | '%') {
-  const fractionDigits = Math.abs(value) % 1 ? 1 : 0;
-  const formatted = formatNumber(value, fractionDigits);
-  return suffix === '%' ? `${formatted}${suffix}` : formatted;
-}
-
-function aggregateSetStats(items: WardrobeItem[]): AggregatedStat[] {
-  const totals = new Map<string, { value: number; suffix: '' | '%' }>();
-  for (const item of items) {
-    for (const line of item.lore) {
-      const parsed = parseStatLine(line);
-      if (!parsed) continue;
-      const existing = totals.get(parsed.label);
-      if (existing) {
-        existing.value += parsed.value;
-      } else {
-        totals.set(parsed.label, { value: parsed.value, suffix: parsed.suffix });
-      }
-    }
-  }
-
-  return Array.from(totals.entries())
-    .map(([label, info]) => ({
-      label,
-      value: info.value,
-      suffix: info.suffix,
-      display: formatStatValue(info.value, info.suffix)
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label));
-}
-
-function deriveSetLabel(items: WardrobeItem[]) {
-  if (!items.length) return '';
-  const baseNames = Array.from(new Set(items.map((item) => baseSetNameFromId(item.id))));
-  if (baseNames.length === 1) {
-    return `${baseNames[0]} Set`;
-  }
-  if (baseNames.length === 2) {
-    return `${baseNames[0]} with ${baseNames[1]}`;
-  }
-  return `${baseNames[0]} with ${baseNames.slice(1).join(', ')}`;
-}
-
-function gatherSetBonusLines(items: WardrobeItem[]): string[] {
-  const bonuses = new Set<string>();
-  for (const item of items) {
-    let capturing = false;
-    const buffer: string[] = [];
-    for (const line of item.lore) {
-      if (line.startsWith('Full Set Bonus')) {
-        capturing = true;
-      }
-      if (capturing) {
-        if (!bonuses.has(line)) buffer.push(line);
-        if (!line.trim()) {
-          capturing = false;
-          break;
-        }
-      }
-    }
-    for (const line of buffer) {
-      bonuses.add(line);
-    }
-  }
-  return Array.from(bonuses).filter((line) => line.trim().length);
-}
-
-function toEquippedItems(columnIndex: number | null, items: (WardrobeItem | null)[]): WardrobeItem[] {
-  if (columnIndex === null || columnIndex < 0) return [];
-  return items.filter((item): item is WardrobeItem => !!item && item.slot % WARDROBE_NUM_COLUMNS === columnIndex);
-}
-
-function pieceLabel(item: WardrobeItem) {
-  const parts = item.id.split('_');
-  if (!parts.length) return item.name;
-  const slotName = parts[parts.length - 1].toLowerCase();
-  return toTitleCase(slotName);
-}
-
-let player: Player | null = data.player;
+  let player: Player | null = data.player;
   let summary: ProfileSummaryResponse | null = data.summary;
-  let wardrobeItems: (WardrobeItem | null)[] = [];
-  let wardrobeHasItems = false;
-  let firstBankColumns: (WardrobeItem | null)[][] = [];
-  let secondBankColumns: (WardrobeItem | null)[][] = [];
-  let equippedItems: WardrobeItem[] = [];
-  let equippedSetLabel = '';
-  let equippedStats: AggregatedStat[] = [];
-  let equippedBonuses: string[] = [];
-  let equippedColumnIndex: number | null = null;
-
-  $: wardrobeItems = summary?.wardrobe?.items ?? [];
-  $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
-  $: {
-    const firstBankRaw = wardrobeItems.filter(item => item && item.slot < 36);
-    const secondBankRaw = wardrobeItems.filter(item => item && item.slot >= 36);
-    firstBankColumns = buildWardrobeColumns(firstBankRaw);
-    secondBankColumns = buildWardrobeColumns(secondBankRaw);
-  }
-  $: equippedColumnIndex = summary?.wardrobe?.equipped_slot ?? null;
-  $: equippedItems = toEquippedItems(equippedColumnIndex, wardrobeItems);
-  $: equippedSetLabel = deriveSetLabel(equippedItems);
-  $: equippedStats = aggregateSetStats(equippedItems);
-  $: equippedBonuses = gatherSetBonusLines(equippedItems);
   let errorMsg = data.errorMsg ?? '';
   let loading = !summary && !errorMsg;
   let refreshing = false;
-  let activeTab = 'summary';
+  let activeTab: TabId = 'summary';
 
-  $: {
-    console.log('Active tab changed:', activeTab);
+  function scrollToTab(tab: TabId) {
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const section = document.getElementById(tab);
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 0);
+    }
+  }
+
+  $: if (activeTab && !loading) {
+    scrollToTab(activeTab);
   }
 
   async function fetchProfile(force = false) {
@@ -333,13 +64,19 @@ let player: Player | null = data.player;
       }
     }
 
+    const resolvedPlayer = player;
+    if (!resolvedPlayer) {
+      errorMsg = 'Failed to resolve player.';
+      return;
+    }
+
     loading = !summary && !force;
     refreshing = force;
     errorMsg = '';
 
     try {
       summary = await get<ProfileSummaryResponse>(
-        `/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(params.profileId)}`,
+        `/api/hypixel/profile/${encodeURIComponent(resolvedPlayer.uuid)}/${encodeURIComponent(params.profileId)}`,
         { query: force ? { refresh: 1 } : undefined }
       );
     } catch (err) {
@@ -352,11 +89,6 @@ let player: Player | null = data.player;
 
   function refresh() {
     if (!refreshing) fetchProfile(true);
-  }
-
-  function rarityClass(rarity?: string | null) {
-    if (!rarity) return 'rarity-basic';
-    return `rarity-${rarity.toLowerCase().replace(/\s+/g, '-')}`;
   }
 
   onMount(() => {
@@ -374,10 +106,11 @@ let player: Player | null = data.player;
     ? `Level ${summary.skyblock_level.level} | Avg Skill ${summary.skills.average_level} | Slayer XP ${formatNumber(summary.slayer.total_xp)} | Coins ${formatLargeNumber(summary.currencies.total_coins)}`
     : 'Inspect Hypixel SkyBlock stats with AltSky.';
 
-  $: shareImage =
-    'https://via.placeholder.com/1200x630.png?text=AltSky';
+  $: shareImage = 'https://via.placeholder.com/1200x630.png?text=AltSky';
 
-  const canonicalUrl = `${SITE_BASE}/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(params.profileId)}`;
+  const canonicalUrl = `${SITE_BASE}/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(
+    params.profileId
+  )}`;
 </script>
 
 <svelte:head>
@@ -444,344 +177,17 @@ let player: Player | null = data.player;
     <Tabs bind:value={activeTab} {tabs} />
 
     {#if activeTab === 'summary'}
-      <section class="grid summary-grid">
-        <div class="card featured">
-          <h2>SkyBlock Level</h2>
-          <div class="level-number">{summary.skyblock_level.level}</div>
-          <div class="progress">
-            <div class="progress-bar" style={`width:${Math.min(100, summary.skyblock_level.progress * 100).toFixed(1)}%`}></div>
-          </div>
-          <div class="progress-label">
-            {formatPercent(summary.skyblock_level.progress * 100, 1)} | Total XP {formatNumber(summary.skyblock_level.experience)}
-          </div>
-          <div class="chips">
-            <StatChip label="Avg Skill Level" value={summary.skills.average_level.toFixed(2)} icon={StarIcon} />
-            <StatChip label="Catacombs" value={`Lv. ${summary.dungeons.catacombs.level}`} icon={DungeonIcon} />
-            <StatChip label="Total Slayer XP" value={formatNumber(summary.slayer.total_xp)} icon={SkullIcon} />
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Coins & Networth</h3>
-          <div class="stat-list">
-            <div>
-              <span class="label">Purse</span>
-              <span class="value">{formatLargeNumber(summary.currencies.purse)}</span>
-            </div>
-            <div>
-              <span class="label">Bank</span>
-              <span class="value">{formatLargeNumber(summary.currencies.bank)}</span>
-            </div>
-            <div>
-              <span class="label">Total Coins</span>
-              <span class="value accent">{formatLargeNumber(summary.currencies.total_coins)}</span>
-            </div>
-            <div>
-              <span class="label">Motes</span>
-              <span class="value">{formatLargeNumber(summary.currencies.motes)}</span>
-            </div>
-            <div>
-              <span class="label">Essence Total</span>
-              <span class="value">{summary.currencies.essence_total.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Core Stats</h3>
-          <div class="chips">
-            {#each Object.entries(summary.stats) as [key, value]}
-              {#if key in statLabels}
-                <StatChip label={statLabels[key]} value={formatNumber(value, 0)} />
-              {/if}
-            {/each}
-          </div>
-        </div>
-      </section>
-    {/if}
-
-    {#if activeTab === 'skills'}
-      <section class="grid">
-        {#each skillOrder as skill}
-          {@const data = summary.skills[skill.key] as SkillStat | undefined}
-          {#if data}
-            <div class="card skill-card">
-              <div class="skill-header">
-                <span class="skill-icon" aria-hidden="true">
-                  <img
-                    src={iconPath($iconPack, skill.key)}
-                    alt=""
-                    loading="lazy"
-                    width="28"
-                    height="28"
-                  />
-                </span>
-                <div class="skill-info">
-                  <span class="skill-name">{skill.label}</span>
-                  <span class="skill-level">Lv. {data.level}</span>
-                </div>
-              </div>
-              <div class="progress">
-                <div class="progress-bar" style={`width:${Math.min(100, data.progress * 100).toFixed(1)}%`}></div>
-              </div>
-              <div class="progress-label">
-                {formatPercent(data.progress * 100, 1)} | {formatNumber(data.current)} / {formatNumber(data.to_next)}
-              </div>
-            </div>
-          {/if}
-        {/each}
-      </section>
-    {/if}
-
-    {#if activeTab === 'stats'}
-      <section class="grid stats-grid">
-        {#each Object.entries(summary.stats) as [key, value]}
-          {#if key in statLabels}
-            <div class="card stat-card">
-              <span class="stat-name">{statLabels[key]}</span>
-              <span class="stat-value">{formatNumber(value, 0)}</span>
-            </div>
-          {/if}
-        {/each}
-
-        <div class="card essence-card">
-          <h3>Essence</h3>
-          <div class="essence-grid">
-            {#each Object.entries(summary.currencies.essence) as [key, value]}
-              <div>
-                <span class="label">{key}</span>
-                <span class="value">{formatNumber(value, 0)}</span>
-              </div>
-            {/each}
-          </div>
-        </div>
-      </section>
-    {/if}
-
-    {#if activeTab === 'slayer'}
-      <section class="grid slayer-grid">
-        {#each Object.entries(summary.slayer) as [key, info]}
-          {#if key !== 'total_xp' && typeof info !== 'number'}
-            {@const slayerInfo = info as { level: number; xp: number }}
-            <div class="card slayer-card">
-              <div class="skill-header">
-                <span class="skill-icon" aria-hidden="true">
-                  <img
-                    src={iconPath($iconPack, key, 'slayer')}
-                    alt=""
-                    loading="lazy"
-                    width="28"
-                    height="28"
-                  />
-                </span>
-                <div class="skill-info">
-                  <span class="slayer-name">{slayerLabels[key] ?? key}</span>
-                  <div class="slayer-level">Lv. {slayerInfo.level}</div>
-                  <div class="slayer-xp">{formatNumber(slayerInfo.xp)} XP</div>
-                </div>
-              </div>
-            </div>
-          {/if}
-        {/each}
-      </section>
-    {/if}
-
-    {#if activeTab === 'dungeons'}
-      <section class="grid dungeon-grid">
-        <div class="card dungeon-card featured">
-          <div class="skill-header">
-            <span class="skill-icon" aria-hidden="true">
-              <img
-                src={iconPath($iconPack, 'catacombs', 'dungeons')}
-                alt=""
-                loading="lazy"
-                width="28"
-                height="28"
-              />
-            </span>
-            <h3>Catacombs</h3>
-          </div>
-          <div class="catacombs-level">Lv. {summary.dungeons.catacombs.level}</div>
-          <div class="sub">Total XP {formatNumber(summary.dungeons.catacombs.xp)}</div>
-        </div>
-
-        {#each Object.entries(summary.dungeons.classes) as [key, info]}
-          <div class="card dungeon-card">
-            <div class="skill-header">
-              <span class="skill-icon" aria-hidden="true">
-                <img
-                  src={iconPath($iconPack, key, 'dungeons')}
-                  alt=""
-                  loading="lazy"
-                  width="28"
-                  height="28"
-                />
-              </span>
-              <span class="dungeon-name">{dungeonClassLabels[key] ?? key}</span>
-            </div>
-            <span class="dungeon-level">Lv. {info.level}</span>
-            <span class="sub">{formatNumber(info.xp)} XP</span>
-          </div>
-        {/each}
-      </section>
-    {/if}
-
-    {#if activeTab === 'wardrobe'}
-      {#if wardrobeHasItems}
-        {#if equippedItems.length}
-          <section class="equipped-summary">
-            <div class="equipped-heading">
-              <h3>Currently Equipped</h3>
-              {#if equippedColumnIndex !== null}
-                <span class="equipped-slot-pill">Wardrobe Slot {equippedColumnIndex + 1}</span>
-              {/if}
-            </div>
-            <div class="equipped-body">
-              <div class="equipped-icons">
-                {#each equippedItems as item (item.slot)}
-                  <div
-                    class={`equipped-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
-                    style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}>
-                    {#if item.icon_url}
-                      <img src={item.icon_url} alt={`${item.name} icon`} loading="lazy" width="60" height="60" />
-                    {/if}
-                    <span class="equipped-piece">{pieceLabel(item)}</span>
-                  </div>
-                {/each}
-              </div>
-              <div class="equipped-details">
-                <div class="equipped-set-name">{equippedSetLabel || 'Custom Mix'}</div>
-                {#if equippedStats.length}
-                  <ul class="equipped-stats">
-                    {#each equippedStats as stat}
-                      <li>
-                        <span>{stat.label}</span>
-                        <span>{stat.display}</span>
-                      </li>
-                    {/each}
-                  </ul>
-                {/if}
-                {#if equippedBonuses.length}
-                  <div class="equipped-bonuses">
-                    {#each equippedBonuses as line}
-                      <p>{line}</p>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            </div>
-          </section>
-        {/if}
-
-        <section class="wardrobe-grid">
-          {#each firstBankColumns as column}
-            <div class="wardrobe-column">
-              {#each column as item}
-                {#if item}
-                  <div class={`card wardrobe-card ${rarityClass(item.rarity)} ${summary.wardrobe.equipped_slot === item.slot ? 'equipped' : ''}`}>
-                    <div class="wardrobe-head">
-                      <div
-                        class={`wardrobe-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
-                        style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}>
-                        {#if item.icon_url}
-                          <img
-                            src={item.icon_url}
-                            alt={`${item.name} icon`}
-                            loading="lazy"
-                            width="64"
-                            height="64"
-                            on:error={(event) => {
-                              const target = event.currentTarget as HTMLImageElement;
-                              target.dataset.failed = '1';
-                              target.parentElement?.classList.add('placeholder');
-                            }} />
-                        {/if}
-                        <span class="placeholder-letter">{item.name.slice(0, 1).toUpperCase()}</span>
-                      </div>
-                      <div class="wardrobe-info">
-                        <div class="wardrobe-top">
-                          <span class="slot">Slot {item.slot + 1}</span>
-                          <span class="rarity">{item.rarity ?? 'Unknown'}</span>
-                        </div>
-                        <div class="item-name">{item.name}</div>
-                        <div class="item-meta">Item ID: {item.id}</div>
-                        {#if item.count > 1}
-                          <div class="item-meta">Count: {item.count}</div>
-                        {/if}
-                      </div>
-                    </div>
-                    {#if item.lore.length}
-                      <div class="lore">
-                        {#each item.lore.slice(0, 8) as line}
-                          <p>{line}</p>
-                        {/each}
-                      </div>
-                    {/if}
-                  </div>
-                {/if}
-              {/each}
-            </div>
-          {/each}
-        </section>
-
-        {#if secondBankColumns.length > 0}
-          <h3 class="wardrobe-bank-title">Additional Wardrobe Slots</h3>
-          <section class="wardrobe-grid">
-            {#each secondBankColumns as column}
-              <div class="wardrobe-column">
-                {#each column as item}
-                  {#if item}
-                    <div class={`card wardrobe-card ${rarityClass(item.rarity)} ${summary.wardrobe.equipped_slot === item.slot ? 'equipped' : ''}`}>
-                      <div class="wardrobe-head">
-                        <div
-                          class={`wardrobe-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
-                          style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}>
-                          {#if item.icon_url}
-                            <img
-                              src={item.icon_url}
-                              alt={`${item.name} icon`}
-                              loading="lazy"
-                              width="64"
-                              height="64"
-                              on:error={(event) => {
-                                const target = event.currentTarget as HTMLImageElement;
-                                target.dataset.failed = '1';
-                                target.parentElement?.classList.add('placeholder');
-                              }} />
-                          {/if}
-                          <span class="placeholder-letter">{item.name.slice(0, 1).toUpperCase()}</span>
-                        </div>
-                        <div class="wardrobe-info">
-                          <div class="wardrobe-top">
-                            <span class="slot">Slot {item.slot + 1}</span>
-                            <span class="rarity">{item.rarity ?? 'Unknown'}</span>
-                          </div>
-                          <div class="item-name">{item.name}</div>
-                          <div class="item-meta">Item ID: {item.id}</div>
-                          {#if item.count > 1}
-                            <div class="item-meta">Count: {item.count}</div>
-                          {/if}
-                        </div>
-                      </div>
-                      {#if item.lore.length}
-                        <div class="lore">
-                          {#each item.lore.slice(0, 8) as line}
-                            <p>{line}</p>
-                          {/each}
-                        </div>
-                      {/if}
-                    </div>
-                  {/if}
-                {/each}
-              </div>
-            {/each}
-          </section>
-        {/if}
-      {:else}
-        <div class="card wardrobe-empty">
-          <p>The wardrobe is empty.</p>
-        </div>
-      {/if}
+      <SummaryTab {summary} {statLabels} />
+    {:else if activeTab === 'skills'}
+      <SkillsTab {summary} {skillOrder} />
+    {:else if activeTab === 'stats'}
+      <StatsTab {summary} {statLabels} />
+    {:else if activeTab === 'slayer'}
+      <SlayerTab {summary} {slayerLabels} />
+    {:else if activeTab === 'dungeons'}
+      <DungeonsTab {summary} {dungeonClassLabels} />
+    {:else if activeTab === 'wardrobe'}
+      <WardrobeTab {summary} />
     {/if}
   {/if}
 </div>
@@ -910,7 +316,7 @@ let player: Player | null = data.player;
     cursor: wait;
   }
 
-  .card {
+  :global(.card) {
     background: var(--theme-surface);
     border: 1px solid var(--theme-surface-border);
     border-radius: 20px;
@@ -921,521 +327,18 @@ let player: Player | null = data.player;
     transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
   }
 
-  .card:hover {
+  :global(.card:hover) {
     transform: translateY(-3px);
   }
 
-  .featured {
+  :global(.featured) {
     background: var(--theme-featured-gradient);
     border-color: var(--theme-secondary-alpha-32);
   }
 
-  .level-number {
-    font-size: 3.2rem;
-    font-weight: 800;
-    margin: 6px 0 8px;
-    letter-spacing: -0.04em;
-    color: var(--theme-text-primary);
-  }
-
-  .card h2,
-  .card h3 {
-    margin: 0;
-    color: var(--theme-text-primary);
-  }
-
-  .card strong {
-    color: var(--theme-text-primary);
-  }
-
-  .grid {
+  :global(.grid) {
     display: grid;
     gap: 20px;
-  }
-
-  .summary-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
-  }
-
-  .skill-card,
-  .stat-card,
-  .slayer-card,
-  .dungeon-card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .skill-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .skill-icon {
-    display: inline-flex;
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    align-items: center;
-    justify-content: center;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.32);
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.32);
-  }
-
-  .skill-icon img {
-    width: 28px;
-    height: 28px;
-    image-rendering: pixelated;
-  }
-
-  .skill-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .skill-name {
-    font-weight: 600;
-    color: var(--theme-text-secondary);
-    font-size: 0.95rem;
-  }
-
-  .skill-level {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--theme-accent);
-    letter-spacing: 0.01em;
-  }
-
-  .progress {
-    width: 100%;
-    height: 7px;
-    background: rgba(148, 163, 184, 0.28);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(135deg, var(--theme-progress-start), var(--theme-progress-end));
-    border-radius: inherit;
-  }
-
-  .progress-label {
-    color: var(--theme-text-soft);
-    font-size: 0.85rem;
-  }
-
-  .stat-card {
-    padding: 24px;
-    align-items: flex-start;
-  }
-
-  .stat-name {
-    font-size: 0.95rem;
-    color: var(--theme-text-soft);
-  }
-
-  .stat-value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin-top: 6px;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
-
-  .stat-list {
-    display: grid;
-    gap: 10px;
-  }
-
-  .stat-list .label {
-    color: var(--theme-text-soft);
-  }
-
-  .stat-list .value {
-    font-weight: 600;
-    color: var(--theme-text-primary);
-  }
-
-  .stat-list .value.accent {
-    color: var(--theme-accent-secondary);
-  }
-
-  .essence-card .essence-grid {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  }
-
-  .slayer-grid,
-  .dungeon-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
-
-  .slayer-name,
-  .dungeon-name {
-    font-weight: 600;
-    color: var(--theme-text-secondary);
-  }
-
-  .slayer-level,
-  .catacombs-level {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--theme-accent);
-  }
-
-  .slayer-xp {
-    color: var(--theme-text-soft);
-  }
-
-  .dungeon-level {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--theme-accent-secondary);
-  }
-
-  .sub {
-    color: var(--theme-text-soft);
-  }
-
-  .equipped-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    margin-bottom: 28px;
-    padding: 22px 26px;
-    border-radius: 20px;
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    background: linear-gradient(145deg, rgba(23, 37, 84, 0.58), rgba(15, 23, 42, 0.72));
-    box-shadow: 0 22px 40px rgba(15, 23, 42, 0.28);
-  }
-
-  .equipped-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .equipped-heading h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--theme-text-primary);
-  }
-
-  .equipped-slot-pill {
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(59, 130, 246, 0.16);
-    color: rgba(191, 219, 254, 0.9);
-  }
-
-  .equipped-body {
-    display: flex;
-    gap: 22px;
-    align-items: stretch;
-  }
-
-  .equipped-icons {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    align-items: center;
-  }
-
-  .equipped-icon {
-    width: 68px;
-    height: 68px;
-    border-radius: 18px;
-    background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.28);
-    display: grid;
-    place-items: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .equipped-icon img {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    padding: 8px;
-    border-radius: 16px;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.38);
-    background:
-      radial-gradient(120% 120% at 30% 25%, rgba(255, 255, 255, 0.28), rgba(59, 130, 246, 0) 58%),
-      radial-gradient(100% 100% at 75% 80%, rgba(147, 51, 234, 0.18), rgba(15, 23, 42, 0) 62%),
-      rgba(15, 23, 42, 0.7);
-    mix-blend-mode: normal;
-  }
-
-  .equipped-icon.leather img {
-    mix-blend-mode: multiply;
-  }
-
-  .equipped-icon.leather::before {
-    content: '';
-    position: absolute;
-    inset: 10px;
-    border-radius: 14px;
-    background: var(--leather-color, rgba(59, 130, 246, 0.6));
-    opacity: 0.58;
-    mix-blend-mode: color;
-  }
-
-  .equipped-icon.placeholder {
-    background: linear-gradient(150deg, rgba(59, 130, 246, 0.16), rgba(15, 23, 42, 0.65));
-  }
-
-  .equipped-piece {
-    position: absolute;
-    bottom: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.65rem;
-    letter-spacing: 0.03em;
-    font-weight: 600;
-    color: rgba(226, 232, 240, 0.82);
-    text-transform: uppercase;
-  }
-
-  .equipped-details {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    flex: 1;
-    color: var(--theme-text-primary);
-  }
-
-  .equipped-set-name {
-    font-size: 1.2rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-  }
-
-  .equipped-stats {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  }
-
-  .equipped-stats li {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    background: rgba(15, 23, 42, 0.45);
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    border-radius: 12px;
-    padding: 8px 12px;
-    font-size: 0.9rem;
-  }
-
-  .equipped-bonuses {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
-  }
-
-  .wardrobe-grid {
-    display: flex;
-    gap: 18px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-  }
-
-  .wardrobe-column {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    flex: 0 0 304px;
-    max-width: 304px;
-  }
-
-  .wardrobe-bank-title {
-    margin-top: 32px;
-    margin-bottom: 16px;
-    color: var(--theme-text-primary);
-    font-size: 1.5rem;
-  }
-
-  .wardrobe-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    border-width: 1px;
-    min-height: 240px;
-  }
-
-  .wardrobe-card.equipped {
-    border-width: 2px;
-    box-shadow: 0 0 20px rgba(250, 204, 21, 0.35);
-  }
-
-  .wardrobe-head {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
-
-  .wardrobe-icon {
-    width: 72px;
-    height: 72px;
-    flex: 0 0 72px;
-    border-radius: 18px;
-    background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.28);
-    display: grid;
-    place-items: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .wardrobe-icon img {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    border-radius: 16px;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.38);
-    background:
-      radial-gradient(120% 120% at 30% 25%, rgba(255, 255, 255, 0.32), rgba(59, 130, 246, 0) 58%),
-      radial-gradient(100% 100% at 75% 80%, rgba(147, 51, 234, 0.22), rgba(15, 23, 42, 0) 62%),
-      rgba(15, 23, 42, 0.7);
-    padding: 8px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .wardrobe-icon img[data-failed='1'] {
-    display: none;
-  }
-
-  .wardrobe-icon.leather {
-    border-color: rgba(148, 163, 184, 0.45);
-    background:
-      radial-gradient(140% 140% at 28% 18%, rgba(255, 255, 255, 0.25), transparent 72%),
-      linear-gradient(160deg, color-mix(in srgb, var(--leather-color, #8b5cf6) 70%, rgba(15, 23, 42, 0.6)), rgba(15, 23, 42, 0.65));
-  }
-
-  .wardrobe-icon.leather::before {
-    content: '';
-    position: absolute;
-    inset: 12px;
-    border-radius: 16px;
-    background: var(--leather-color, rgba(59, 130, 246, 0.6));
-    opacity: 0.65;
-    filter: saturate(1.1);
-    mix-blend-mode: color;
-  }
-
-  .wardrobe-icon.leather img {
-    filter: saturate(1.35) brightness(1.1);
-    mix-blend-mode: multiply;
-  }
-
-  .wardrobe-icon.leather.placeholder {
-    background: linear-gradient(150deg, color-mix(in srgb, var(--leather-color, rgba(59, 130, 246, 0.6)) 65%, rgba(15, 23, 42, 0.58)), rgba(15, 23, 42, 0.62));
-  }
-
-  .wardrobe-icon.leather.placeholder::before {
-    opacity: 0.75;
-  }
-
-  .placeholder-letter {
-    display: none;
-    font-weight: 700;
-    font-size: 2.5rem;
-    color: var(--theme-text-secondary);
-    position: relative;
-    z-index: 2;
-  }
-
-  .wardrobe-icon.placeholder {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.26), rgba(147, 51, 234, 0.28));
-    border-color: rgba(148, 163, 184, 0.35);
-  }
-
-  .wardrobe-icon.placeholder .placeholder-letter {
-    display: block;
-  }
-
-  .wardrobe-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .wardrobe-top {
-    display: flex;
-    justify-content: space-between;
-    color: var(--theme-text-soft);
-  }
-
-  .item-name {
-    font-weight: 600;
-    font-size: 1.05rem;
-  }
-
-  .item-meta {
-    color: var(--theme-text-soft);
-    font-size: 0.85rem;
-  }
-
-  .lore {
-    margin-top: 6px;
-    padding: 10px 12px;
-    background: var(--theme-control-bg);
-    border-radius: 12px;
-    max-height: 160px;
-    overflow: auto;
-    font-size: 0.8rem;
-    color: var(--theme-text-soft);
-    border: 1px solid var(--theme-control-border);
-  }
-
-  .lore p {
-    margin: 0;
-    line-height: 1.35;
-  }
-
-  .wardrobe-empty {
-    text-align: center;
-    color: var(--theme-text-soft);
-  }
-
-  :global(body[data-icon-pack='flufsky']) .wardrobe-icon img {
-    filter: saturate(1.12) contrast(1.05) brightness(1.08);
-  }
-
-  :global(body[data-icon-pack='flufsky']) .wardrobe-icon.placeholder {
-    background: linear-gradient(135deg, rgba(236, 72, 153, 0.32), rgba(56, 189, 248, 0.28));
   }
 
   .alert {
@@ -1476,43 +379,6 @@ let player: Player | null = data.player;
     100% {
       opacity: 0.4;
     }
-  }
-
-  .rarity-basic {
-    border-color: rgba(148, 163, 184, 0.4);
-  }
-
-  .rarity-common {
-    border-color: rgba(113, 113, 122, 0.6);
-  }
-
-  .rarity-uncommon {
-    border-color: rgba(34, 197, 94, 0.6);
-  }
-
-  .rarity-rare {
-    border-color: rgba(59, 130, 246, 0.6);
-  }
-
-  .rarity-epic {
-    border-color: rgba(168, 85, 247, 0.6);
-  }
-
-  .rarity-legendary {
-    border-color: rgba(250, 204, 21, 0.7);
-  }
-
-  .rarity-mythic {
-    border-color: rgba(236, 72, 153, 0.7);
-  }
-
-  .rarity-divine {
-    border-color: rgba(129, 140, 248, 0.75);
-  }
-
-  .rarity-special,
-  .rarity-very-special {
-    border-color: rgba(239, 68, 68, 0.75);
   }
 
   @media (max-width: 768px) {

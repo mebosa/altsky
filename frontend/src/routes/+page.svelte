@@ -5,12 +5,29 @@
   let name = '';
   let recent: string[] = [];
   let searchError = '';
+  let isLoading = false;
 
-  async function toUser(raw: string) {
-    const value = raw.trim();
-    if (!value) return;
-    
+  // Debounce function to prevent rapid consecutive calls
+  function debounce(func: Function, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Debounced `toUser` - validates input, saves recent, and navigates.
+  const toUser = debounce(async (raw: string) => {
+    if (isLoading) return;
+    isLoading = true;
     try {
+      const value = raw.trim();
+      if (!value) return;
+
       searchError = '';
       // 마인크래프트 유저네임 검증 (영문, 숫자, _만 허용)
       const sanitizedValue = value.replace(/[^a-zA-Z0-9_]/g, '');
@@ -24,22 +41,34 @@
         return;
       }
 
-      // Don't prefetch player on the home page. Navigate immediately to the player route
-      // and let the player page handle loading / errors. This ensures the search box
-      // is removed as soon as we navigate.
+      // Save recent and update local list
       await saveRecent(sanitizedValue);
       recent = loadRecent();
-      await goto(`/u/${encodeURIComponent(sanitizedValue)}`, { replaceState: false });
+
+      const targetPath = `/u/${encodeURIComponent(sanitizedValue)}`;
+      try {
+        if (typeof window !== 'undefined' && window.location.pathname === targetPath) {
+          // full reload to guarantee the player route re-initializes
+          window.location.href = targetPath;
+        } else {
+          await goto(targetPath, { replaceState: false });
+        }
+      } catch (err) {
+        // Fallback to location change on any navigation error
+        console.error('Navigation error:', err);
+        if (typeof window !== 'undefined') window.location.href = targetPath;
+      }
     } catch (error) {
       console.error('Navigation error:', error);
       searchError = 'An unexpected error occurred';
-      return;
+    } finally {
+      isLoading = false;
     }
-  }
+  }, 200);
 
-  async function handleSearch() {
+  function handleSearch() {
     if (name.trim()) {
-      await toUser(name);
+      toUser(name);
     }
   }
 

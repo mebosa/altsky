@@ -6,6 +6,7 @@ from django.core.cache import cache
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
+from .decorators import rate_limit
 
 from .domain.profile_summary import summarize_profile
 
@@ -130,10 +131,24 @@ def player_lookup(_: Request, name: str) -> Response:
 
             return Response(payload)
 
+        raw_profiles = body.get('profiles') or []
+        profiles = []
+        for raw in raw_profiles:
+            members = raw.get('members') or {}
+            profiles.append({
+                'profile_id': raw.get('profile_id') or raw.get('uuid'),
+                'cute_name': raw.get('cute_name'),
+                'name': raw.get('name'),
+                'game_mode': raw.get('game_mode'),
+                'last_save': raw.get('last_save'),
+                'last_save_iso': raw.get('last_save_iso') or raw.get('lastSaveIso'),
+                'member_count': len(members),
+            })
+
         return Response({
             'name': name,
             'uuid': uuid,
-            'profiles': body.get('profiles', []),
+            'profiles': profiles,
             'last_updated': body.get('last_updated') or body.get('lastUpdated')
         })
         

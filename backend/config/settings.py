@@ -55,6 +55,18 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # --- 호스트/CSRF 설정 끝 ---
 
+# Cache settings for rate limiting
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
+# Rate limiting settings
+RATE_LIMIT = {
+    'DEFAULT_REQUESTS': 5,  # Number of requests allowed
+    'DEFAULT_WINDOW': 60,   # Time window in seconds
+}
 
 
 # Application definition

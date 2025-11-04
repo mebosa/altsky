@@ -93,8 +93,10 @@
     cancelIdleAnimation();
   }
 
-  function handleMouseLeave() {
+  function handleMouseLeave(event: MouseEvent) {
     if (pointerCoarse) return;
+    const next = event.relatedTarget as Node | null;
+    if (next && paletteShell?.contains(next)) return;
     closePalette();
   }
 
