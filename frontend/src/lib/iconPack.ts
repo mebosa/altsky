@@ -15,6 +15,10 @@ export type IconPackDefinition = {
 	description?: string;
 };
 
+const PACK_ID_ALIASES: Record<string, string> = {
+	flufsky: 'furfsky'
+};
+
 export const iconPackOptions: IconPackDefinition[] = [
 	{
 		id: 'vanilla',
@@ -27,14 +31,14 @@ export const iconPackOptions: IconPackDefinition[] = [
 		description: 'Classic Minecraft look'
 	},
 	{
-		id: 'flufsky',
-		label: 'Flufsky',
+		id: 'furfsky',
+		label: 'Furfsky',
 		paths: {
-			skills: '/icons/skills/flufsky',
-			slayer: '/icons/slayer/flufsky',
-			dungeons: '/icons/dungeons/flufsky'
+			skills: '/icons/skills/furfsky',
+			slayer: '/icons/slayer/furfsky',
+			dungeons: '/icons/dungeons/furfsky'
 		},
-		description: 'Soft SkyBlock-style tint'
+		description: 'Furfsky Reborn-inspired UI set'
 	}
 ];
 
@@ -50,6 +54,12 @@ function createIconPackStore(): IconPackStore {
 	const { subscribe, set } = writable<IconPackDefinition>(iconPackOptions[0]);
 	let initialized = false;
 
+	function resolvePack(id: string | null): IconPackDefinition | undefined {
+		if (!id) return undefined;
+		const normalized = PACK_ID_ALIASES[id] ?? id;
+		return iconPackOptions.find((pack) => pack.id === normalized);
+	}
+
 	function apply(pack: IconPackDefinition, persist = true) {
 		set(pack);
 		if (persist && typeof window !== 'undefined') {
@@ -62,19 +72,17 @@ function createIconPackStore(): IconPackStore {
 		initialized = true;
 
 		const storedId = window.localStorage.getItem(STORAGE_KEY);
-		if (storedId) {
-			const storedPack = iconPackOptions.find((pack) => pack.id === storedId);
-			if (storedPack) {
-				apply(storedPack, false);
-				return;
-			}
+		const storedPack = resolvePack(storedId);
+		if (storedPack) {
+			apply(storedPack, false);
+			return;
 		}
 
 		apply(iconPackOptions[0], false);
 	}
 
 	function select(id: string) {
-		const pack = iconPackOptions.find((item) => item.id === id);
+		const pack = resolvePack(id);
 		if (!pack) return;
 		apply(pack, true);
 	}

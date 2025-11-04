@@ -235,6 +235,7 @@
     return alt || '?';
   }
 
+  const pendingTintKeys = new Set<string>();
   let iconVersion = 0;
   let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
@@ -748,6 +749,7 @@
     color: var(--theme-text-soft);
   }
 
+  :global(body[data-icon-pack='furfsky']) .slot-icon.placeholder,
   :global(body[data-icon-pack='flufsky']) .slot-icon.placeholder {
     background: linear-gradient(
       135deg,
