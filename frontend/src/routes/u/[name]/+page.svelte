@@ -1,9 +1,9 @@
 ﻿<script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
   import { get } from '$lib/api';
   import { timeAgo, saveRecent } from '$lib/utils';
+  import Tabs from '$lib/ui/Tabs.svelte';
 
   export let params: { name: string };
   export let data: {
@@ -30,6 +30,17 @@
   let activeController: AbortController | null = null;
   let hydrated = false;
   let lastParamsName = params.name;
+  let activeTab = 'overview';
+  let selectedProfileId: string | null = null;
+  
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'skills', label: 'Skills' },
+    { id: 'stats', label: 'Stats' },
+    { id: 'slayer', label: 'Slayer' },
+    { id: 'dungeons', label: 'Dungeons' },
+    { id: 'wardrobe', label: 'Wardrobe' }
+  ];
 
   function formatErrorFromPayload(payload: Player | null) {
     if (!payload) return '';
@@ -147,6 +158,8 @@
     if (!value) return '';
     return `${value.slice(0, 8)}...`;
   }
+
+  import { goto } from '$app/navigation';
 
   function toDetail(profileId: string) {
     goto(`/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(profileId)}`);
@@ -307,6 +320,14 @@
     color: var(--theme-text-soft);
   }
 
+  .section {
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: var(--theme-card-shadow);
+  }
+
   @media (max-width: 640px) {
     button,
     button.ghost {
@@ -316,7 +337,6 @@
   }
 </style>
 
-{#if !$page.route.id?.includes('/p/[profileId]')}
 <div class="wrap">
   <div class="header">
     <div class="title-section">
@@ -348,6 +368,8 @@
     </div>
   </div>
 
+  <Tabs {tabs} bind:value={activeTab} />
+
   {#if errorMsg}
     <div class="err">{errorMsg}</div>
   {/if}
@@ -360,31 +382,53 @@
   {/if}
 
   {#if !loading && !errorMsg}
-    {#if profiles.length}
-      <div class="grid">
-        {#each profiles as prf}
-          <div class="card">
-            <div><strong>{prf.cute_name ?? prf.name ?? 'Profile'}</strong></div>
-            {#if prf.member_count !== undefined}
-              <div class="muted" style="margin-top:6px">Members: {prf.member_count}</div>
-            {:else if prf.members}
-              <div class="muted" style="margin-top:6px">Members: {Object.keys(prf.members).length}</div>
-            {/if}
-            {#if prf.game_mode}<div class="muted">Mode: {prf.game_mode}</div>{/if}
-            {#if prf.last_save}
-              <div class="muted">Last Saved: {timeAgo(prf.last_save)}</div>
-            {/if}
-            {#if prf.profile_id}
-              <div class="row-end">
-                <button class="ghost" on:click={() => toDetail(prf.profile_id)}>
-                  View Profile
-                </button>
-              </div>
-            {/if}
-          </div>
-        {/each}
-      </div>
+    {#if !selectedProfileId}
+      {#if profiles.length}
+        <div class="grid">
+          {#each profiles as prf}
+            <div class="card">
+              <div><strong>{prf.cute_name ?? prf.name ?? 'Profile'}</strong></div>
+              {#if prf.member_count !== undefined}
+                <div class="muted" style="margin-top:6px">Members: {prf.member_count}</div>
+              {:else if prf.members}
+                <div class="muted" style="margin-top:6px">Members: {Object.keys(prf.members).length}</div>
+              {/if}
+              {#if prf.game_mode}<div class="muted">Mode: {prf.game_mode}</div>{/if}
+              {#if prf.last_save}
+                <div class="muted">Last Saved: {timeAgo(prf.last_save)}</div>
+              {/if}
+              {#if prf.profile_id}
+                <div class="row-end">
+                  <button class="ghost" on:click={() => {
+                    selectedProfileId = prf.profile_id;
+                    if (activeTab !== 'overview') {
+                      toDetail(prf.profile_id);
+                    }
+                  }}>
+                    {activeTab === 'overview' ? 'Select' : 'View Details'}
+                  </button>
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      {/if}
+    {:else if activeTab !== 'overview'}
+      <button 
+        class="ghost back-button" 
+        style="margin-bottom: 1rem"
+        on:click={() => selectedProfileId = null}
+      >
+        ← Back to Profile Selection
+      </button>
+      {#if activeTab !== 'overview'}
+        <div class="section">
+          Loading {activeTab} content... 
+          <button class="primary" style="margin-left: 1rem" on:click={() => toDetail(selectedProfileId)}>
+            Go to Detail Page
+          </button>
+        </div>
+      {/if}
     {/if}
   {/if}
 </div>
-{/if}

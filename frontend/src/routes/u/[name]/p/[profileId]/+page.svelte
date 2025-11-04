@@ -2,7 +2,15 @@
   import { onMount } from 'svelte';
   import { get } from '$lib/api';
   import Tabs from '$lib/ui/Tabs.svelte';
-  import { timeAgo, formatNumber, formatLargeNumber } from '$lib/utils';
+  import StatChip from '$lib/components/StatChip.svelte';
+  import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
+  import { iconPack } from '$lib/iconPack';
+  import { formatNumber, formatPercent, formatLargeNumber } from '$lib/utils/format';
+  import { timeAgo } from '$lib/utils/time';
+  import type { Player, ProfileSummaryResponse } from '$lib/types/profile';
+  import { TABS, type TabId } from '$lib/constants/tabs';
+  import { SKILL_ORDER } from '$lib/constants/skills';
+  import WardrobeSection from './components/WardrobeSection.svelte';
   import SummaryTab from './SummaryTab.svelte';
   import SkillsTab from './SkillsTab.svelte';
   import StatsTab from './StatsTab.svelte';
@@ -39,19 +47,15 @@
   let refreshing = false;
   let activeTab: TabId = 'summary';
 
-  function scrollToTab(tab: TabId) {
-    if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        const section = document.getElementById(tab);
-        if (section) {
-          section.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 0);
-    }
+  async function scrollToSection(tab: TabId) {
+    if (typeof window === 'undefined') return;
+    await tick();
+    const section = document.getElementById(tab);
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   $: if (activeTab && !loading) {
-    scrollToTab(activeTab);
+    scrollToSection(activeTab);
   }
 
   async function fetchProfile(force = false) {
@@ -64,8 +68,8 @@
       }
     }
 
-    const resolvedPlayer = player;
-    if (!resolvedPlayer) {
+    const resolved = player;
+    if (!resolved) {
       errorMsg = 'Failed to resolve player.';
       return;
     }
@@ -76,7 +80,7 @@
 
     try {
       summary = await get<ProfileSummaryResponse>(
-        `/api/hypixel/profile/${encodeURIComponent(resolvedPlayer.uuid)}/${encodeURIComponent(params.profileId)}`,
+        `/api/hypixel/profile/${encodeURIComponent(resolved.uuid)}/${encodeURIComponent(params.profileId)}`,
         { query: force ? { refresh: 1 } : undefined }
       );
     } catch (err) {
