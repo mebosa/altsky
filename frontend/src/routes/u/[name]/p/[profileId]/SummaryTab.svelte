@@ -49,8 +49,12 @@
         <span class="value">{formatLargeNumber(summary.currencies.purse)}</span>
       </div>
       <div>
-        <span class="label">Bank</span>
-        <span class="value">{formatLargeNumber(summary.currencies.bank)}</span>
+        <span class="label">Co-op Bank</span>
+        <span class="value">{formatLargeNumber(summary.currencies.bank.coop)}</span>
+      </div>
+      <div>
+        <span class="label">Personal Bank</span>
+        <span class="value">{formatLargeNumber(summary.currencies.bank.personal)}</span>
       </div>
       <div>
         <span class="label">Total Coins</span>

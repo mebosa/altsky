@@ -4,8 +4,10 @@
   import type { ProfileSummaryResponse } from '$lib/types/profile';
   import {
     buildStyleString,
+    ensureTintedIcon,
     formatLeatherColor,
     isFallbackIcon,
+    peekTintedIcon,
     rarityToBackground,
   } from '$lib/utils/wardrobe';
 

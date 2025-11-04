@@ -276,35 +276,30 @@
         <div class="equipped-body">
           <div class="equipped-icons">
             {#each equippedGroupItems as item, index (index)}
-              {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
               {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
-              {@const iconUrl = item?.icon_url ?? null}
-              {@const hasIcon = iconUrl && !isFallbackIcon(iconUrl)}
-              {@const iconStyle = buildStyleString([
-                leatherColor ? `--leather-color:${leatherColor}` : null,
-                leatherColor && hasIcon ? `--icon-url:url("${iconUrl}")` : null,
+              {@const iconSrc = resolveIconUrl(item, iconVersion)}
+              {@const hasIcon = !!iconSrc}
+              {@const styleValue = buildStyleString([
                 rarityColor ? `--rarity-color:${rarityColor}` : null
               ])}
               <div
-                class={`equipped-icon ${hasIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
-                style={iconStyle}
+                class={`equipped-icon ${hasIcon ? '' : 'placeholder'}`}
+                style={styleValue}
               >
                 {#if hasIcon}
                   <img
-                    src={iconUrl}
-                    alt={`${item.name} icon`}
+                    src={iconSrc}
+                    alt={`${item?.name ?? 'Wardrobe item'} icon`}
                     loading="lazy"
                     width="60"
                     height="60"
-                    class={item?.leather_color ? 'leather-base' : ''}
                   />
-                  {#if leatherColor}
-                    <span class="icon-tint" aria-hidden="true"></span>
-                  {/if}
                 {:else if item}
                   <span class="equipped-initial">
-                    {item?.name?.charAt(0)?.toUpperCase() ?? pieceLabelFromIndex(index).charAt(0) ?? '?'}
+                    {itemInitial(item, pieceLabelFromIndex(index))}
                   </span>
+                {:else}
+                  <span class="equipped-initial">?</span>
                 {/if}
                 <span class="equipped-piece">{pieceLabelFromIndex(index)}</span>
               </div>
@@ -341,40 +336,33 @@
           data-bank={column.bankIndex}
         >
           {#each column.items as item, index (index)}
-            {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
             {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
-            {@const iconUrl = item?.icon_url ?? null}
-            {@const hasIcon = iconUrl && !isFallbackIcon(iconUrl)}
-            {@const iconStyle = buildStyleString([
-              leatherColor ? `--leather-color:${leatherColor}` : null,
-              leatherColor && hasIcon ? `--icon-url:url("${iconUrl}")` : null,
+            {@const iconSrc = resolveIconUrl(item, iconVersion)}
+            {@const hasIcon = !!iconSrc}
+            {@const styleValue = buildStyleString([
               rarityColor ? `--rarity-color:${rarityColor}` : null
             ])}
             <button class="slot-shell" data-piece={pieceLabelFromIndex(index)}>
               <div
-                class={`slot-icon ${hasIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
-                style={iconStyle}
+                class={`slot-icon ${hasIcon ? '' : 'placeholder'}`}
+                style={styleValue}
               >
                 {#if hasIcon}
                   <img
-                    src={iconUrl}
-                    alt={`${item.name} icon`}
+                    src={iconSrc}
+                    alt={`${item?.name ?? 'Wardrobe item'} icon`}
                     loading="lazy"
                     width="42"
                     height="42"
-                    class={item?.leather_color ? 'leather-base' : ''}
                     on:error={(event) => {
                       const target = event.currentTarget as HTMLImageElement;
                       target.dataset.failed = '1';
                       target.parentElement?.classList.add('placeholder');
                     }}
                   />
-                  {#if leatherColor}
-                    <span class="icon-tint" aria-hidden="true"></span>
-                  {/if}
                 {:else if item}
                   <span class="slot-initial">
-                    {item?.name?.charAt(0)?.toUpperCase() ?? pieceLabelFromIndex(index).charAt(0) ?? '?'}
+                    {itemInitial(item, pieceLabelFromIndex(index))}
                   </span>
                 {:else}
                   <span class="slot-initial empty">?</span>
@@ -474,7 +462,6 @@
     border: 1px solid rgba(148, 163, 184, 0.18);
     position: relative;
     overflow: hidden;
-    isolation: isolate;
   }
 
   .equipped-icon.placeholder {
@@ -486,28 +473,6 @@
     height: 60px;
     object-fit: contain;
     image-rendering: pixelated;
-  }
-
-  .equipped-icon .leather-base {
-    filter: saturate(0);
-  }
-
-  .equipped-icon .icon-tint {
-    position: absolute;
-    inset: 0;
-    background: var(--leather-color, transparent);
-    mix-blend-mode: color;
-    opacity: 0.82;
-    pointer-events: none;
-    border-radius: inherit;
-    -webkit-mask-image: var(--icon-url);
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    -webkit-mask-size: contain;
-    mask-image: var(--icon-url);
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
   }
 
   .equipped-piece {
@@ -633,7 +598,6 @@
     overflow: hidden;
     position: relative;
     transition: transform 0.15s ease;
-    isolation: isolate;
   }
 
   .slot-shell:hover .slot-icon,
@@ -650,28 +614,6 @@
     height: 40px;
     object-fit: contain;
     image-rendering: pixelated;
-  }
-
-  .slot-icon .leather-base {
-    filter: saturate(0);
-  }
-
-  .slot-icon .icon-tint {
-    position: absolute;
-    inset: 0;
-    background: var(--leather-color, transparent);
-    mix-blend-mode: color;
-    opacity: 0.8;
-    pointer-events: none;
-    border-radius: inherit;
-    -webkit-mask-image: var(--icon-url);
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    -webkit-mask-size: contain;
-    mask-image: var(--icon-url);
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
   }
 
   .slot-initial {
@@ -767,16 +709,6 @@
       rgba(236, 72, 153, 0.32),
       rgba(56, 189, 248, 0.28)
     );
-  }
-
-  :global(body[data-icon-pack='flufsky']) .slot-icon .leather-base,
-  :global(body[data-icon-pack='flufsky']) .equipped-icon .leather-base {
-    filter: none;
-  }
-
-  :global(body[data-icon-pack='flufsky']) .slot-icon .icon-tint,
-  :global(body[data-icon-pack='flufsky']) .equipped-icon .icon-tint {
-    display: none;
   }
 
   @media (max-width: 768px) {

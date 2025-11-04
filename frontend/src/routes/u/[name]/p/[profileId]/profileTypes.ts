@@ -63,7 +63,11 @@ export type ProfileSummaryResponse = {
   stats: Record<string, number>;
   currencies: {
     purse: number;
-    bank: number;
+    bank: {
+      coop: number;
+      personal: number;
+      total: number;
+    };
     total_coins: number;
     motes: number;
     essence_total: number;

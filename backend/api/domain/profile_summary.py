@@ -75,12 +75,27 @@ def summarize_currencies(member: Dict[str, Any], profile: Dict[str, Any]) -> Dic
     purse = _safe_float(currencies.get("coin_purse"))
     motes = _safe_float(currencies.get("motes_purse"))
 
-    bank = 0.0
+    coop_bank = 0.0
+    personal_bank = 0.0
     banking_data = profile.get("banking") or {}
     if isinstance(banking_data, dict):
-        bank = _safe_float(banking_data.get("balance"))
+        coop_bank = _safe_float(banking_data.get("balance"))
 
-    total_coins = purse + bank
+    profile_data = member.get("profile") or {}
+    if isinstance(profile_data, dict):
+        personal_bank = _safe_float(profile_data.get("bank_account"))
+
+    if personal_bank == 0.0:
+        personal_bank_data = member.get("personal_bank")
+        if isinstance(personal_bank_data, dict):
+            personal_bank = _safe_float(
+                personal_bank_data.get("balance") or personal_bank_data.get("coins")
+            )
+        else:
+            personal_bank = _safe_float(personal_bank_data)
+
+    bank_total = coop_bank + personal_bank
+    total_coins = purse + bank_total
     essence_raw = currencies.get("essence") or {}
     essence = {
         k: _safe_int(v.get("current", 0) if isinstance(v, dict) else v)
@@ -91,7 +106,11 @@ def summarize_currencies(member: Dict[str, Any], profile: Dict[str, Any]) -> Dic
 
     return {
         "purse": purse,
-        "bank": bank,
+        "bank": {
+            "coop": coop_bank,
+            "personal": personal_bank,
+            "total": bank_total,
+        },
         "total_coins": total_coins,
         "motes": motes,
         "essence": essence,
