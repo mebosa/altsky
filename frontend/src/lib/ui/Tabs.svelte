@@ -8,6 +8,7 @@
 
   function select(id: string) {
     if (id === value) return;
+    value = id;
     dispatch('select', id);
     dispatch('change', id);
   }

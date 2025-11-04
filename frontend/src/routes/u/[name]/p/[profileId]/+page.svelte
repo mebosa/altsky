@@ -39,10 +39,6 @@
   let refreshing = false;
   let activeTab: TabId = 'summary';
 
-  function handleTabSelect(event: CustomEvent<string>) {
-    activeTab = event.detail as TabId;
-  }
-
   function scrollToTab(tab: TabId) {
     if (typeof window !== 'undefined') {
       setTimeout(() => {
@@ -178,7 +174,7 @@
       <div class="bar"></div>
     </div>
   {:else if summary}
-    <Tabs {tabs} value={activeTab} on:select={handleTabSelect} />
+    <Tabs bind:value={activeTab} {tabs} />
 
     {#if activeTab === 'summary'}
       <SummaryTab {summary} {statLabels} />

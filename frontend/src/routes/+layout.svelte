@@ -120,6 +120,27 @@
       intervalId = null;
     };
 
+    const idleDelay = 2000;
+
+    const clearIdle = () => {
+      if (idleTimeout !== null) {
+        clearTimeout(idleTimeout);
+        idleTimeout = null;
+      }
+    };
+
+    const scheduleIdle = () => {
+      clearIdle();
+      idleTimeout = window.setTimeout(() => {
+        currentX = targetX;
+        currentY = targetY;
+        lastX = currentX;
+        lastY = currentY;
+        isIdle = true;
+        startRandom();
+      }, idleDelay);
+    };
+
     let lastMouseX = 50;
     let lastMouseY = 50;
     let isTransitioning = false;
@@ -160,18 +181,7 @@
       }
 
       // Reset idle timer with gradual transition
-      if (idleTimeout) {
-        clearTimeout(idleTimeout);
-      }
-      idleTimeout = setTimeout(() => {
-        // 현재 위치를 시작점으로 사용하여 자연스러운 전환
-        currentX = targetX;
-        currentY = targetY;
-        lastX = currentX;
-        lastY = currentY;
-        isIdle = true;
-        startRandom();
-      }, 2000);
+      scheduleIdle();
     };
 
     const enablePointer = () => {
