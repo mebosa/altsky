@@ -191,7 +191,52 @@
     return Array.from(bonuses).filter((line) => line.trim().length);
   }
 
-  function pieceLabelFromIndex(index: number) {\r\n    return PIECE_LABELS[index] ?? 'Slot';\r\n  }\r\n\r\n  function resolveIconUrl(item: WardrobeItem | null, _version: number): string | null {\r\n    if (!item) return null;\r\n    const iconUrl = item.icon_url ?? null;\r\n    if (!iconUrl || isFallbackIcon(iconUrl)) {\r\n      return null;\r\n    }\r\n\r\n    const leatherColor = formatLeatherColor(item.leather_color);\r\n    if (!leatherColor) {\r\n      return iconUrl;\r\n    }\r\n\r\n    const cached = peekTintedIcon(iconUrl, leatherColor);\r\n    if (cached) {\r\n      return cached;\r\n    }\r\n\r\n    ensureTintedIcon(iconUrl, leatherColor)\r\n      .catch(() => iconUrl)\r\n      .then(() => {\r\n        iconVersion += 1;\r\n      });\r\n\r\n    return iconUrl;\r\n  }\r\n\r\n  function itemInitial(item: WardrobeItem | null, fallback: string): string {\r\n    if (!item) return '?';\r\n    const first = item.name?.charAt(0)?.toUpperCase();\r\n    if (first && /^[A-Z0-9]$/i.test(first)) {\r\n      return first;\r\n    }\r\n    const alt = fallback?.charAt(0)?.toUpperCase();\r\n    return alt || '?';\r\n  }\r\n\r\n  let iconVersion = 0;\r\n  let wardrobeItems: (WardrobeItem | null)[] = [];
+  function pieceLabelFromIndex(index: number) {
+    return PIECE_LABELS[index] ?? 'Slot';
+  }
+
+  function resolveIconUrl(item: WardrobeItem | null, _version: number): string | null {
+    if (!item) return null;
+    const iconUrl = item.icon_url ?? null;
+    if (!iconUrl || isFallbackIcon(iconUrl)) {
+      return null;
+    }
+
+    const leatherColor = formatLeatherColor(item.leather_color);
+    if (!leatherColor) {
+      return iconUrl;
+    }
+
+    const key = `${iconUrl}|${leatherColor}`;
+    const cached = peekTintedIcon(iconUrl, leatherColor);
+    if (cached) {
+      return cached;
+    }
+
+    if (!pendingTintKeys.has(key)) {
+      pendingTintKeys.add(key);
+      ensureTintedIcon(iconUrl, leatherColor)
+        .catch(() => iconUrl)
+        .then(() => {
+          pendingTintKeys.delete(key);
+          iconVersion += 1;
+        });
+    }
+
+    return iconUrl;
+  }
+  function itemInitial(item: WardrobeItem | null, fallback: string): string {
+    if (!item) return '?';
+    const first = item.name?.charAt(0)?.toUpperCase();
+    if (first && /^[A-Z0-9]$/i.test(first)) {
+      return first;
+    }
+    const alt = fallback?.charAt(0)?.toUpperCase();
+    return alt || '?';
+  }
+
+  let iconVersion = 0;
+  let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
   let setGroups: WardrobeSetGroup[] = [];
   let setGroupMap = new Map<number, WardrobeSetGroup>();

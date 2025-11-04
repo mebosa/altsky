@@ -39,7 +39,51 @@
     return match ? match[1].toLowerCase() : '';
   }
 
+  const pendingTintKeys = new Set<string>();
+
+  function resolveIconUrl(item: WardrobeItem | null, _version: number): string | null {
+    if (!item) return null;
+    const iconUrl = item.icon_url ?? null;
+    if (!iconUrl || isFallbackIcon(iconUrl)) {
+      return null;
+    }
+
+    const leatherColor = formatLeatherColor(item.leather_color);
+    if (!leatherColor) {
+      return iconUrl;
+    }
+
+    const key = `${iconUrl}|${leatherColor}`;
+    const cached = peekTintedIcon(iconUrl, leatherColor);
+    if (cached) {
+      return cached;
+    }
+
+    if (!pendingTintKeys.has(key)) {
+      pendingTintKeys.add(key);
+      ensureTintedIcon(iconUrl, leatherColor)
+        .catch(() => iconUrl)
+        .then(() => {
+          pendingTintKeys.delete(key);
+          iconVersion += 1;
+        });
+    }
+
+    return iconUrl;
+  }
+
+  function itemInitial(item: WardrobeItem | null, fallback: string): string {
+    if (!item) return '?';
+    const first = item.name?.charAt(0)?.toUpperCase();
+    if (first && /^[A-Z0-9]$/i.test(first)) {
+      return first;
+    }
+    const alt = fallback?.charAt(0)?.toUpperCase();
+    return alt || '?';
+  }
+
   // Reactive declarations
+  let iconVersion = 0;
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
   $: {
@@ -62,34 +106,29 @@
         <div class="equipped-section">
           <div class="wardrobe-column">
             {#each column as item}
-              {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
               {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
-              {@const iconUrl = item?.icon_url ?? null}
-              {@const hasIcon = iconUrl && !isFallbackIcon(iconUrl)}
-              {@const iconStyle = buildStyleString([
-                leatherColor ? `--leather-color:${leatherColor}` : null,
-                leatherColor && hasIcon ? `--icon-url:url("${iconUrl}")` : null,
+              {@const iconSrc = resolveIconUrl(item, iconVersion)}
+              {@const hasIcon = !!iconSrc}
+              {@const styleValue = buildStyleString([
                 rarityColor ? `--rarity-color:${rarityColor}` : null
               ])}
               <div
-                class={`equipped-icon ${hasIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
-                style={iconStyle}>
+                class={`equipped-icon ${hasIcon ? '' : 'placeholder'}`}
+                style={styleValue}>
                 {#if hasIcon}
                   <img
-                    src={iconUrl}
-                    alt={`${item.name} icon`}
+                    src={iconSrc}
+                    alt={`${item?.name ?? 'Wardrobe item'} icon`}
                     loading="lazy"
                     width="60"
                     height="60"
-                    class={item?.leather_color ? 'leather-base' : ''}
                   />
-                  {#if leatherColor}
-                    <span class="icon-tint" aria-hidden="true"></span>
-                  {/if}
                 {:else if item}
                   <span class="equipped-initial">
-                    {item?.name?.charAt(0)?.toUpperCase() ?? pieceLabel(item)?.charAt(0) ?? '?'}
+                    {itemInitial(item, pieceLabel(item))}
                   </span>
+                {:else}
+                  <span class="equipped-initial">?</span>
                 {/if}
                 <span class="equipped-piece">{pieceLabel(item)}</span>
               </div>
@@ -157,7 +196,6 @@
     border-radius: 8px;
     background: var(--rarity-color, rgba(148, 163, 184, 0.1));
     overflow: hidden;
-    isolation: isolate;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -172,27 +210,6 @@
     height: 100%;
     object-fit: contain;
     image-rendering: pixelated;
-  }
-
-  .equipped-icon .leather-base {
-    filter: saturate(0);
-  }
-
-  .equipped-icon .icon-tint {
-    position: absolute;
-    inset: 0;
-    background: var(--leather-color, transparent);
-    mix-blend-mode: color;
-    opacity: 0.82;
-    pointer-events: none;
-    -webkit-mask-image: var(--icon-url);
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    -webkit-mask-size: contain;
-    mask-image: var(--icon-url);
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
   }
 
   .equipped-piece {
@@ -259,12 +276,5 @@
     margin-bottom: 0;
   }
 
-  :global(body[data-icon-pack='flufsky']) .equipped-icon .leather-base {
-    filter: none;
-  }
-
-  :global(body[data-icon-pack='flufsky']) .equipped-icon .icon-tint {
-    display: none;
-  }
 </style>
 
