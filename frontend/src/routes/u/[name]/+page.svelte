@@ -1,6 +1,5 @@
 ﻿<script lang="ts">
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
   import { get } from '$lib/api';
   import { timeAgo, saveRecent } from '$lib/utils';
   import Tabs from '$lib/ui/Tabs.svelte';

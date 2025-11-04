@@ -142,32 +142,7 @@ export const themeOptions: ThemeDefinition[] = [
     controlBg: '#e2e8f0',
     controlHover: '#cbd5f5'
   },
-  {
-    id: 'sunset',
-    label: 'Solstice',
-    primary: '#f97316',
-    secondary: '#ef4444',
-    headerGradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(239, 68, 68, 0.25))',
-    featuredGradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.28), rgba(239, 68, 68, 0.32))',
-    progressStart: '#fb923c',
-    progressEnd: '#f87171',
-    glow: 'rgba(249, 115, 22, 0.35)',
-    ...darkBase,
-    tagBg: 'rgba(249, 115, 22, 0.25)',
-    tagBorder: 'rgba(239, 68, 68, 0.35)'
-  },
-  {
-    id: 'violet',
-    label: 'Violet Mist',
-    primary: '#8b5cf6',
-    secondary: '#6366f1',
-    headerGradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.22), rgba(99, 102, 241, 0.26))',
-    featuredGradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.28), rgba(99, 102, 241, 0.32))',
-    progressStart: '#a78bfa',
-    progressEnd: '#6366f1',
-    glow: 'rgba(139, 92, 246, 0.34)',
-    ...darkBase
-  },
+
   {
     id: 'crimson',
     label: 'Crimson Nova',
@@ -244,21 +219,21 @@ export const themeOptions: ThemeDefinition[] = [
 ];
 
 type ThemeStore = {
-  subscribe: typeof writable<ThemeDefinition>['subscribe'];
+  subscribe: ReturnType<typeof writable<ThemeDefinition>>['subscribe'];
   init: () => void;
   select: (id: string) => void;
 };
 
-let transitionHandle: ReturnType<typeof setTimeout> | undefined;
+let transitionHandle: number | undefined;
 
 function animateThemeChange() {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
   root.classList.add('theme-animating');
   if (transitionHandle) clearTimeout(transitionHandle);
-  transitionHandle = window.setTimeout(() => {
+  transitionHandle = setTimeout(() => {
     root.classList.remove('theme-animating');
-  }, 520);
+  }, 520) as unknown as number;
 }
 
 function setCssVariables(theme: ThemeDefinition) {

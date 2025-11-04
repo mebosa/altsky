@@ -105,7 +105,7 @@ def xp_to_level(xp: int) -> SkillStat:
             break
 
     if lvl >= MAX_SKILL_LEVEL:
-        return SkillStat(MAX_SKILL_LEVEL, 1.0, xp, 0, 0)
+        return SkillStat(MAX_SKILL_LEVEL, 1.0, xp, xp - SKILL_XP_TABLE[MAX_SKILL_LEVEL], 0)
 
     base = SKILL_XP_TABLE[lvl]
     need = SKILL_XP_TABLE[lvl + 1] - base

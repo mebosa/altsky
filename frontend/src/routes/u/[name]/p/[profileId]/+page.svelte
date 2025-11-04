@@ -1,16 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { get } from '$lib/api';
   import Tabs from '$lib/ui/Tabs.svelte';
-  import StatChip from '$lib/components/StatChip.svelte';
-  import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
-  import { iconPack } from '$lib/iconPack';
-  import { formatNumber, formatPercent, formatLargeNumber } from '$lib/utils/format';
+  import { formatNumber, formatLargeNumber } from '$lib/utils/format';
   import { timeAgo } from '$lib/utils/time';
-  import type { Player, ProfileSummaryResponse } from '$lib/types/profile';
   import { TABS, type TabId } from '$lib/constants/tabs';
-  import { SKILL_ORDER } from '$lib/constants/skills';
-  import WardrobeSection from './components/WardrobeSection.svelte';
   import SummaryTab from './SummaryTab.svelte';
   import SkillsTab from './SkillsTab.svelte';
   import StatsTab from './StatsTab.svelte';
@@ -29,16 +23,7 @@
 
   const SITE_BASE = import.meta.env.VITE_SITE_BASE ?? 'https://altsky.dev';
 
-  const tabs = [
-    { id: 'summary', label: 'Overview' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'stats', label: 'Stats' },
-    { id: 'slayer', label: 'Slayer' },
-    { id: 'dungeons', label: 'Dungeons' },
-    { id: 'wardrobe', label: 'Wardrobe' }
-  ] as const;
-
-  type TabId = (typeof tabs)[number]['id'];
+  const tabs = TABS;
 
   let player: Player | null = data.player;
   let summary: ProfileSummaryResponse | null = data.summary;

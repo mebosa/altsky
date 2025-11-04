@@ -28,7 +28,11 @@
           ></div>
         </div>
         <div class="progress-label">
-          {formatPercent(data.progress * 100, 1)} | {formatNumber(data.current)} / {formatNumber(data.to_next)}
+          {#if data.level >= 60}
+            Total XP: {formatNumber(data.xp)}
+          {:else}
+            {formatPercent(data.progress * 100, 1)} | {formatNumber(data.current)} / {formatNumber(data.to_next)}
+          {/if}
         </div>
       </div>
     {/if}

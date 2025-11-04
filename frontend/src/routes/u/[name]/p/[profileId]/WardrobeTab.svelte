@@ -8,21 +8,91 @@
 
   export let summary: ProfileSummaryResponse;
 
-  const WARDROBE_NUM_COLUMNS = 9;
+  const WARDROBE_SET_SIZE = 4;
+  const WARDROBE_SETS_PER_BANK = 9;
+  const WARDROBE_BANK_SLOT_COUNT = WARDROBE_SET_SIZE * WARDROBE_SETS_PER_BANK;
+  const PIECE_LABELS = ['Helmet', 'Chestplate', 'Leggings', 'Boots'] as const;
+  const WARDROBE_SET_STARTS_ONE_BASED = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9,
+    37, 38, 39, 40, 41, 42, 43, 44, 45
+  ];
+  const WARDROBE_SET_STARTS_ZERO_BASED = WARDROBE_SET_STARTS_ONE_BASED.map((start) => start - 1);
 
-  function buildWardrobeColumns(items: (WardrobeItem | null)[]) {
-    const columns: (WardrobeItem | null)[][] = Array.from(
-      { length: WARDROBE_NUM_COLUMNS },
-      () => []
-    );
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item) {
-        const columnIndex = item.slot % WARDROBE_NUM_COLUMNS;
-        columns[columnIndex].push(item);
+  type WardrobeSetGroup = {
+    setIndex: number;
+    bankIndex: number;
+    columnIndex: number;
+    items: (WardrobeItem | null)[];
+  };
+
+  type WardrobeGrouping = {
+    setIndex: number;
+    bankIndex: number;
+    columnIndex: number;
+    pieceIndex: number;
+  };
+
+  function findGroupFromStarts(slot: number, starts: number[]): WardrobeGrouping | null {
+    for (let i = starts.length - 1; i >= 0; i--) {
+      const start = starts[i];
+      if (slot < start) continue;
+      const offset = slot - start;
+      const pieceIndex = Math.floor(offset / WARDROBE_SETS_PER_BANK);
+      if (pieceIndex >= 0 && pieceIndex < WARDROBE_SET_SIZE) {
+        const setIndex = i;
+        const bankIndex = Math.floor(setIndex / WARDROBE_SETS_PER_BANK);
+        const columnIndex = setIndex % WARDROBE_SETS_PER_BANK;
+        return { setIndex, bankIndex, columnIndex, pieceIndex };
       }
     }
-    return columns.filter((col) => col.length > 0);
+    return null;
+  }
+
+  function fallbackGrouping(slot: number): WardrobeGrouping {
+    const normalized = Math.max(0, slot);
+    const bankIndex = Math.floor(normalized / WARDROBE_BANK_SLOT_COUNT);
+    const withinBank = normalized % WARDROBE_BANK_SLOT_COUNT;
+    const columnIndex = withinBank % WARDROBE_SETS_PER_BANK;
+    const pieceIndex = Math.min(
+      WARDROBE_SET_SIZE - 1,
+      Math.max(0, Math.floor(withinBank / WARDROBE_SETS_PER_BANK))
+    );
+    const setIndex = bankIndex * WARDROBE_SETS_PER_BANK + columnIndex;
+    return { setIndex, bankIndex, columnIndex, pieceIndex };
+  }
+
+  function deriveGrouping(slot: number): WardrobeGrouping {
+    return (
+      findGroupFromStarts(slot, WARDROBE_SET_STARTS_ONE_BASED) ??
+      findGroupFromStarts(slot, WARDROBE_SET_STARTS_ZERO_BASED) ??
+      fallbackGrouping(slot)
+    );
+  }
+
+  function buildWardrobeSets(items: (WardrobeItem | null)[]): WardrobeSetGroup[] {
+    const grouped = new Map<string, WardrobeSetGroup>();
+
+    for (const item of items) {
+      if (!item) continue;
+      const grouping = deriveGrouping(item.slot);
+      const key = `${grouping.bankIndex}-${grouping.columnIndex}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          setIndex: grouping.setIndex,
+          bankIndex: grouping.bankIndex,
+          columnIndex: grouping.columnIndex,
+          items: Array.from({ length: WARDROBE_SET_SIZE }, () => null)
+        });
+      }
+      const group = grouped.get(key)!;
+      const pieceIndex = Math.min(
+        WARDROBE_SET_SIZE - 1,
+        Math.max(0, grouping.pieceIndex)
+      );
+      group.items[pieceIndex] = item;
+    }
+
+    return Array.from(grouped.values()).sort((a, b) => a.setIndex - b.setIndex);
   }
 
   const TRACKED_STATS = new Set([
@@ -150,18 +220,8 @@
     return Array.from(bonuses).filter((line) => line.trim().length);
   }
 
-  function toEquippedItems(columnIndex: number | null, items: (WardrobeItem | null)[]): WardrobeItem[] {
-    if (columnIndex === null || columnIndex < 0) return [];
-    return items.filter(
-      (item): item is WardrobeItem => !!item && item.slot % WARDROBE_NUM_COLUMNS === columnIndex
-    );
-  }
-
-  function pieceLabel(item: WardrobeItem) {
-    const parts = item.id.split('_');
-    if (!parts.length) return item.name;
-    const slotName = parts[parts.length - 1].toLowerCase();
-    return toTitleCase(slotName);
+  function pieceLabelFromIndex(index: number) {
+    return PIECE_LABELS[index] ?? 'Slot';
   }
 
   function rarityClass(rarity?: string | null) {
@@ -169,29 +229,63 @@
     return `rarity-${rarity.toLowerCase().replace(/\s+/g, '-')}`;
   }
 
+  function formatLeatherColor(color?: string | null) {
+    if (!color) return null;
+    let value = color.trim();
+    if (!value) return null;
+    if (/^#?[0-9a-fA-F]{6}$/.test(value)) {
+      return value.startsWith('#') ? value : `#${value}`;
+    }
+    const parts = value.split(/[:;,]/).map((part) => part.trim()).filter(Boolean);
+    if (parts.length === 3 && parts.every((part) => !Number.isNaN(Number(part)))) {
+      const normalized = parts.map((part) => {
+        const num = Number(part);
+        if (!Number.isFinite(num)) return 0;
+        return Math.max(0, Math.min(255, Math.round(num)));
+      });
+      return `rgb(${normalized.join(',')})`;
+    }
+    return null;
+  }
+
   let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
-  let firstBankColumns: (WardrobeItem | null)[][] = [];
-  let secondBankColumns: (WardrobeItem | null)[][] = [];
+  let setGroups: WardrobeSetGroup[] = [];
+  let setGroupMap = new Map<number, WardrobeSetGroup>();
+  let equippedGroupItems: (WardrobeItem | null)[] = [];
   let equippedItems: WardrobeItem[] = [];
   let equippedSetLabel = '';
   let equippedStats: AggregatedStat[] = [];
   let equippedBonuses: string[] = [];
-  let equippedColumnIndex: number | null = null;
+  let equippedSetIndexRaw: number | null = null;
+  let equippedSetIndex: number | null = null;
 
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
   $: if (wardrobeItems.length) {
-    const firstBankRaw = wardrobeItems.filter((item) => item && item.slot < 36);
-    const secondBankRaw = wardrobeItems.filter((item) => item && item.slot >= 36);
-    firstBankColumns = buildWardrobeColumns(firstBankRaw);
-    secondBankColumns = buildWardrobeColumns(secondBankRaw);
+    setGroups = buildWardrobeSets(wardrobeItems);
+    setGroupMap = new Map(setGroups.map((group) => [group.setIndex, group]));
   } else {
-    firstBankColumns = [];
-    secondBankColumns = [];
+    setGroups = [];
+    setGroupMap = new Map();
   }
-  $: equippedColumnIndex = summary?.wardrobe?.equipped_slot ?? null;
-  $: equippedItems = toEquippedItems(equippedColumnIndex, wardrobeItems);
+  function resolveEquippedSetIndex(raw: number | null): number | null {
+    if (raw === null) return null;
+    if (setGroupMap.has(raw)) return raw;
+    const derived =
+      findGroupFromStarts(raw, WARDROBE_SET_STARTS_ONE_BASED) ??
+      findGroupFromStarts(raw, WARDROBE_SET_STARTS_ZERO_BASED) ??
+      fallbackGrouping(raw);
+    return derived.setIndex;
+  }
+
+  $: equippedSetIndexRaw = summary?.wardrobe?.equipped_slot ?? null;
+  $: equippedSetIndex = resolveEquippedSetIndex(equippedSetIndexRaw);
+  $: {
+    const group = equippedSetIndex !== null ? setGroupMap.get(equippedSetIndex) : undefined;
+    equippedGroupItems = group ? group.items : Array.from({ length: WARDROBE_SET_SIZE }, () => null);
+    equippedItems = equippedGroupItems.filter((item): item is WardrobeItem => !!item);
+  }
   $: equippedSetLabel = deriveSetLabel(equippedItems);
   $: equippedStats = aggregateSetStats(equippedItems);
   $: equippedBonuses = gatherSetBonusLines(equippedItems);
@@ -211,21 +305,22 @@
       <div class="equipped-summary">
         <div class="equipped-heading">
           <h3>Currently Equipped</h3>
-          {#if equippedColumnIndex !== null}
-            <span class="equipped-slot-pill">Wardrobe Slot {equippedColumnIndex + 1}</span>
+          {#if equippedSetIndex !== null}
+            <span class="equipped-slot-pill">Wardrobe Slot {equippedSetIndex + 1}</span>
           {/if}
         </div>
         <div class="equipped-body">
           <div class="equipped-icons">
-            {#each equippedItems as item (item.slot)}
+            {#each equippedGroupItems as item, index (index)}
+              {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
               <div
-                class={`equipped-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
-                style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}
+                class={`equipped-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
-                {#if item.icon_url}
+                {#if item?.icon_url}
                   <img src={item.icon_url} alt={`${item.name} icon`} loading="lazy" width="60" height="60" />
                 {/if}
-                <span class="equipped-piece">{pieceLabel(item)}</span>
+                <span class="equipped-piece">{pieceLabelFromIndex(index)}</span>
               </div>
             {/each}
           </div>
@@ -254,125 +349,63 @@
     {/if}
 
     <div class="wardrobe-grid">
-      {#each firstBankColumns as column}
-        <div class="wardrobe-column">
-          {#each column as item}
-            {#if item}
+      {#each setGroups as column (column.setIndex)}
+        <div
+          class={`wardrobe-set ${equippedSetIndex === column.setIndex ? 'equipped' : ''} bank-${column.bankIndex}`}
+          data-bank={column.bankIndex}
+        >
+          {#each column.items as item, index (index)}
+            {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
+            <div class="slot-shell" data-piece={pieceLabelFromIndex(index)}>
               <div
-                class={`card wardrobe-card ${rarityClass(item.rarity)} ${
-                  summary.wardrobe.equipped_slot === item.slot ? 'equipped' : ''
-                }`}
+                class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
-                <div class="wardrobe-head">
-                  <div
-                    class={`wardrobe-icon ${item.icon_url ? '' : 'placeholder'} ${
-                      item.leather_color ? 'leather' : ''
-                    }`}
-                    style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}
-                  >
-                    {#if item.icon_url}
-                      <img
-                        src={item.icon_url}
-                        alt={`${item.name} icon`}
-                        loading="lazy"
-                        width="64"
-                        height="64"
-                        on:error={(event) => {
-                          const target = event.currentTarget as HTMLImageElement;
-                          target.dataset.failed = '1';
-                          target.parentElement?.classList.add('placeholder');
-                        }}
-                      />
-                    {/if}
-                    <span class="placeholder-letter">{item.name.slice(0, 1).toUpperCase()}</span>
-                  </div>
-                  <div class="wardrobe-info">
-                    <div class="wardrobe-top">
-                      <span class="slot">Slot {item.slot + 1}</span>
-                      <span class="rarity">{item.rarity ?? 'Unknown'}</span>
-                    </div>
-                    <div class="item-name">{item.name}</div>
-                    <div class="item-meta">Item ID: {item.id}</div>
-                    {#if item.count > 1}
-                      <div class="item-meta">Count: {item.count}</div>
-                    {/if}
-                  </div>
-                </div>
-                {#if item.lore.length}
-                  <div class="lore">
-                    {#each item.lore.slice(0, 8) as line}
-                      <p>{line}</p>
-                    {/each}
-                  </div>
+                {#if item?.icon_url}
+                  <img
+                    src={item.icon_url}
+                    alt={`${item.name} icon`}
+                    loading="lazy"
+                    width="42"
+                    height="42"
+                    on:error={(event) => {
+                      const target = event.currentTarget as HTMLImageElement;
+                      target.dataset.failed = '1';
+                      target.parentElement?.classList.add('placeholder');
+                    }}
+                  />
+                {:else if item}
+                  <span class="slot-initial">{item.name.slice(0, 1).toUpperCase()}</span>
+                {:else}
+                  <span class="slot-initial empty">•</span>
                 {/if}
               </div>
-            {/if}
-          {/each}
-        </div>
-      {/each}
-    </div>
-
-    {#if secondBankColumns.length > 0}
-      <h3 class="wardrobe-bank-title">Additional Wardrobe Slots</h3>
-      <div class="wardrobe-grid">
-        {#each secondBankColumns as column}
-          <div class="wardrobe-column">
-            {#each column as item}
-              {#if item}
-                <div
-                  class={`card wardrobe-card ${rarityClass(item.rarity)} ${
-                    summary.wardrobe.equipped_slot === item.slot ? 'equipped' : ''
-                  }`}
-                >
-                  <div class="wardrobe-head">
-                    <div
-                      class={`wardrobe-icon ${item.icon_url ? '' : 'placeholder'} ${
-                        item.leather_color ? 'leather' : ''
-                      }`}
-                      style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}
-                    >
-                      {#if item.icon_url}
-                        <img
-                          src={item.icon_url}
-                          alt={`${item.name} icon`}
-                          loading="lazy"
-                          width="64"
-                          height="64"
-                          on:error={(event) => {
-                            const target = event.currentTarget as HTMLImageElement;
-                            target.dataset.failed = '1';
-                            target.parentElement?.classList.add('placeholder');
-                          }}
-                        />
-                      {/if}
-                      <span class="placeholder-letter">{item.name.slice(0, 1).toUpperCase()}</span>
-                    </div>
-                    <div class="wardrobe-info">
-                      <div class="wardrobe-top">
-                        <span class="slot">Slot {item.slot + 1}</span>
-                        <span class="rarity">{item.rarity ?? 'Unknown'}</span>
-                      </div>
-                      <div class="item-name">{item.name}</div>
-                      <div class="item-meta">Item ID: {item.id}</div>
-                      {#if item.count > 1}
-                        <div class="item-meta">Count: {item.count}</div>
-                      {/if}
-                    </div>
-                  </div>
+              <div class="slot-tooltip">
+                <div class="tooltip-header">
+                  <span class="tooltip-piece">{pieceLabelFromIndex(index)}</span>
+                  <span class="tooltip-slot">Slot {column.setIndex + 1}</span>
+                </div>
+                {#if item}
+                  <div class="tooltip-name">{item.name}</div>
+                  {#if item.rarity}
+                    <div class="tooltip-rarity">{item.rarity}</div>
+                  {/if}
                   {#if item.lore.length}
-                    <div class="lore">
-                      {#each item.lore.slice(0, 8) as line}
+                    <div class="tooltip-lore">
+                      {#each item.lore as line}
                         <p>{line}</p>
                       {/each}
                     </div>
                   {/if}
-                </div>
-              {/if}
-            {/each}
-          </div>
-        {/each}
-      </div>
-    {/if}
+                {:else}
+                  <div class="tooltip-empty">Empty slot</div>
+                {/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+      {/each}
+    </div>
   {/if}
 </section>
 
@@ -505,124 +538,160 @@
   }
 
   .wardrobe-grid {
+    --wardrobe-columns: 9;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(var(--wardrobe-columns), minmax(44px, 1fr));
+    gap: 8px;
+    justify-content: center;
+    padding: 0 4px;
   }
 
-  .wardrobe-column {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
+  @media (min-width: 1024px) {
+    .wardrobe-grid {
+      --wardrobe-columns: 18;
+      gap: 10px;
+    }
   }
 
-  .wardrobe-card {
-    gap: 16px;
-    border-width: 2px;
-    border-style: solid;
+  .wardrobe-set {
+    display: grid;
+    grid-template-rows: repeat(4, auto);
+    gap: 6px;
+    align-items: end;
+    justify-items: center;
+    position: relative;
   }
 
-  .wardrobe-card.equipped {
+  @media (min-width: 1024px) {
+    .wardrobe-set:nth-child(9) {
+      margin-right: 18px;
+    }
+  }
+
+  .wardrobe-set.equipped .slot-icon {
     box-shadow: 0 0 0 2px var(--theme-accent);
   }
 
-  .wardrobe-head {
+  .slot-shell {
+    position: relative;
     display: flex;
-    gap: 14px;
+    justify-content: center;
   }
 
-  .wardrobe-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 16px;
-    background: rgba(15, 23, 42, 0.22);
-    position: relative;
+  .slot-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.28);
+    border: 1px solid rgba(148, 163, 184, 0.32);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    transition: transform 0.15s ease;
   }
 
-  .wardrobe-icon.placeholder {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.18), rgba(226, 232, 240, 0.12));
+  .slot-shell:hover .slot-icon {
+    transform: translateY(-2px);
   }
 
-  .wardrobe-icon.leather {
-    background: var(--leather-color, rgba(15, 23, 42, 0.22));
+  .slot-icon.placeholder {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(226, 232, 240, 0.12));
   }
 
-  .wardrobe-icon img {
-    width: 64px;
-    height: 64px;
+  .slot-icon.leather {
+    background: var(--leather-color, rgba(15, 23, 42, 0.28));
+  }
+
+  .slot-icon img {
+    width: 40px;
+    height: 40px;
     object-fit: contain;
   }
 
-  .placeholder-letter {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: 700;
-    opacity: 0.5;
+  .slot-initial {
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--theme-text-primary);
+    opacity: 0.85;
   }
 
-  .wardrobe-info {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
+  .slot-initial.empty {
+    opacity: 0.2;
   }
 
-  .wardrobe-top {
+  .slot-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translate(-50%, 4px);
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 180px;
+    max-width: 220px;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.42);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    color: #e2e8f0;
+    z-index: 10;
+  }
+
+  .slot-shell:hover .slot-tooltip,
+  .slot-shell:focus-within .slot-tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+  }
+
+  .tooltip-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     gap: 8px;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
   }
 
-  .slot {
+  .tooltip-name {
     font-weight: 600;
-    color: var(--theme-text-primary);
+    margin: 6px 0 4px;
   }
 
-  .rarity {
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
+  .tooltip-rarity {
+    font-size: 0.8rem;
+    color: var(--theme-accent);
+    margin-bottom: 4px;
   }
 
-  .item-name {
-    font-weight: 600;
-    color: var(--theme-text-primary);
-  }
-
-  .item-meta {
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
-  }
-
-  .lore {
-    background: rgba(15, 23, 42, 0.16);
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
+  .tooltip-lore {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    font-size: 0.75rem;
+    color: #cbd5f5;
+    max-height: 160px;
+    overflow-y: auto;
   }
 
-  .lore p {
+  .tooltip-lore p {
     margin: 0;
   }
 
-  .wardrobe-bank-title {
-    margin: 0;
-    font-size: 1.4rem;
+  .tooltip-empty {
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+
+  .tooltip-slot {
     font-weight: 600;
-    color: var(--theme-text-primary);
+  }
+
+  .tooltip-piece {
+    font-weight: 600;
   }
 
   .wardrobe-empty {

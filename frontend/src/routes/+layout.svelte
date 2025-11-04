@@ -69,34 +69,49 @@
       
       if (!frame) {
         const animate = () => {
-          const speed = isIdle ? 0.02 : 0.15;
+          // 상태 전환 시 더 부드러운 속도 조정
+          const speed = isIdle ? 0.02 : 0.08;  // 양쪽 모두 속도를 낮춰서 부드럽게
           currentX = lerp(currentX, targetX, speed);
           currentY = lerp(currentY, targetY, speed);
           setPositions(currentX, currentY);
 
-          if (Math.abs(currentX - targetX) > 0.01 || Math.abs(currentY - targetY) > 0.01) {
-            frame = requestAnimationFrame(animate);
-          } else {
-            frame = 0;
-          }
+          // 항상 애니메이션 지속
+          frame = requestAnimationFrame(animate);
         };
         frame = requestAnimationFrame(animate);
       }
     };
 
+    let lastTime = Date.now();
+    let lastX = 50;
+    let lastY = 50;
+    
     const randomize = () => {
-      const angle = Math.random() * Math.PI * 2;
-      const distance = isIdle ? 15 : 5;
-      const x = targetX + Math.cos(angle) * distance;
-      const y = targetY + Math.sin(angle) * distance;
-      animateTo(clamp(x, 0, 100), clamp(y, 0, 100));
+      const currentTime = Date.now();
+      const deltaTime = (currentTime - lastTime) * 0.0003;
+      lastTime = currentTime;
+      
+      // 이전 위치를 기반으로 부드럽게 다음 위치 계산
+      const time = currentTime * 0.0003;
+      const newX = 50 + Math.cos(time) * 25 + Math.sin(time * 0.5) * 15;
+      const newY = 50 + Math.sin(time * 0.7) * 25 + Math.cos(time * 0.3) * 15;
+      
+      // 이전 위치와 새로운 위치를 보간하여 부드러운 전환
+      lastX = lerp(lastX, newX, 0.1);
+      lastY = lerp(lastY, newY, 0.1);
+      
+      animateTo(lastX, lastY);
     };
 
     const startRandom = () => {
       if (intervalId) return;
-      clearIdle();
+      lastTime = Date.now();
+      // 현재 위치에서 시작
+      lastX = currentX;
+      lastY = currentY;
       randomize();
-      intervalId = window.setInterval(() => randomize(), isIdle ? 2000 : 800);
+      // 부드러운 움직임을 위한 빈번한 업데이트
+      intervalId = window.setInterval(() => randomize(), 16);
     };
 
     const stopRandom = () => {
@@ -105,22 +120,58 @@
       intervalId = null;
     };
 
+    let lastMouseX = 50;
+    let lastMouseY = 50;
+    let isTransitioning = false;
+    let transitionStartTime = 0;
+    const TRANSITION_DURATION = 500; // 전환 시간 (밀리초)
+
     const handlePointerMove = (event: PointerEvent) => {
       if (!pointerActive) return;
       const { clientX, clientY } = event;
       const x = (clientX / window.innerWidth) * 100;
       const y = (clientY / window.innerHeight) * 100;
-      animateTo(x, y);
+      
+      // 마우스 위치 업데이트
+      lastMouseX = x;
+      lastMouseY = y;
+      
+      // 마우스 움직임에 따른 부드러운 전환
+      if (isIdle) {
+        // idle 상태에서 마우스 움직임으로 전환할 때
+        isTransitioning = true;
+        transitionStartTime = Date.now();
+        isIdle = false;
+        // 자동 움직임은 전환이 완료된 후에 중지
+      }
+      
+      if (isTransitioning) {
+        const progress = Math.min((Date.now() - transitionStartTime) / TRANSITION_DURATION, 1);
+        if (progress >= 1) {
+          isTransitioning = false;
+          stopRandom();
+        }
+        // 전환 중에는 현재 자동 위치와 마우스 위치를 보간
+        const transitionX = lerp(currentX, x, progress);
+        const transitionY = lerp(currentY, y, progress);
+        animateTo(transitionX, transitionY);
+      } else {
+        animateTo(x, y);
+      }
 
-      // Reset idle state
-      isIdle = false;
+      // Reset idle timer with gradual transition
       if (idleTimeout) {
         clearTimeout(idleTimeout);
       }
       idleTimeout = setTimeout(() => {
+        // 현재 위치를 시작점으로 사용하여 자연스러운 전환
+        currentX = targetX;
+        currentY = targetY;
+        lastX = currentX;
+        lastY = currentY;
         isIdle = true;
         startRandom();
-      }, 300); // 0.3초 후에 idle 상태로 전환
+      }, 2000);
     };
 
     const enablePointer = () => {
