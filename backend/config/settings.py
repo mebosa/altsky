@@ -41,14 +41,20 @@ DEBUG = os.getenv("DEBUG", "1").lower() not in {"0", "false", "no"}
 # ALLOWED_HOSTS: 환경변수 → 기본값(로컬) → trycloudflare 항상 추가
 _allowed_hosts = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
 ALLOWED_HOSTS = _allowed_hosts or ["localhost", "127.0.0.1"]
-if ".trycloudflare.com" not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(".trycloudflare.com")
+for host in [".trycloudflare.com", ".ngrok-free.app", ".ngrok-free.dev"]:
+    if host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
 
 # CSRF_TRUSTED_ORIGINS: 환경변수(스킴 포함) 사용하되, trycloudflare 항상 추가
 _csrf_trusted = [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 CSRF_TRUSTED_ORIGINS = _csrf_trusted or []
-if "https://*.trycloudflare.com" not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append("https://*.trycloudflare.com")
+for origin in [
+    "https://*.trycloudflare.com",
+    "https://*.ngrok-free.app",
+    "https://*.ngrok-free.dev",
+]:
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 # 프록시(Cloudflare) 뒤의 HTTPS 인식
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

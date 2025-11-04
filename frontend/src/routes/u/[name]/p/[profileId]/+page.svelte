@@ -1,10 +1,8 @@
-<script lang="ts">
-  import { onMount, tick } from 'svelte';
+﻿<script lang="ts">
+  import { onMount } from 'svelte';
   import { get } from '$lib/api';
   import Tabs from '$lib/ui/Tabs.svelte';
-  import { formatNumber, formatLargeNumber } from '$lib/utils/format';
-  import { timeAgo } from '$lib/utils/time';
-  import { TABS, type TabId } from '$lib/constants/tabs';
+  import { timeAgo, formatNumber, formatLargeNumber } from '$lib/utils';
   import SummaryTab from './SummaryTab.svelte';
   import SkillsTab from './SkillsTab.svelte';
   import StatsTab from './StatsTab.svelte';
@@ -23,7 +21,16 @@
 
   const SITE_BASE = import.meta.env.VITE_SITE_BASE ?? 'https://altsky.dev';
 
-  const tabs = TABS;
+  const tabs = [
+    { id: 'summary', label: 'Overview' },
+    { id: 'skills', label: 'Skills' },
+    { id: 'stats', label: 'Stats' },
+    { id: 'slayer', label: 'Slayer' },
+    { id: 'dungeons', label: 'Dungeons' },
+    { id: 'wardrobe', label: 'Wardrobe' }
+  ] as const;
+
+  type TabId = (typeof tabs)[number]['id'];
 
   let player: Player | null = data.player;
   let summary: ProfileSummaryResponse | null = data.summary;
@@ -32,15 +39,19 @@
   let refreshing = false;
   let activeTab: TabId = 'summary';
 
-  async function scrollToSection(tab: TabId) {
-    if (typeof window === 'undefined') return;
-    await tick();
-    const section = document.getElementById(tab);
-    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  function scrollToTab(tab: TabId) {
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const section = document.getElementById(tab);
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 0);
+    }
   }
 
   $: if (activeTab && !loading) {
-    scrollToSection(activeTab);
+    scrollToTab(activeTab);
   }
 
   async function fetchProfile(force = false) {
@@ -53,8 +64,8 @@
       }
     }
 
-    const resolved = player;
-    if (!resolved) {
+    const resolvedPlayer = player;
+    if (!resolvedPlayer) {
       errorMsg = 'Failed to resolve player.';
       return;
     }
@@ -65,7 +76,7 @@
 
     try {
       summary = await get<ProfileSummaryResponse>(
-        `/api/hypixel/profile/${encodeURIComponent(resolved.uuid)}/${encodeURIComponent(params.profileId)}`,
+        `/api/hypixel/profile/${encodeURIComponent(resolvedPlayer.uuid)}/${encodeURIComponent(params.profileId)}`,
         { query: force ? { refresh: 1 } : undefined }
       );
     } catch (err) {

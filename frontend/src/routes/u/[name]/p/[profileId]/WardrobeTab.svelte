@@ -12,11 +12,6 @@
   const WARDROBE_SETS_PER_BANK = 9;
   const WARDROBE_BANK_SLOT_COUNT = WARDROBE_SET_SIZE * WARDROBE_SETS_PER_BANK;
   const PIECE_LABELS = ['Helmet', 'Chestplate', 'Leggings', 'Boots'] as const;
-  const WARDROBE_SET_STARTS_ONE_BASED = [
-    1, 2, 3, 4, 5, 6, 7, 8, 9,
-    37, 38, 39, 40, 41, 42, 43, 44, 45
-  ];
-  const WARDROBE_SET_STARTS_ZERO_BASED = WARDROBE_SET_STARTS_ONE_BASED.map((start) => start - 1);
 
   type WardrobeSetGroup = {
     setIndex: number;
@@ -32,49 +27,22 @@
     pieceIndex: number;
   };
 
-  function findGroupFromStarts(slot: number, starts: number[]): WardrobeGrouping | null {
-    for (let i = starts.length - 1; i >= 0; i--) {
-      const start = starts[i];
-      if (slot < start) continue;
-      const offset = slot - start;
-      const pieceIndex = Math.floor(offset / WARDROBE_SETS_PER_BANK);
-      if (pieceIndex >= 0 && pieceIndex < WARDROBE_SET_SIZE) {
-        const setIndex = i;
-        const bankIndex = Math.floor(setIndex / WARDROBE_SETS_PER_BANK);
-        const columnIndex = setIndex % WARDROBE_SETS_PER_BANK;
-        return { setIndex, bankIndex, columnIndex, pieceIndex };
-      }
-    }
-    return null;
-  }
-
-  function fallbackGrouping(slot: number): WardrobeGrouping {
-    const normalized = Math.max(0, slot);
+  function groupingFromSlot(slot: number, offset: number): WardrobeGrouping {
+    const normalized = Math.max(0, slot - offset);
+    const columnIndex =
+      ((normalized % WARDROBE_SETS_PER_BANK) + WARDROBE_SETS_PER_BANK) % WARDROBE_SETS_PER_BANK;
+    const pieceIndex = Math.floor(normalized / WARDROBE_SETS_PER_BANK) % WARDROBE_SET_SIZE;
     const bankIndex = Math.floor(normalized / WARDROBE_BANK_SLOT_COUNT);
-    const withinBank = normalized % WARDROBE_BANK_SLOT_COUNT;
-    const columnIndex = withinBank % WARDROBE_SETS_PER_BANK;
-    const pieceIndex = Math.min(
-      WARDROBE_SET_SIZE - 1,
-      Math.max(0, Math.floor(withinBank / WARDROBE_SETS_PER_BANK))
-    );
     const setIndex = bankIndex * WARDROBE_SETS_PER_BANK + columnIndex;
     return { setIndex, bankIndex, columnIndex, pieceIndex };
   }
 
-  function deriveGrouping(slot: number): WardrobeGrouping {
-    return (
-      findGroupFromStarts(slot, WARDROBE_SET_STARTS_ONE_BASED) ??
-      findGroupFromStarts(slot, WARDROBE_SET_STARTS_ZERO_BASED) ??
-      fallbackGrouping(slot)
-    );
-  }
-
-  function buildWardrobeSets(items: (WardrobeItem | null)[]): WardrobeSetGroup[] {
+  function buildWardrobeSets(items: (WardrobeItem | null)[], offset: number): WardrobeSetGroup[] {
     const grouped = new Map<string, WardrobeSetGroup>();
 
     for (const item of items) {
       if (!item) continue;
-      const grouping = deriveGrouping(item.slot);
+      const grouping = groupingFromSlot(item.slot ?? 0, offset);
       const key = `${grouping.bankIndex}-${grouping.columnIndex}`;
       if (!grouped.has(key)) {
         grouped.set(key, {
@@ -85,11 +53,8 @@
         });
       }
       const group = grouped.get(key)!;
-      const pieceIndex = Math.min(
-        WARDROBE_SET_SIZE - 1,
-        Math.max(0, grouping.pieceIndex)
-      );
-      group.items[pieceIndex] = item;
+      const clampedIndex = Math.min(WARDROBE_SET_SIZE - 1, Math.max(0, grouping.pieceIndex));
+      group.items[clampedIndex] = item;
     }
 
     return Array.from(grouped.values()).sort((a, b) => a.setIndex - b.setIndex);
@@ -225,7 +190,7 @@
   }
 
   function rarityClass(rarity?: string | null) {
-    if (!rarity) return 'rarity-basic';
+    if (!rarity) return '';
     return `rarity-${rarity.toLowerCase().replace(/\s+/g, '-')}`;
   }
 
@@ -259,24 +224,45 @@
   let equippedBonuses: string[] = [];
   let equippedSetIndexRaw: number | null = null;
   let equippedSetIndex: number | null = null;
+  let slotOffset = 0;
+
+  function formatWardrobeSlot(setIndex: number | null) {
+    if (setIndex === null) return '';
+    const bankIndex = Math.floor(setIndex / WARDROBE_SETS_PER_BANK);
+    const columnIndex = setIndex % WARDROBE_SETS_PER_BANK;
+    return bankIndex * WARDROBE_SETS_PER_BANK + columnIndex + 1;
+  }
 
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
+  $: slotOffset = (() => {
+    const slots = wardrobeItems
+      .map((item) => (item ? item.slot : null))
+      .filter((slot): slot is number => typeof slot === 'number' && Number.isFinite(slot));
+    if (!slots.length) return 0;
+    const minSlot = Math.min(...slots);
+    return minSlot >= 1 ? 1 : 0;
+  })();
   $: if (wardrobeItems.length) {
-    setGroups = buildWardrobeSets(wardrobeItems);
+    setGroups = buildWardrobeSets(wardrobeItems, slotOffset);
     setGroupMap = new Map(setGroups.map((group) => [group.setIndex, group]));
   } else {
     setGroups = [];
     setGroupMap = new Map();
   }
+
   function resolveEquippedSetIndex(raw: number | null): number | null {
     if (raw === null) return null;
     if (setGroupMap.has(raw)) return raw;
-    const derived =
-      findGroupFromStarts(raw, WARDROBE_SET_STARTS_ONE_BASED) ??
-      findGroupFromStarts(raw, WARDROBE_SET_STARTS_ZERO_BASED) ??
-      fallbackGrouping(raw);
-    return derived.setIndex;
+    const candidate = raw - slotOffset;
+    if (setGroupMap.has(candidate)) return candidate;
+    const normalized = Math.max(0, candidate);
+    const bankIndex = Math.floor(normalized / WARDROBE_SETS_PER_BANK);
+    const columnIndex = normalized % WARDROBE_SETS_PER_BANK;
+    const setIndex = bankIndex * WARDROBE_SETS_PER_BANK + columnIndex;
+    if (setGroupMap.has(setIndex)) return setIndex;
+    const firstSet = setGroups[0]?.setIndex;
+    return typeof firstSet === 'number' ? firstSet : null;
   }
 
   $: equippedSetIndexRaw = summary?.wardrobe?.equipped_slot ?? null;
@@ -306,7 +292,7 @@
         <div class="equipped-heading">
           <h3>Currently Equipped</h3>
           {#if equippedSetIndex !== null}
-            <span class="equipped-slot-pill">Wardrobe Slot {equippedSetIndex + 1}</span>
+            <span class="equipped-slot-pill">Wardrobe Slot {formatWardrobeSlot(equippedSetIndex)}</span>
           {/if}
         </div>
         <div class="equipped-body">
@@ -356,9 +342,9 @@
         >
           {#each column.items as item, index (index)}
             {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
-            <div class="slot-shell" data-piece={pieceLabelFromIndex(index)}>
+            <button class="slot-shell" data-piece={pieceLabelFromIndex(index)}>
               <div
-                class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
                 style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
                 {#if item?.icon_url}
@@ -401,7 +387,7 @@
                   <div class="tooltip-empty">Empty slot</div>
                 {/if}
               </div>
-            </div>
+            </button>
           {/each}
         </div>
       {/each}
@@ -543,7 +529,7 @@
     grid-template-columns: repeat(var(--wardrobe-columns), minmax(44px, 1fr));
     gap: 8px;
     justify-content: center;
-    padding: 0 4px;
+    padding: 12px 6px 0;
   }
 
   @media (min-width: 1024px) {
@@ -555,27 +541,41 @@
 
   .wardrobe-set {
     display: grid;
-    grid-template-rows: repeat(4, auto);
+    grid-template-rows: repeat(4, 1fr);
     gap: 6px;
     align-items: end;
     justify-items: center;
     position: relative;
   }
 
-  @media (min-width: 1024px) {
-    .wardrobe-set:nth-child(9) {
-      margin-right: 18px;
-    }
+  .wardrobe-set.equipped::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 10px;
+    border: 2px solid var(--theme-accent);
+    opacity: 0.6;
+    pointer-events: none;
   }
 
-  .wardrobe-set.equipped .slot-icon {
-    box-shadow: 0 0 0 2px var(--theme-accent);
+  .wardrobe-set[data-bank='1'] {
+    margin-top: 12px;
+  }
+
+  @media (min-width: 1024px) {
+    .wardrobe-set[data-bank='1'] {
+      margin-top: 0;
+    }
   }
 
   .slot-shell {
     position: relative;
     display: flex;
     justify-content: center;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
   }
 
   .slot-icon {
@@ -591,7 +591,8 @@
     transition: transform 0.15s ease;
   }
 
-  .slot-shell:hover .slot-icon {
+  .slot-shell:hover .slot-icon,
+  .slot-shell:focus-within .slot-icon {
     transform: translateY(-2px);
   }
 
@@ -602,6 +603,16 @@
   .slot-icon.leather {
     background: var(--leather-color, rgba(15, 23, 42, 0.28));
   }
+
+  .slot-icon.rarity-common { border-color: rgba(113, 113, 122, 0.6); }
+  .slot-icon.rarity-uncommon { border-color: rgba(34, 197, 94, 0.6); }
+  .slot-icon.rarity-rare { border-color: rgba(59, 130, 246, 0.6); }
+  .slot-icon.rarity-epic { border-color: rgba(168, 85, 247, 0.6); }
+  .slot-icon.rarity-legendary { border-color: rgba(250, 204, 21, 0.7); }
+  .slot-icon.rarity-mythic { border-color: rgba(236, 72, 153, 0.7); }
+  .slot-icon.rarity-divine { border-color: rgba(129, 140, 248, 0.75); }
+  .slot-icon.rarity-special,
+  .slot-icon.rarity-very-special { border-color: rgba(239, 68, 68, 0.75); }
 
   .slot-icon img {
     width: 40px;
@@ -686,10 +697,7 @@
     opacity: 0.75;
   }
 
-  .tooltip-slot {
-    font-weight: 600;
-  }
-
+  .tooltip-slot,
   .tooltip-piece {
     font-weight: 600;
   }
@@ -703,44 +711,11 @@
     border-color: rgba(148, 163, 184, 0.4);
   }
 
-  .rarity-common {
-    border-color: rgba(113, 113, 122, 0.6);
-  }
-
-  .rarity-uncommon {
-    border-color: rgba(34, 197, 94, 0.6);
-  }
-
-  .rarity-rare {
-    border-color: rgba(59, 130, 246, 0.6);
-  }
-
-  .rarity-epic {
-    border-color: rgba(168, 85, 247, 0.6);
-  }
-
-  .rarity-legendary {
-    border-color: rgba(250, 204, 21, 0.7);
-  }
-
-  .rarity-mythic {
-    border-color: rgba(236, 72, 153, 0.7);
-  }
-
-  .rarity-divine {
-    border-color: rgba(129, 140, 248, 0.75);
-  }
-
-  .rarity-special,
-  .rarity-very-special {
-    border-color: rgba(239, 68, 68, 0.75);
-  }
-
-  :global(body[data-icon-pack='flufsky']) .wardrobe-icon img {
+  :global(body[data-icon-pack='flufsky']) .slot-icon img {
     filter: saturate(1.12) contrast(1.05) brightness(1.08);
   }
 
-  :global(body[data-icon-pack='flufsky']) .wardrobe-icon.placeholder {
+  :global(body[data-icon-pack='flufsky']) .slot-icon.placeholder {
     background: linear-gradient(
       135deg,
       rgba(236, 72, 153, 0.32),

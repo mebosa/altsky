@@ -5,6 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
+		"dev:ngrok": "node ./scripts/dev-with-ngrok.mjs",
+		"dev:frontend:ngrok": "node ./scripts/dev-frontend-with-ngrok.mjs",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
