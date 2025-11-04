@@ -2,7 +2,12 @@
 <script lang="ts">
   import type { WardrobeItem } from '$lib/types/wardrobe';
   import type { ProfileSummaryResponse } from '$lib/types/profile';
-  import { iconPath } from '$lib/iconPack';
+  import {
+    buildStyleString,
+    formatLeatherColor,
+    isFallbackIcon,
+    rarityToBackground,
+  } from '$lib/utils/wardrobe';
 
   export let summary: ProfileSummaryResponse;
 
@@ -55,11 +60,34 @@
         <div class="equipped-section">
           <div class="wardrobe-column">
             {#each column as item}
+              {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
+              {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
+              {@const iconUrl = item?.icon_url ?? null}
+              {@const hasIcon = iconUrl && !isFallbackIcon(iconUrl)}
+              {@const iconStyle = buildStyleString([
+                leatherColor ? `--leather-color:${leatherColor}` : null,
+                leatherColor && hasIcon ? `--icon-url:url("${iconUrl}")` : null,
+                rarityColor ? `--rarity-color:${rarityColor}` : null
+              ])}
               <div
-                class={`equipped-icon ${item.icon_url ? '' : 'placeholder'} ${item.leather_color ? 'leather' : ''}`}
-                style={item.leather_color ? `--leather-color:${item.leather_color}` : undefined}>
-                {#if item.icon_url}
-                  <img src={item.icon_url} alt={`${item.name} icon`} loading="lazy" width="60" height="60" />
+                class={`equipped-icon ${hasIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                style={iconStyle}>
+                {#if hasIcon}
+                  <img
+                    src={iconUrl}
+                    alt={`${item.name} icon`}
+                    loading="lazy"
+                    width="60"
+                    height="60"
+                    class={item?.leather_color ? 'leather-base' : ''}
+                  />
+                  {#if leatherColor}
+                    <span class="icon-tint" aria-hidden="true"></span>
+                  {/if}
+                {:else if item}
+                  <span class="equipped-initial">
+                    {item?.name?.charAt(0)?.toUpperCase() ?? pieceLabel(item)?.charAt(0) ?? '?'}
+                  </span>
                 {/if}
                 <span class="equipped-piece">{pieceLabel(item)}</span>
               </div>
@@ -125,22 +153,44 @@
     height: 60px;
     border: 2px solid var(--theme-border);
     border-radius: 8px;
-    background: rgba(148, 163, 184, 0.1);
+    background: var(--rarity-color, rgba(148, 163, 184, 0.1));
     overflow: hidden;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .equipped-icon.placeholder {
     background: rgba(148, 163, 184, 0.15);
   }
 
-  .equipped-icon.leather {
-    background: var(--leather-color);
-  }
-
   .equipped-icon img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    image-rendering: pixelated;
+  }
+
+  .equipped-icon .leather-base {
+    filter: saturate(0);
+  }
+
+  .equipped-icon .icon-tint {
+    position: absolute;
+    inset: 0;
+    background: var(--leather-color, transparent);
+    mix-blend-mode: color;
+    opacity: 0.82;
+    pointer-events: none;
+    -webkit-mask-image: var(--icon-url);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-image: var(--icon-url);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
   }
 
   .equipped-piece {
@@ -153,6 +203,15 @@
     color: #fff;
     font-size: 0.75rem;
     text-align: center;
+  }
+
+  .equipped-initial {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--theme-text);
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
   }
 
   .equipped-details {
@@ -197,4 +256,13 @@
   .equipped-bonuses p:last-child {
     margin-bottom: 0;
   }
+
+  :global(body[data-icon-pack='flufsky']) .equipped-icon .leather-base {
+    filter: none;
+  }
+
+  :global(body[data-icon-pack='flufsky']) .equipped-icon .icon-tint {
+    display: none;
+  }
 </style>
+

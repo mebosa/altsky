@@ -9,6 +9,7 @@
   import SlayerTab from './SlayerTab.svelte';
   import DungeonsTab from './DungeonsTab.svelte';
   import WardrobeTab from './WardrobeTab.svelte';
+  import AccessoriesTab from './AccessoriesTab.svelte';
   import { skillOrder, statLabels, slayerLabels, dungeonClassLabels } from './profileConstants';
   import type { Player, ProfileSummaryResponse } from './profileTypes';
 
@@ -27,6 +28,7 @@
     { id: 'stats', label: 'Stats' },
     { id: 'slayer', label: 'Slayer' },
     { id: 'dungeons', label: 'Dungeons' },
+    { id: 'accessories', label: 'Accessories' },
     { id: 'wardrobe', label: 'Wardrobe' }
   ] as const;
 
@@ -186,6 +188,8 @@
       <SlayerTab {summary} {slayerLabels} />
     {:else if activeTab === 'dungeons'}
       <DungeonsTab {summary} {dungeonClassLabels} />
+    {:else if activeTab === 'accessories'}
+      <AccessoriesTab {summary} />
     {:else if activeTab === 'wardrobe'}
       <WardrobeTab {summary} />
     {/if}

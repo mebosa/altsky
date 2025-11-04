@@ -1,5 +1,11 @@
 <script lang="ts">
   import { formatNumber } from '$lib/utils';
+  import {
+    buildStyleString,
+    formatLeatherColor,
+    isFallbackIcon,
+    rarityToBackground,
+  } from '$lib/utils/wardrobe';
   import type {
     AggregatedStat,
     ProfileSummaryResponse,
@@ -185,35 +191,7 @@
     return Array.from(bonuses).filter((line) => line.trim().length);
   }
 
-  function pieceLabelFromIndex(index: number) {
-    return PIECE_LABELS[index] ?? 'Slot';
-  }
-
-  function rarityClass(rarity?: string | null) {
-    if (!rarity) return '';
-    return `rarity-${rarity.toLowerCase().replace(/\s+/g, '-')}`;
-  }
-
-  function formatLeatherColor(color?: string | null) {
-    if (!color) return null;
-    let value = color.trim();
-    if (!value) return null;
-    if (/^#?[0-9a-fA-F]{6}$/.test(value)) {
-      return value.startsWith('#') ? value : `#${value}`;
-    }
-    const parts = value.split(/[:;,]/).map((part) => part.trim()).filter(Boolean);
-    if (parts.length === 3 && parts.every((part) => !Number.isNaN(Number(part)))) {
-      const normalized = parts.map((part) => {
-        const num = Number(part);
-        if (!Number.isFinite(num)) return 0;
-        return Math.max(0, Math.min(255, Math.round(num)));
-      });
-      return `rgb(${normalized.join(',')})`;
-    }
-    return null;
-  }
-
-  let wardrobeItems: (WardrobeItem | null)[] = [];
+  function pieceLabelFromIndex(index: number) {\r\n    return PIECE_LABELS[index] ?? 'Slot';\r\n  }\r\n\r\n  function resolveIconUrl(item: WardrobeItem | null, _version: number): string | null {\r\n    if (!item) return null;\r\n    const iconUrl = item.icon_url ?? null;\r\n    if (!iconUrl || isFallbackIcon(iconUrl)) {\r\n      return null;\r\n    }\r\n\r\n    const leatherColor = formatLeatherColor(item.leather_color);\r\n    if (!leatherColor) {\r\n      return iconUrl;\r\n    }\r\n\r\n    const cached = peekTintedIcon(iconUrl, leatherColor);\r\n    if (cached) {\r\n      return cached;\r\n    }\r\n\r\n    ensureTintedIcon(iconUrl, leatherColor)\r\n      .catch(() => iconUrl)\r\n      .then(() => {\r\n        iconVersion += 1;\r\n      });\r\n\r\n    return iconUrl;\r\n  }\r\n\r\n  function itemInitial(item: WardrobeItem | null, fallback: string): string {\r\n    if (!item) return '?';\r\n    const first = item.name?.charAt(0)?.toUpperCase();\r\n    if (first && /^[A-Z0-9]$/i.test(first)) {\r\n      return first;\r\n    }\r\n    const alt = fallback?.charAt(0)?.toUpperCase();\r\n    return alt || '?';\r\n  }\r\n\r\n  let iconVersion = 0;\r\n  let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
   let setGroups: WardrobeSetGroup[] = [];
   let setGroupMap = new Map<number, WardrobeSetGroup>();
@@ -299,12 +277,34 @@
           <div class="equipped-icons">
             {#each equippedGroupItems as item, index (index)}
               {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
+              {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
+              {@const iconUrl = item?.icon_url ?? null}
+              {@const hasIcon = iconUrl && !isFallbackIcon(iconUrl)}
+              {@const iconStyle = buildStyleString([
+                leatherColor ? `--leather-color:${leatherColor}` : null,
+                leatherColor && hasIcon ? `--icon-url:url("${iconUrl}")` : null,
+                rarityColor ? `--rarity-color:${rarityColor}` : null
+              ])}
               <div
-                class={`equipped-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
-                style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
+                class={`equipped-icon ${hasIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                style={iconStyle}
               >
-                {#if item?.icon_url}
-                  <img src={item.icon_url} alt={`${item.name} icon`} loading="lazy" width="60" height="60" />
+                {#if hasIcon}
+                  <img
+                    src={iconUrl}
+                    alt={`${item.name} icon`}
+                    loading="lazy"
+                    width="60"
+                    height="60"
+                    class={item?.leather_color ? 'leather-base' : ''}
+                  />
+                  {#if leatherColor}
+                    <span class="icon-tint" aria-hidden="true"></span>
+                  {/if}
+                {:else if item}
+                  <span class="equipped-initial">
+                    {item?.name?.charAt(0)?.toUpperCase() ?? pieceLabelFromIndex(index).charAt(0) ?? '?'}
+                  </span>
                 {/if}
                 <span class="equipped-piece">{pieceLabelFromIndex(index)}</span>
               </div>
@@ -342,28 +342,42 @@
         >
           {#each column.items as item, index (index)}
             {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
+            {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
+            {@const iconUrl = item?.icon_url ?? null}
+            {@const hasIcon = iconUrl && !isFallbackIcon(iconUrl)}
+            {@const iconStyle = buildStyleString([
+              leatherColor ? `--leather-color:${leatherColor}` : null,
+              leatherColor && hasIcon ? `--icon-url:url("${iconUrl}")` : null,
+              rarityColor ? `--rarity-color:${rarityColor}` : null
+            ])}
             <button class="slot-shell" data-piece={pieceLabelFromIndex(index)}>
               <div
-                class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
-                style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
+                class={`slot-icon ${hasIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                style={iconStyle}
               >
-                {#if item?.icon_url}
+                {#if hasIcon}
                   <img
-                    src={item.icon_url}
+                    src={iconUrl}
                     alt={`${item.name} icon`}
                     loading="lazy"
                     width="42"
                     height="42"
+                    class={item?.leather_color ? 'leather-base' : ''}
                     on:error={(event) => {
                       const target = event.currentTarget as HTMLImageElement;
                       target.dataset.failed = '1';
                       target.parentElement?.classList.add('placeholder');
                     }}
                   />
+                  {#if leatherColor}
+                    <span class="icon-tint" aria-hidden="true"></span>
+                  {/if}
                 {:else if item}
-                  <span class="slot-initial">{item.name.slice(0, 1).toUpperCase()}</span>
+                  <span class="slot-initial">
+                    {item?.name?.charAt(0)?.toUpperCase() ?? pieceLabelFromIndex(index).charAt(0) ?? '?'}
+                  </span>
                 {:else}
-                  <span class="slot-initial empty">•</span>
+                  <span class="slot-initial empty">?</span>
                 {/if}
               </div>
               <div class="slot-tooltip">
@@ -451,7 +465,7 @@
     width: 72px;
     height: 88px;
     border-radius: 16px;
-    background: rgba(15, 23, 42, 0.25);
+    background: var(--rarity-color, rgba(15, 23, 42, 0.25));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -460,25 +474,54 @@
     border: 1px solid rgba(148, 163, 184, 0.18);
     position: relative;
     overflow: hidden;
+    isolation: isolate;
   }
 
   .equipped-icon.placeholder {
     background: linear-gradient(135deg, rgba(148, 163, 184, 0.18), rgba(226, 232, 240, 0.12));
   }
 
-  .equipped-icon.leather {
-    background: var(--leather-color, rgba(15, 23, 42, 0.25));
-  }
-
   .equipped-icon img {
     width: 60px;
     height: 60px;
     object-fit: contain;
+    image-rendering: pixelated;
+  }
+
+  .equipped-icon .leather-base {
+    filter: saturate(0);
+  }
+
+  .equipped-icon .icon-tint {
+    position: absolute;
+    inset: 0;
+    background: var(--leather-color, transparent);
+    mix-blend-mode: color;
+    opacity: 0.82;
+    pointer-events: none;
+    border-radius: inherit;
+    -webkit-mask-image: var(--icon-url);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-image: var(--icon-url);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
   }
 
   .equipped-piece {
     font-size: 0.8rem;
     font-weight: 600;
+  }
+
+  .equipped-initial {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--theme-text-primary);
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
   }
 
   .equipped-details {
@@ -582,13 +625,15 @@
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    background: rgba(15, 23, 42, 0.28);
+    background: var(--rarity-color, rgba(15, 23, 42, 0.28));
     border: 1px solid rgba(148, 163, 184, 0.32);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
     transition: transform 0.15s ease;
+    isolation: isolate;
   }
 
   .slot-shell:hover .slot-icon,
@@ -600,24 +645,33 @@
     background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(226, 232, 240, 0.12));
   }
 
-  .slot-icon.leather {
-    background: var(--leather-color, rgba(15, 23, 42, 0.28));
-  }
-
-  .slot-icon.rarity-common { border-color: rgba(113, 113, 122, 0.6); }
-  .slot-icon.rarity-uncommon { border-color: rgba(34, 197, 94, 0.6); }
-  .slot-icon.rarity-rare { border-color: rgba(59, 130, 246, 0.6); }
-  .slot-icon.rarity-epic { border-color: rgba(168, 85, 247, 0.6); }
-  .slot-icon.rarity-legendary { border-color: rgba(250, 204, 21, 0.7); }
-  .slot-icon.rarity-mythic { border-color: rgba(236, 72, 153, 0.7); }
-  .slot-icon.rarity-divine { border-color: rgba(129, 140, 248, 0.75); }
-  .slot-icon.rarity-special,
-  .slot-icon.rarity-very-special { border-color: rgba(239, 68, 68, 0.75); }
-
   .slot-icon img {
     width: 40px;
     height: 40px;
     object-fit: contain;
+    image-rendering: pixelated;
+  }
+
+  .slot-icon .leather-base {
+    filter: saturate(0);
+  }
+
+  .slot-icon .icon-tint {
+    position: absolute;
+    inset: 0;
+    background: var(--leather-color, transparent);
+    mix-blend-mode: color;
+    opacity: 0.8;
+    pointer-events: none;
+    border-radius: inherit;
+    -webkit-mask-image: var(--icon-url);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-image: var(--icon-url);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
   }
 
   .slot-initial {
@@ -707,20 +761,22 @@
     color: var(--theme-text-soft);
   }
 
-  .rarity-basic {
-    border-color: rgba(148, 163, 184, 0.4);
-  }
-
-  :global(body[data-icon-pack='flufsky']) .slot-icon img {
-    filter: saturate(1.12) contrast(1.05) brightness(1.08);
-  }
-
   :global(body[data-icon-pack='flufsky']) .slot-icon.placeholder {
     background: linear-gradient(
       135deg,
       rgba(236, 72, 153, 0.32),
       rgba(56, 189, 248, 0.28)
     );
+  }
+
+  :global(body[data-icon-pack='flufsky']) .slot-icon .leather-base,
+  :global(body[data-icon-pack='flufsky']) .equipped-icon .leather-base {
+    filter: none;
+  }
+
+  :global(body[data-icon-pack='flufsky']) .slot-icon .icon-tint,
+  :global(body[data-icon-pack='flufsky']) .equipped-icon .icon-tint {
+    display: none;
   }
 
   @media (max-width: 768px) {
@@ -733,3 +789,5 @@
     }
   }
 </style>
+
+

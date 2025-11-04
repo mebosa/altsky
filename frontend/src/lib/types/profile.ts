@@ -1,3 +1,7 @@
+import type { SkillStat } from './skills';
+import type { WardrobeItem } from './wardrobe';
+import type { AccessorySummary } from './accessories';
+
 export type Player = {
   name: string;
   uuid: string;
@@ -39,4 +43,5 @@ export type ProfileSummaryResponse = {
     items: (WardrobeItem | null)[];
     slots: number;
   };
+  accessories: AccessorySummary;
 };

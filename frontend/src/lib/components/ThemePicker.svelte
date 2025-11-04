@@ -260,17 +260,16 @@
     --glow-y: 45%;
   }
 
-  .panel {
-    display: none;
-    opacity: 0;
-    transform: translateY(-8px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+  .palette-shell:not(.expanded) {
+    gap: 0;
   }
 
-  .palette-shell.expanded .panel {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
+  .palette-shell:not(.expanded) .panel {
+    max-width: 0;
+    padding: 0;
+    margin: 0;
+    border-width: 0;
+    height: 0;
   }
 
   .toggle {
@@ -573,6 +572,10 @@
       top: 14px;
       left: 14px;
       gap: 6px;
+    }
+
+    .palette-shell:not(.expanded) {
+      gap: 0;
     }
 
     .panel {

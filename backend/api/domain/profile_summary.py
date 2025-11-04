@@ -8,6 +8,7 @@ from .dungeons import extract_dungeons
 from .skills import extract_skills
 from .slayer import extract_slayer
 from .wardrobe import parse_wardrobe
+from .accessories import parse_accessories
 
 
 @dataclass
@@ -148,4 +149,5 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dic
             "equipped_slot": _safe_int(equipped_slot) if equipped_slot is not None else None,
             **wardrobe,
         },
+        "accessories": parse_accessories(member),
     }
