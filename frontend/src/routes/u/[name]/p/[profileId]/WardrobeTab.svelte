@@ -1,11 +1,5 @@
 <script lang="ts">
   import { formatNumber } from '$lib/utils';
-  import {
-    buildStyleString,
-    formatLeatherColor,
-    isFallbackIcon,
-    rarityToBackground,
-  } from '$lib/utils/wardrobe';
   import type {
     AggregatedStat,
     ProfileSummaryResponse,
@@ -195,48 +189,30 @@
     return PIECE_LABELS[index] ?? 'Slot';
   }
 
-  function resolveIconUrl(item: WardrobeItem | null, _version: number): string | null {
-    if (!item) return null;
-    const iconUrl = item.icon_url ?? null;
-    if (!iconUrl || isFallbackIcon(iconUrl)) {
-      return null;
-    }
-
-    const leatherColor = formatLeatherColor(item.leather_color);
-    if (!leatherColor) {
-      return iconUrl;
-    }
-
-    const key = `${iconUrl}|${leatherColor}`;
-    const cached = peekTintedIcon(iconUrl, leatherColor);
-    if (cached) {
-      return cached;
-    }
-
-    if (!pendingTintKeys.has(key)) {
-      pendingTintKeys.add(key);
-      ensureTintedIcon(iconUrl, leatherColor)
-        .catch(() => iconUrl)
-        .then(() => {
-          pendingTintKeys.delete(key);
-          iconVersion += 1;
-        });
-    }
-
-    return iconUrl;
-  }
-  function itemInitial(item: WardrobeItem | null, fallback: string): string {
-    if (!item) return '?';
-    const first = item.name?.charAt(0)?.toUpperCase();
-    if (first && /^[A-Z0-9]$/i.test(first)) {
-      return first;
-    }
-    const alt = fallback?.charAt(0)?.toUpperCase();
-    return alt || '?';
+  function rarityClass(rarity?: string | null) {
+    if (!rarity) return '';
+    return `rarity-${rarity.toLowerCase().replace(/\s+/g, '-')}`;
   }
 
-  const pendingTintKeys = new Set<string>();
-  let iconVersion = 0;
+  function formatLeatherColor(color?: string | null) {
+    if (!color) return null;
+    let value = color.trim();
+    if (!value) return null;
+    if (/^#?[0-9a-fA-F]{6}$/.test(value)) {
+      return value.startsWith('#') ? value : `#${value}`;
+    }
+    const parts = value.split(/[:;,]/).map((part) => part.trim()).filter(Boolean);
+    if (parts.length === 3 && parts.every((part) => !Number.isNaN(Number(part)))) {
+      const normalized = parts.map((part) => {
+        const num = Number(part);
+        if (!Number.isFinite(num)) return 0;
+        return Math.max(0, Math.min(255, Math.round(num)));
+      });
+      return `rgb(${normalized.join(',')})`;
+    }
+    return null;
+  }
+
   let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
   let setGroups: WardrobeSetGroup[] = [];
@@ -322,30 +298,13 @@
         <div class="equipped-body">
           <div class="equipped-icons">
             {#each equippedGroupItems as item, index (index)}
-              {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
-              {@const iconSrc = resolveIconUrl(item, iconVersion)}
-              {@const hasIcon = !!iconSrc}
-              {@const styleValue = buildStyleString([
-                rarityColor ? `--rarity-color:${rarityColor}` : null
-              ])}
+              {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
               <div
-                class={`equipped-icon ${hasIcon ? '' : 'placeholder'}`}
-                style={styleValue}
+                class={`equipped-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
-                {#if hasIcon}
-                  <img
-                    src={iconSrc}
-                    alt={`${item?.name ?? 'Wardrobe item'} icon`}
-                    loading="lazy"
-                    width="60"
-                    height="60"
-                  />
-                {:else if item}
-                  <span class="equipped-initial">
-                    {itemInitial(item, pieceLabelFromIndex(index))}
-                  </span>
-                {:else}
-                  <span class="equipped-initial">?</span>
+                {#if item?.icon_url}
+                  <img src={item.icon_url} alt={`${item.name} icon`} loading="lazy" width="60" height="60" />
                 {/if}
                 <span class="equipped-piece">{pieceLabelFromIndex(index)}</span>
               </div>
@@ -382,21 +341,16 @@
           data-bank={column.bankIndex}
         >
           {#each column.items as item, index (index)}
-            {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
-            {@const iconSrc = resolveIconUrl(item, iconVersion)}
-            {@const hasIcon = !!iconSrc}
-            {@const styleValue = buildStyleString([
-              rarityColor ? `--rarity-color:${rarityColor}` : null
-            ])}
+            {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
             <button class="slot-shell" data-piece={pieceLabelFromIndex(index)}>
               <div
-                class={`slot-icon ${hasIcon ? '' : 'placeholder'}`}
-                style={styleValue}
+                class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
+                style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
-                {#if hasIcon}
+                {#if item?.icon_url}
                   <img
-                    src={iconSrc}
-                    alt={`${item?.name ?? 'Wardrobe item'} icon`}
+                    src={item.icon_url}
+                    alt={`${item.name} icon`}
                     loading="lazy"
                     width="42"
                     height="42"
@@ -407,11 +361,9 @@
                     }}
                   />
                 {:else if item}
-                  <span class="slot-initial">
-                    {itemInitial(item, pieceLabelFromIndex(index))}
-                  </span>
+                  <span class="slot-initial">{item.name.slice(0, 1).toUpperCase()}</span>
                 {:else}
-                  <span class="slot-initial empty">?</span>
+                  <span class="slot-initial empty">•</span>
                 {/if}
               </div>
               <div class="slot-tooltip">
@@ -499,7 +451,7 @@
     width: 72px;
     height: 88px;
     border-radius: 16px;
-    background: var(--rarity-color, rgba(15, 23, 42, 0.25));
+    background: rgba(15, 23, 42, 0.25);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -514,25 +466,19 @@
     background: linear-gradient(135deg, rgba(148, 163, 184, 0.18), rgba(226, 232, 240, 0.12));
   }
 
+  .equipped-icon.leather {
+    background: var(--leather-color, rgba(15, 23, 42, 0.25));
+  }
+
   .equipped-icon img {
     width: 60px;
     height: 60px;
     object-fit: contain;
-    image-rendering: pixelated;
   }
 
   .equipped-piece {
     font-size: 0.8rem;
     font-weight: 600;
-  }
-
-  .equipped-initial {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--theme-text-primary);
-    position: relative;
-    z-index: 1;
-    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
   }
 
   .equipped-details {
@@ -636,13 +582,12 @@
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    background: var(--rarity-color, rgba(15, 23, 42, 0.28));
+    background: rgba(15, 23, 42, 0.28);
     border: 1px solid rgba(148, 163, 184, 0.32);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    position: relative;
     transition: transform 0.15s ease;
   }
 
@@ -655,11 +600,24 @@
     background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(226, 232, 240, 0.12));
   }
 
+  .slot-icon.leather {
+    background: var(--leather-color, rgba(15, 23, 42, 0.28));
+  }
+
+  .slot-icon.rarity-common { border-color: rgba(113, 113, 122, 0.6); }
+  .slot-icon.rarity-uncommon { border-color: rgba(34, 197, 94, 0.6); }
+  .slot-icon.rarity-rare { border-color: rgba(59, 130, 246, 0.6); }
+  .slot-icon.rarity-epic { border-color: rgba(168, 85, 247, 0.6); }
+  .slot-icon.rarity-legendary { border-color: rgba(250, 204, 21, 0.7); }
+  .slot-icon.rarity-mythic { border-color: rgba(236, 72, 153, 0.7); }
+  .slot-icon.rarity-divine { border-color: rgba(129, 140, 248, 0.75); }
+  .slot-icon.rarity-special,
+  .slot-icon.rarity-very-special { border-color: rgba(239, 68, 68, 0.75); }
+
   .slot-icon img {
     width: 40px;
     height: 40px;
     object-fit: contain;
-    image-rendering: pixelated;
   }
 
   .slot-initial {
@@ -749,7 +707,14 @@
     color: var(--theme-text-soft);
   }
 
-  :global(body[data-icon-pack='furfsky']) .slot-icon.placeholder,
+  .rarity-basic {
+    border-color: rgba(148, 163, 184, 0.4);
+  }
+
+  :global(body[data-icon-pack='flufsky']) .slot-icon img {
+    filter: saturate(1.12) contrast(1.05) brightness(1.08);
+  }
+
   :global(body[data-icon-pack='flufsky']) .slot-icon.placeholder {
     background: linear-gradient(
       135deg,
@@ -768,5 +733,3 @@
     }
   }
 </style>
-
-
