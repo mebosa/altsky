@@ -4,13 +4,12 @@
   export let tabs: { id: string; label: string }[] = [];
   export let value: string;
 
-  const dispatch = createEventDispatcher<{ change: string; value: string }>();
+  const dispatch = createEventDispatcher<{ change: string; select: string }>();
 
   function select(id: string) {
     if (id === value) return;
-    value = id;
+    dispatch('select', id);
     dispatch('change', id);
-    dispatch('value', id);
   }
 </script>
 

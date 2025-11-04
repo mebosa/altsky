@@ -136,26 +136,41 @@
     applyGlow(50, 45);
     startIdleAnimation(0);
 
-    const mq = window.matchMedia('(pointer: coarse)');
-    const updatePointerMode = (event?: MediaQueryListEvent) => {
-      pointerCoarse = event ? event.matches : mq.matches;
-      if (pointerCoarse) {
-        closePalette();
-      }
+    const coarseQuery = window.matchMedia('(pointer: coarse)');
+    const fineQuery = window.matchMedia('(pointer: fine)');
+
+    const computePointerMode = () => {
+      const coarse = coarseQuery.matches;
+      const fine = fineQuery.matches;
+      return coarse && !fine;
     };
+
+    const updatePointerMode = (_event?: MediaQueryListEvent) => {
+      pointerCoarse = computePointerMode();
+      if (pointerCoarse) closePalette();
+    };
+
     updatePointerMode();
 
-    if (mq.addEventListener) {
-      mq.addEventListener('change', updatePointerMode);
-      detachMedia = () => mq.removeEventListener('change', updatePointerMode);
-    } else {
+    const attachListener = (mq: MediaQueryList, handler: (event: MediaQueryListEvent) => void) => {
+      if (mq.addEventListener) {
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+      }
       // @ts-ignore addListener fallback for older browsers
-      mq.addListener(updatePointerMode);
-      detachMedia = () => {
+      mq.addListener(handler);
+      return () => {
         // @ts-ignore removeListener fallback
-        mq.removeListener(updatePointerMode);
+        mq.removeListener(handler);
       };
-    }
+    };
+
+    const detachCoarse = attachListener(coarseQuery, updatePointerMode);
+    const detachFine = attachListener(fineQuery, updatePointerMode);
+    detachMedia = () => {
+      detachCoarse();
+      detachFine();
+    };
 
     return () => {
       detachMedia?.();
