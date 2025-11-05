@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
-from django.views.static import serve
+from api import views as api_views
 import os
 
 urlpatterns = [
@@ -27,7 +27,7 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += [
-        re_path(r'^furfsky_t/(?P<path>.*)$', serve, {
+        re_path(r'^static/(?P<path>.*)$', api_views.serve_with_logging, {
             'document_root': os.path.join(settings.BASE_DIR, 'api/domain/furfsky_textures'),
         }),
     ]

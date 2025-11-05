@@ -231,7 +231,7 @@ def _local_asset_path(candidate: str) -> Optional[str]:
     filename = os.path.basename(candidate)
     file_path = os.path.join(FURFSKY_TEXTURES_PATH, filename)
     if os.path.exists(file_path):
-        return f"/furfsky_t/{filename}"
+        return f"/api/static/{filename}"
     return None
 
 

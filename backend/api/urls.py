@@ -1,4 +1,4 @@
-﻿from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -7,4 +7,4 @@ urlpatterns = [
     path("profile/<str:uuid>", views.hypixel_profile),
     path("hypixel/profile/<str:uuid>", views.hypixel_profile),
     path("hypixel/profile/<str:uuid>/<str:profile_id>", views.hypixel_profile_summary),
-]
+    re_path(r'^static/(?P<path>.*)

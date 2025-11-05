@@ -9,6 +9,26 @@ from rest_framework.response import Response
 from .decorators import rate_limit
 
 from .domain.profile_summary import summarize_profile
+import logging
+from django.views.static import serve
+
+LOGGER = logging.getLogger(__name__)
+
+def serve_with_logging(request, path, document_root=None, show_indexes=False):
+    LOGGER.info(f"Serving static file: {path} from {document_root}")
+    return serve(request, path, document_root=document_root, show_indexes=show_indexes)
+from django.http import HttpResponse
+import mimetypes
+
+
+def serve_furfsky_texture(request, path):
+    file_path = os.path.join(os.path.dirname(__file__), 'domain/furfsky_textures', path)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as f:
+            content_type, _ = mimetypes.guess_type(file_path)
+            return HttpResponse(f.read(), content_type=content_type)
+    else:
+        return HttpResponse(status=404)
 
 HYPIXEL_PROFILES_URL = 'https://api.hypixel.net/v2/skyblock/profiles'
 
