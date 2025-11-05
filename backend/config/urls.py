@@ -17,19 +17,24 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
-from api import views as api_views
 import os
 
+from api import views as api_views
+
 urlpatterns = [
-    path('api/', include('api.urls')),
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
+    path("api/", include("api.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
-        re_path(r'^static/(?P<path>.*)$', api_views.serve_with_logging, {
-            'document_root': os.path.join(settings.BASE_DIR, 'api/domain/furfsky_textures'),
-        }),
+        re_path(
+            r"^static/(?P<path>.*)$",
+            api_views.serve_with_logging,
+            {
+                "document_root": os.path.join(
+                    settings.BASE_DIR, "api/domain/furfsky_textures"
+                ),
+            },
+        ),
     ]
-
-

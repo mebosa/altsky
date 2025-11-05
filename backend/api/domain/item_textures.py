@@ -2,10 +2,17 @@ import base64
 import json
 import logging
 import os
+import zipfile
 from functools import lru_cache
-from typing import Dict, Iterable, Optional
+from io import BytesIO
+from typing import Dict, Iterable, Iterator, Optional
 
 import requests
+
+try:
+    from PIL import Image  # type: ignore[import-not-found]
+except ImportError:  # pragma: no cover - optional dependency
+    Image = None
 
 LOGGER = logging.getLogger(__name__)
 ITEMS_URL = "https://api.hypixel.net/resources/skyblock/items"
@@ -14,6 +21,9 @@ ASSET_BASE = (
     "/assets/minecraft/textures"
 )
 FURFSKY_TEXTURES_PATH = os.path.join(os.path.dirname(__file__), "furfsky_textures")
+FURFSKY_TEXTURES_ZIP = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "furfsky.zip")
+)
 
 SESSION = requests.Session()
 _ASSET_CACHE: Dict[str, Optional[str]] = {}
@@ -73,6 +83,142 @@ MATERIAL_ALIASES = {
     "gold_horse_armor": "golden_horse_armor",
     "golden_apple": "golden_apple",
 }
+
+FURFSKY_ICON_ALIASES: Dict[str, str] = {
+    "ranchers_boots": "rancher_boots.png",
+    "melon_helmet": "melon.png",
+}
+
+
+def _furfsky_zip_path() -> Optional[str]:
+    if os.path.exists(FURFSKY_TEXTURES_ZIP):
+        return FURFSKY_TEXTURES_ZIP
+    return None
+
+
+@lru_cache(maxsize=1)
+def _furfsky_zip_index() -> Dict[str, str]:
+    zip_path = _furfsky_zip_path()
+    if not zip_path:
+        return {}
+
+    def _entry_score(path: str) -> int:
+        lowered = path.lower()
+        score = 0
+        if "/icons/" in lowered:
+            score += 10
+        if "/model/" in lowered or "/models/" in lowered:
+            score -= 5
+        if lowered.endswith("_icon.png"):
+            score += 5
+        if "/items/" in lowered:
+            score += 2
+        return score
+
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zip_file:
+            mapping: Dict[str, str] = {}
+            scores: Dict[str, int] = {}
+            for entry in zip_file.infolist():
+                if entry.is_dir():
+                    continue
+                if not entry.filename.lower().endswith(".png"):
+                    continue
+                name = os.path.basename(entry.filename)
+                score = _entry_score(entry.filename)
+                if name not in mapping or score > scores.get(name, -999):
+                    mapping[name] = entry.filename
+                    scores[name] = score
+    except zipfile.BadZipFile as exc:
+        LOGGER.warning("Failed to index FurSky texture pack: %s", exc)
+        return {}
+
+    return mapping
+
+
+def furfsky_texture_exists(filename: str) -> bool:
+    if not filename:
+        return False
+
+    local_path = os.path.join(FURFSKY_TEXTURES_PATH, filename)
+    if os.path.exists(local_path):
+        return True
+
+    return filename in _furfsky_zip_index()
+
+
+def load_furfsky_texture(filename: str) -> Optional[bytes]:
+    if not filename:
+        return None
+
+    try:
+        local_path = os.path.join(FURFSKY_TEXTURES_PATH, filename)
+        if os.path.exists(local_path):
+            with open(local_path, "rb") as handle:
+                return handle.read()
+
+        mapping = _furfsky_zip_index()
+        relative = mapping.get(filename)
+        zip_path = _furfsky_zip_path()
+        if not relative or not zip_path:
+            return None
+
+        with zipfile.ZipFile(zip_path, "r") as zip_file:
+            return zip_file.read(relative)
+    except (KeyError, OSError, zipfile.BadZipFile) as exc:
+        LOGGER.warning("Failed to extract %s from FurSky zip: %s", filename, exc)
+    except Exception:  # pragma: no cover - defensive
+        LOGGER.exception("Unexpected error while loading FurSky texture %s", filename)
+
+    return None
+
+
+def _normalize_identifier(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+    normalized = str(value).lower()
+    normalized = normalized.replace("minecraft:", "")
+    for ch in (" ", "-", ":", ".", "'"):
+        normalized = normalized.replace(ch, "_")
+    while "__" in normalized:
+        normalized = normalized.replace("__", "_")
+    normalized = normalized.strip("_")
+    return normalized or None
+
+
+def _furfsky_icon_candidates(value: Optional[str]) -> Iterator[str]:
+    normalized = _normalize_identifier(value)
+    if not normalized:
+        return
+
+    yield f"{normalized}.png"
+
+    # Some icons are stored without trailing suffixes; try a few variants.
+    suffix_map = {
+        "_helmet": ("_head", "_cap"),
+        "_chestplate": ("_chest",),
+        "_leggings": ("_legs", "_pant"),
+        "_boots": ("_feet",),
+    }
+    for suffix, variants in suffix_map.items():
+        if normalized.endswith(suffix):
+            stem = normalized[: -len(suffix)]
+            for variant in variants:
+                yield f"{stem}{variant}.png"
+
+
+def _furfsky_icon_override(*values: Optional[str]) -> Optional[str]:
+    for value in values:
+        normalized = _normalize_identifier(value)
+        if normalized:
+            alias_candidate = FURFSKY_ICON_ALIASES.get(normalized)
+            if alias_candidate and furfsky_texture_exists(alias_candidate):
+                return f"/api/static/{alias_candidate}"
+
+        for candidate in _furfsky_icon_candidates(value):
+            if furfsky_texture_exists(candidate):
+                return f"/api/static/{candidate}"
+    return None
 
 
 @lru_cache(maxsize=1)
@@ -229,8 +375,7 @@ def _build_material_candidates(name: str, durability: Optional[int] = None) -> I
 
 def _local_asset_path(candidate: str) -> Optional[str]:
     filename = os.path.basename(candidate)
-    file_path = os.path.join(FURFSKY_TEXTURES_PATH, filename)
-    if os.path.exists(file_path):
+    if furfsky_texture_exists(filename):
         return f"/api/static/{filename}"
     return None
 
@@ -273,8 +418,9 @@ def resolve_item_icon(
     Return an HTTPS URL pointing to an icon representing the SkyBlock item.
     Preference order:
         1. Hypixel custom skin texture
-        2. Vanilla material texture, using Hypixel material hints/durability
-        3. Vanilla material texture derived from the raw mc_id/damage combo
+        2. FurSky pack overrides for the SkyBlock item identifier
+        3. Vanilla material texture, using Hypixel material hints/durability
+        4. Vanilla material texture derived from the raw mc_id/damage combo
     """
     resource_map = _load_item_resource_map()
     icon_url: Optional[str] = None
@@ -287,10 +433,15 @@ def resolve_item_icon(
         entry_material = entry.get("material")
         entry_durability = entry.get("durability")
         if not icon_url:
+            icon_url = _furfsky_icon_override(item_id, entry.get("internalname"))
+        if not icon_url:
             icon_url = _material_texture(entry_material, entry_durability)
 
     if not icon_url and mc_id:
         effective_durability = damage if damage is not None else entry_durability
+        override = _furfsky_icon_override(mc_id)
+        if override:
+            return override
         icon_url = _material_texture(mc_id, effective_durability)
 
     return icon_url
