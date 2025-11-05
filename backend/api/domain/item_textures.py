@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import os
 from functools import lru_cache
 from typing import Dict, Iterable, Optional
 
@@ -12,6 +13,7 @@ ASSET_BASE = (
     "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1"
     "/assets/minecraft/textures"
 )
+FURFSKY_TEXTURES_PATH = os.path.join(os.path.dirname(__file__), "furfsky_textures")
 
 SESSION = requests.Session()
 _ASSET_CACHE: Dict[str, Optional[str]] = {}
@@ -225,6 +227,14 @@ def _build_material_candidates(name: str, durability: Optional[int] = None) -> I
             yield candidate
 
 
+def _local_asset_path(candidate: str) -> Optional[str]:
+    filename = os.path.basename(candidate)
+    file_path = os.path.join(FURFSKY_TEXTURES_PATH, filename)
+    if os.path.exists(file_path):
+        return f"/furfsky_t/{filename}"
+    return None
+
+
 def _material_texture(name: Optional[str], durability: Optional[int] = None) -> Optional[str]:
     if not name:
         return None
@@ -244,6 +254,10 @@ def _material_texture(name: Optional[str], durability: Optional[int] = None) -> 
     normalized = MATERIAL_ALIASES.get(str(normalized).lower(), str(normalized))
 
     for candidate in _build_material_candidates(str(normalized), durability):
+        local_path = _local_asset_path(candidate)
+        if local_path:
+            return local_path
+
         url = _cached_asset_path(candidate)
         if url:
             return url

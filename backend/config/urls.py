@@ -15,11 +15,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.conf import settings
+from django.views.static import serve
+import os
 
 urlpatterns = [
     path('api/', include('api.urls')),
     path('admin/', admin.site.urls),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        re_path(r'^furfsky_t/(?P<path>.*)$', serve, {
+            'document_root': os.path.join(settings.BASE_DIR, 'api/domain/furfsky_textures'),
+        }),
+    ]
 
 
