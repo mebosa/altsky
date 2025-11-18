@@ -1,5 +1,6 @@
 <script lang="ts">
   import { formatNumber } from '$lib/utils';
+  import { rarityToBackground } from '$lib/utils/wardrobe';
   import type {
     AggregatedStat,
     ProfileSummaryResponse,
@@ -12,6 +13,29 @@
   const WARDROBE_SETS_PER_BANK = 9;
   const WARDROBE_BANK_SLOT_COUNT = WARDROBE_SET_SIZE * WARDROBE_SETS_PER_BANK;
   const PIECE_LABELS = ['Helmet', 'Chestplate', 'Leggings', 'Boots'] as const;
+  const RARITY_ORDER = [
+    'basic',
+    'common',
+    'uncommon',
+    'rare',
+    'epic',
+    'legendary',
+    'mythic',
+    'divine',
+    'supreme',
+    'special',
+    'very_special',
+    'ultimate',
+    'admin'
+  ] as const;
+  const RARITY_RANK = RARITY_ORDER.reduce<Record<string, number>>((acc, rarity, index) => {
+    acc[rarity] = index;
+    return acc;
+  }, {});
+  const DEFAULT_ACCENT = 'rgba(120, 137, 255, 0.28)';
+  const ICON_RETRY_LIMIT = 3;
+  const ICON_RETRY_BASE_DELAY = 400;
+  const ICON_RETRY_BACKOFF = 1.5;
 
   type WardrobeSetGroup = {
     setIndex: number;
@@ -124,6 +148,39 @@
     return suffix === '%' ? `${formatted}${suffix}` : formatted;
   }
 
+  function normalizeRarity(value?: string | null) {
+    if (!value) return null;
+    return value.trim().toLowerCase().replace(/\s+/g, '_');
+  }
+
+  function rarityRank(value?: string | null) {
+    if (!value) return -1;
+    return RARITY_RANK[value] ?? -1;
+  }
+
+  function selectPrimaryRarity(items: (WardrobeItem | null)[]) {
+    let best: { raw: string; normalized: string } | null = null;
+    for (const item of items) {
+      const raw = item?.rarity;
+      if (!raw) continue;
+      const normalized = normalizeRarity(raw);
+      if (!normalized) continue;
+      if (!best || rarityRank(normalized) > rarityRank(best.normalized)) {
+        best = { raw, normalized };
+      }
+    }
+    return best;
+  }
+
+  function formatRarityLabel(value?: string | null) {
+    const normalized = normalizeRarity(value);
+    if (!normalized) return '';
+    return normalized
+      .split('_')
+      .map((segment) => (segment ? segment[0].toUpperCase() + segment.slice(1) : segment))
+      .join(' ');
+  }
+
   function aggregateSetStats(items: WardrobeItem[]): AggregatedStat[] {
     const totals = new Map<string, { value: number; suffix: '' | '%' }>();
     for (const item of items) {
@@ -213,6 +270,48 @@
     return null;
   }
 
+  function buildCacheBustedUrl(url: string, attempt: number) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}retry=${attempt}-${Date.now()}`;
+  }
+
+  function markPlaceholder(target: HTMLImageElement, shouldShow: boolean) {
+    target.parentElement?.classList.toggle('placeholder', shouldShow);
+  }
+
+  function handleIconLoad(event: Event) {
+    const target = event.currentTarget as HTMLImageElement | null;
+    if (!target) return;
+    delete target.dataset.retryCount;
+    delete target.dataset.failed;
+    markPlaceholder(target, false);
+  }
+
+  function handleIconError(event: Event, iconUrl?: string | null) {
+    const target = event.currentTarget as HTMLImageElement | null;
+    if (!target) return;
+    if (!iconUrl) {
+      target.dataset.failed = '1';
+      markPlaceholder(target, true);
+      return;
+    }
+    const attempt = Number(target.dataset.retryCount ?? '0');
+    if (attempt >= ICON_RETRY_LIMIT) {
+      target.dataset.failed = '1';
+      markPlaceholder(target, true);
+      return;
+    }
+    const nextAttempt = attempt + 1;
+    target.dataset.retryCount = String(nextAttempt);
+    target.dataset.failed = '';
+    markPlaceholder(target, false);
+    const delay = Math.round(ICON_RETRY_BASE_DELAY * Math.pow(ICON_RETRY_BACKOFF, attempt));
+    setTimeout(() => {
+      if (!target.isConnected) return;
+      target.src = buildCacheBustedUrl(iconUrl, nextAttempt);
+    }, delay);
+  }
+
   let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
   let setGroups: WardrobeSetGroup[] = [];
@@ -275,6 +374,11 @@
   $: equippedSetLabel = deriveSetLabel(equippedItems);
   $: equippedStats = aggregateSetStats(equippedItems);
   $: equippedBonuses = gatherSetBonusLines(equippedItems);
+  $: equippedRarityInfo = selectPrimaryRarity(equippedGroupItems);
+  $: equippedAccent = equippedRarityInfo
+    ? rarityToBackground(equippedRarityInfo.raw) ?? null
+    : null;
+  $: equippedRarityLabel = formatRarityLabel(equippedRarityInfo?.raw);
 </script>
 
 <section id="wardrobe" class="wardrobe-section">
@@ -288,12 +392,23 @@
     </div>
   {:else}
     {#if equippedItems.length}
-      <div class="equipped-summary">
+      <div
+        class="equipped-summary"
+        style={`--rarity-accent:${equippedAccent ?? DEFAULT_ACCENT}`}
+      >
         <div class="equipped-heading">
-          <h3>Currently Equipped</h3>
-          {#if equippedSetIndex !== null}
-            <span class="equipped-slot-pill">Wardrobe Slot {formatWardrobeSlot(equippedSetIndex)}</span>
-          {/if}
+          <div class="heading-copy">
+            <span class="equipped-label">Currently Equipped</span>
+            <h3>{equippedSetLabel || 'Custom Mix'}</h3>
+          </div>
+          <div class="equipped-meta">
+            {#if equippedRarityLabel}
+              <span class="rarity-chip">{equippedRarityLabel} Set</span>
+            {/if}
+            {#if equippedSetIndex !== null}
+              <span class="equipped-slot-pill">Wardrobe Slot {formatWardrobeSlot(equippedSetIndex)}</span>
+            {/if}
+          </div>
         </div>
         <div class="equipped-body">
           <div class="equipped-icons">
@@ -304,14 +419,21 @@
                 style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
                 {#if item?.icon_url}
-                  <img src={item.icon_url} alt={`${item.name} icon`} loading="lazy" width="60" height="60" />
+                  <img
+                    src={item.icon_url}
+                    alt={`${item.name} icon`}
+                    loading="lazy"
+                    width="60"
+                    height="60"
+                    on:load={handleIconLoad}
+                    on:error={(event) => handleIconError(event, item?.icon_url)}
+                  />
                 {/if}
                 <span class="equipped-piece">{pieceLabelFromIndex(index)}</span>
               </div>
             {/each}
           </div>
           <div class="equipped-details">
-            <div class="equipped-set-name">{equippedSetLabel || 'Custom Mix'}</div>
             {#if equippedStats.length}
               <ul class="equipped-stats">
                 {#each equippedStats as stat}
@@ -324,6 +446,7 @@
             {/if}
             {#if equippedBonuses.length}
               <div class="equipped-bonuses">
+                <p class="section-label">Full Set Bonus</p>
                 {#each equippedBonuses as line}
                   <p>{line}</p>
                 {/each}
@@ -336,59 +459,81 @@
 
     <div class="wardrobe-grid">
       {#each setGroups as column (column.setIndex)}
+        {@const groupRarityInfo = selectPrimaryRarity(column.items)}
+        {@const groupAccent = groupRarityInfo ? rarityToBackground(groupRarityInfo.raw) : null}
+        {@const groupRarityLabel = formatRarityLabel(groupRarityInfo?.raw)}
         <div
           class={`wardrobe-set ${equippedSetIndex === column.setIndex ? 'equipped' : ''} bank-${column.bankIndex}`}
           data-bank={column.bankIndex}
+          style={`--rarity-accent:${groupAccent ?? 'rgba(148, 163, 184, 0.18)'}`}
         >
-          {#each column.items as item, index (index)}
-            {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
-            <button class="slot-shell" data-piece={pieceLabelFromIndex(index)}>
-              <div
-                class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
-                style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
-              >
-                {#if item?.icon_url}
-                  <img
-                    src={item.icon_url}
-                    alt={`${item.name} icon`}
-                    loading="lazy"
-                    width="42"
-                    height="42"
-                    on:error={(event) => {
-                      const target = event.currentTarget as HTMLImageElement;
-                      target.dataset.failed = '1';
-                      target.parentElement?.classList.add('placeholder');
-                    }}
-                  />
-                {:else if item}
-                  <span class="slot-initial">{item.name.slice(0, 1).toUpperCase()}</span>
-                {:else}
-                  <span class="slot-initial empty">•</span>
-                {/if}
-              </div>
-              <div class="slot-tooltip">
-                <div class="tooltip-header">
-                  <span class="tooltip-piece">{pieceLabelFromIndex(index)}</span>
-                  <span class="tooltip-slot">Slot {column.setIndex + 1}</span>
+          <div class="set-header">
+            <span class="set-label">Set {formatWardrobeSlot(column.setIndex)}</span>
+            {#if groupRarityLabel}
+              <span class="rarity-chip subtle">{groupRarityLabel}</span>
+            {/if}
+          </div>
+          <div class="set-slots">
+            {#each column.items as item, index (index)}
+              {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
+              <button class="slot-shell" data-piece={pieceLabelFromIndex(index)} type="button">
+                <div
+                  class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
+                  style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
+                >
+                  {#if item?.icon_url}
+                    <img
+                      src={item.icon_url}
+                      alt={`${item.name} icon`}
+                      loading="lazy"
+                      width="42"
+                      height="42"
+                      on:load={handleIconLoad}
+                      on:error={(event) => handleIconError(event, item?.icon_url)}
+                    />
+                  {:else if item}
+                    <span class="slot-initial">{item.name.slice(0, 1).toUpperCase()}</span>
+                  {:else}
+                    <span class="slot-initial empty">?</span>
+                  {/if}
                 </div>
-                {#if item}
-                  <div class="tooltip-name">{item.name}</div>
-                  {#if item.rarity}
-                    <div class="tooltip-rarity">{item.rarity}</div>
+                <div class="slot-details">
+                  <div class="slot-meta">
+                    <span class="slot-piece-label">{pieceLabelFromIndex(index)}</span>
+                    {#if item?.rarity}
+                      <span class="slot-rarity-pill">{formatRarityLabel(item.rarity)}</span>
+                    {:else}
+                      <span class="slot-rarity-pill muted">Unassigned</span>
+                    {/if}
+                  </div>
+                  <p class={`slot-name ${item ? '' : 'slot-placeholder'}`}>
+                    {item?.name ?? 'No armor selected'}
+                  </p>
+                </div>
+                <div class="slot-tooltip">
+                  <div class="tooltip-header">
+                    <span class="tooltip-piece">{pieceLabelFromIndex(index)}</span>
+                    <span class="tooltip-slot">Slot {column.setIndex + 1}</span>
+                  </div>
+                  {#if item}
+                    <div class="tooltip-name">{item.name}</div>
+                    {#if item.rarity}
+                      <div class="tooltip-rarity">{item.rarity}</div>
+                    {/if}
+                    {#if item.lore.length}
+                      <div class="tooltip-lore">
+                        {#each item.lore as line}
+                          <p>{line}</p>
+                        {/each}
+                      </div>
+                    {/if}
+                  {:else}
+                    <div class="tooltip-empty">Empty slot</div>
                   {/if}
-                  {#if item.lore.length}
-                    <div class="tooltip-lore">
-                      {#each item.lore as line}
-                        <p>{line}</p>
-                      {/each}
-                    </div>
-                  {/if}
-                {:else}
-                  <div class="tooltip-empty">Empty slot</div>
-                {/if}
-              </div>
-            </button>
-          {/each}
+                </div>
+              </button>
+            {/each}
+          </div>
         </div>
       {/each}
     </div>
@@ -409,239 +554,414 @@
     color: var(--theme-text-soft);
   }
 
-  .loading-card p,
-  .empty-card p {
-    margin: 0;
-    font-size: 1.1rem;
-  }
-
   .equipped-summary {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
+    padding: 26px 28px;
+    border-radius: 24px;
+    border: 1px solid var(--rarity-accent, rgba(99, 102, 241, 0.4));
+    background: rgba(6, 11, 30, 0.92);
+    box-shadow: 0 18px 34px rgba(2, 6, 23, 0.55);
+    overflow: hidden;
+  }
+
+  .equipped-summary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.06),
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 0% 0%,
+        var(--rarity-accent, rgba(99, 102, 241, 0.3)),
+        transparent 65%
+      );
+    opacity: 0.9;
+    pointer-events: none;
   }
 
   .equipped-heading {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: flex-start;
+    position: relative;
+    z-index: 1;
+  }
+
+  .heading-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .equipped-label {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.7);
+  }
+
+  .heading-copy h3 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #fff;
+  }
+
+  .equipped-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .rarity-chip {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border-radius: 999px;
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .rarity-chip.subtle {
+    color: var(--theme-text);
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .equipped-slot-pill {
-    background: rgba(99, 102, 241, 0.12);
-    color: var(--theme-accent);
-    padding: 6px 12px;
+    background: rgba(15, 23, 42, 0.4);
+    color: #e0e7ff;
+    padding: 6px 14px;
     border-radius: 999px;
     font-weight: 600;
     font-size: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .equipped-body {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px;
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(240px, 0.9fr) minmax(240px, 1fr);
+    gap: 20px;
+    align-items: stretch;
   }
 
   .equipped-icons {
     display: flex;
-    gap: 12px;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(2, 6, 23, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: inset 0 0 24px rgba(15, 23, 42, 0.35);
+    justify-content: flex-start;
   }
 
   .equipped-icon {
     width: 72px;
-    height: 88px;
+    height: 92px;
     border-radius: 16px;
-    background: rgba(15, 23, 42, 0.25);
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    position: relative;
-    overflow: hidden;
+    gap: 8px;
   }
 
   .equipped-icon.placeholder {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.18), rgba(226, 232, 240, 0.12));
-  }
-
-  .equipped-icon.leather {
-    background: var(--leather-color, rgba(15, 23, 42, 0.25));
+    background: rgba(15, 23, 42, 0.35);
+    border-style: dashed;
   }
 
   .equipped-icon img {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
   }
 
   .equipped-piece {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(248, 250, 252, 0.88);
   }
 
   .equipped-details {
+    background: rgba(2, 6, 23, 0.45);
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    padding: 18px 22px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    min-width: 220px;
-  }
-
-  .equipped-set-name {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--theme-text-primary);
+    gap: 18px;
   }
 
   .equipped-stats {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px 20px;
   }
 
   .equipped-stats li {
     display: flex;
     justify-content: space-between;
-    color: var(--theme-text-primary);
+    gap: 16px;
+    font-weight: 600;
+    color: #f8fafc;
+  }
+
+  .equipped-stats li span:first-child {
+    color: rgba(226, 232, 240, 0.7);
+    font-weight: 500;
+  }
+
+  .section-label {
+    margin: 0 0 6px;
+    text-transform: uppercase;
+    font-size: 0.74rem;
+    letter-spacing: 0.18em;
+    color: rgba(226, 232, 240, 0.65);
   }
 
   .equipped-bonuses {
-    border-top: 1px solid var(--theme-border);
-    padding-top: 16px;
-    color: var(--theme-text-soft);
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+    padding-top: 12px;
+    color: rgba(248, 250, 252, 0.9);
   }
 
   .equipped-bonuses p {
-    margin: 0 0 8px;
-  }
-
-  .equipped-bonuses p:last-child {
-    margin-bottom: 0;
+    margin: 0 0 6px;
+    line-height: 1.45;
   }
 
   .wardrobe-grid {
-    --wardrobe-columns: 9;
     display: grid;
-    grid-template-columns: repeat(var(--wardrobe-columns), minmax(44px, 1fr));
-    gap: 8px;
-    justify-content: center;
-    padding: 12px 6px 0;
-  }
-
-  @media (min-width: 1024px) {
-    .wardrobe-grid {
-      --wardrobe-columns: 18;
-      gap: 10px;
-    }
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 
   .wardrobe-set {
-    display: grid;
-    grid-template-rows: repeat(4, 1fr);
-    gap: 6px;
-    align-items: end;
-    justify-items: center;
     position: relative;
+    padding: 18px;
+    border-radius: 22px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: radial-gradient(
+        circle at 0% 0%,
+        var(--rarity-accent, rgba(99, 102, 241, 0.08)),
+        transparent 65%
+      ),
+      rgba(8, 12, 26, 0.88);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.45);
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 240px;
+    backdrop-filter: blur(6px);
   }
 
-  .wardrobe-set.equipped::after {
+  .wardrobe-set::after {
     content: '';
     position: absolute;
-    inset: -6px;
-    border-radius: 10px;
-    border: 2px solid var(--theme-accent);
-    opacity: 0.6;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 35%);
+    opacity: 0.4;
     pointer-events: none;
   }
 
-  .wardrobe-set[data-bank='1'] {
-    margin-top: 12px;
+  .wardrobe-set > * {
+    position: relative;
+    z-index: 1;
   }
 
-  @media (min-width: 1024px) {
-    .wardrobe-set[data-bank='1'] {
-      margin-top: 0;
-    }
+  .wardrobe-set.equipped {
+    border-color: var(--rarity-accent, rgba(99, 102, 241, 0.5));
+    box-shadow: 0 28px 50px rgba(2, 6, 23, 0.65);
+    transform: translateY(-4px);
+  }
+
+  .set-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  .set-label {
+    font-weight: 600;
+    color: rgba(248, 250, 252, 0.92);
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+  }
+
+  .set-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+    margin-top: 4px;
   }
 
   .slot-shell {
-    position: relative;
-    display: flex;
-    justify-content: center;
     background: none;
     border: none;
-    padding: 0;
-    cursor: pointer;
+    padding: 10px 12px;
+    width: 100%;
+    text-align: left;
+    position: relative;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 0;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  }
+
+  .slot-shell:hover,
+  .slot-shell:focus-visible {
+    border-color: rgba(226, 232, 240, 0.35);
+    background: rgba(15, 23, 42, 0.6);
+    transform: translateY(-1px);
   }
 
   .slot-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    background: rgba(15, 23, 42, 0.28);
-    border: 1px solid rgba(148, 163, 184, 0.32);
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(15, 23, 42, 0.5);
+    width: 58px;
+    height: 58px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    transition: transform 0.15s ease;
-  }
-
-  .slot-shell:hover .slot-icon,
-  .slot-shell:focus-within .slot-icon {
-    transform: translateY(-2px);
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
   }
 
   .slot-icon.placeholder {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(226, 232, 240, 0.12));
+    border-style: dashed;
+    color: rgba(226, 232, 240, 0.45);
+  }
+
+  .slot-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
   }
 
   .slot-icon.leather {
-    background: var(--leather-color, rgba(15, 23, 42, 0.28));
+    background: rgba(15, 23, 42, 0.45);
+    box-shadow: inset 0 0 0 1px var(--leather-color, rgba(255, 255, 255, 0.08));
   }
 
-  .slot-icon.rarity-common { border-color: rgba(113, 113, 122, 0.6); }
-  .slot-icon.rarity-uncommon { border-color: rgba(34, 197, 94, 0.6); }
-  .slot-icon.rarity-rare { border-color: rgba(59, 130, 246, 0.6); }
-  .slot-icon.rarity-epic { border-color: rgba(168, 85, 247, 0.6); }
-  .slot-icon.rarity-legendary { border-color: rgba(250, 204, 21, 0.7); }
-  .slot-icon.rarity-mythic { border-color: rgba(236, 72, 153, 0.7); }
-  .slot-icon.rarity-divine { border-color: rgba(129, 140, 248, 0.75); }
-  .slot-icon.rarity-special,
-  .slot-icon.rarity-very-special { border-color: rgba(239, 68, 68, 0.75); }
+  .wardrobe-set.equipped .slot-icon {
+    border-color: var(--rarity-accent, rgba(99, 102, 241, 0.45));
+  }
 
-  .slot-icon img {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
+  .slot-shell:hover .slot-icon {
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
   }
 
   .slot-initial {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--theme-text-primary);
-    opacity: 0.85;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--theme-text);
   }
 
   .slot-initial.empty {
-    opacity: 0.2;
+    opacity: 0.18;
+  }
+
+  .slot-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .slot-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .slot-piece-label {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.7);
+  }
+
+  .slot-rarity-pill {
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(248, 250, 252, 0.85);
+    background: rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+  }
+
+  .slot-rarity-pill.muted {
+    color: rgba(226, 232, 240, 0.6);
+    border-color: rgba(226, 232, 240, 0.18);
+    background: rgba(15, 23, 42, 0.35);
+  }
+
+  .slot-name {
+    margin: 0;
+    font-weight: 600;
+    color: rgba(248, 250, 252, 0.95);
+    font-size: 0.92rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .slot-placeholder {
+    color: rgba(226, 232, 240, 0.55);
+    font-weight: 500;
   }
 
   .slot-tooltip {
     position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translate(-50%, 4px);
-    background: rgba(15, 23, 42, 0.92);
+    inset: auto auto calc(100% + 12px) 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: rgba(15, 23, 42, 0.96);
     border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 10px;
     padding: 10px 12px;
     min-width: 180px;
-    max-width: 220px;
+    max-width: 240px;
     box-shadow: 0 16px 32px rgba(15, 23, 42, 0.42);
     opacity: 0;
     pointer-events: none;
@@ -653,7 +973,7 @@
   .slot-shell:hover .slot-tooltip,
   .slot-shell:focus-within .slot-tooltip {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateX(-50%) translateY(0);
     pointer-events: auto;
   }
 
@@ -661,7 +981,7 @@
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     opacity: 0.7;
@@ -697,39 +1017,19 @@
     opacity: 0.75;
   }
 
-  .tooltip-slot,
-  .tooltip-piece {
-    font-weight: 600;
-  }
-
-  .wardrobe-empty {
-    text-align: center;
-    color: var(--theme-text-soft);
-  }
-
-  .rarity-basic {
-    border-color: rgba(148, 163, 184, 0.4);
-  }
-
-  :global(body[data-icon-pack='flufsky']) .slot-icon img {
-    filter: saturate(1.12) contrast(1.05) brightness(1.08);
-  }
-
-  :global(body[data-icon-pack='flufsky']) .slot-icon.placeholder {
-    background: linear-gradient(
-      135deg,
-      rgba(236, 72, 153, 0.32),
-      rgba(56, 189, 248, 0.28)
-    );
-  }
-
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     .equipped-body {
-      flex-direction: column;
+      grid-template-columns: 1fr;
     }
 
     .equipped-icons {
-      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .set-slots {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     }
   }
 </style>

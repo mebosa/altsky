@@ -27,6 +27,7 @@ FURFSKY_TEXTURES_ZIP = os.path.abspath(
 
 SESSION = requests.Session()
 _ASSET_CACHE: Dict[str, Optional[str]] = {}
+_TALL_TEXTURE_NOTICE_EMITTED = False
 
 LEGACY_DYE_COLORS = [
     "white",
@@ -155,7 +156,8 @@ def load_furfsky_texture(filename: str) -> Optional[bytes]:
         local_path = os.path.join(FURFSKY_TEXTURES_PATH, filename)
         if os.path.exists(local_path):
             with open(local_path, "rb") as handle:
-                return handle.read()
+                payload = handle.read()
+            return _normalize_texture_payload(payload)
 
         mapping = _furfsky_zip_index()
         relative = mapping.get(filename)
@@ -164,13 +166,48 @@ def load_furfsky_texture(filename: str) -> Optional[bytes]:
             return None
 
         with zipfile.ZipFile(zip_path, "r") as zip_file:
-            return zip_file.read(relative)
+            payload = zip_file.read(relative)
+        return _normalize_texture_payload(payload)
     except (KeyError, OSError, zipfile.BadZipFile) as exc:
         LOGGER.warning("Failed to extract %s from FurSky zip: %s", filename, exc)
     except Exception:  # pragma: no cover - defensive
         LOGGER.exception("Unexpected error while loading FurSky texture %s", filename)
 
     return None
+
+
+def _normalize_texture_payload(payload: bytes) -> bytes:
+    if not payload or Image is None:
+        return payload
+
+    global _TALL_TEXTURE_NOTICE_EMITTED
+    try:
+        with Image.open(BytesIO(payload)) as image:
+            width, height = image.size
+            if (
+                width <= 0
+                or height <= 0
+                or height <= width
+                or height % width != 0
+                or height < width * 2
+            ):
+                return payload
+
+            frame_height = width
+            cropped = image.crop((0, 0, width, frame_height))
+            buffer = BytesIO()
+            cropped.save(buffer, format="PNG")
+            if not _TALL_TEXTURE_NOTICE_EMITTED:
+                LOGGER.debug(
+                    "Trimmed tall FurSky texture to the first frame (w=%s h=%s)",
+                    width,
+                    height,
+                )
+                _TALL_TEXTURE_NOTICE_EMITTED = True
+            return buffer.getvalue()
+    except Exception:
+        LOGGER.debug("Failed to normalize FurSky texture payload", exc_info=True)
+        return payload
 
 
 def _normalize_identifier(value: Optional[str]) -> Optional[str]:

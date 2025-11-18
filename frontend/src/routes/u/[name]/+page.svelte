@@ -22,6 +22,7 @@
   };
 
   let loading = false;
+  let navigating = false; /* New state for navigation loading */
   let errorMsg = '';
   let player: Player | null = null;
   let profiles: any[] = [];
@@ -98,7 +99,7 @@
 
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const signal = controller?.signal;
-    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    let timeoutHandle: number | null = null; /* Changed ReturnType<typeof setTimeout> to number */
 
     loading = true;
     errorMsg = '';
@@ -148,8 +149,16 @@
     return `${value.slice(0, 8)}...`;
   }
 
-  function toDetail(profileId: string) {
-    goto(`/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(profileId)}`);
+  async function toDetail(profileId: string) {
+    navigating = true; /* Set navigating to true before navigation */
+    try {
+      await goto(`/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(profileId)}`);
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Optionally handle navigation errors, e.g., show a toast message
+    } finally {
+      navigating = false; /* Set navigating to false after navigation (or on error) */
+    }
   }
 </script>
 
@@ -376,7 +385,8 @@
             {/if}
             {#if prf.profile_id}
               <div class="row-end">
-                <button class="ghost" on:click={() => toDetail(prf.profile_id)}>
+                <button class="ghost" on:click={() => toDetail(prf.profile_id)} disabled={navigating}>
+                  {#if navigating}<span class="spinner" style="vertical-align:-3px;margin-right:6px;"></span>{/if}
                   View Profile
                 </button>
               </div>
