@@ -40,6 +40,12 @@ DOUBLE_MAGICAL_POWER_IDS = {
     "HEGEMONY_ARTIFACT",
 }
 
+RARITY_OVERRIDES = {
+    "ABICASE": "SPECIAL",
+    "ABICASE_PRO": "SPECIAL",
+    "ABICASE_ULTRA": "SPECIAL",
+}
+
 FIXED_MAGICAL_POWER_OVERRIDES = {
     # Grants 11 Magical Power when imbued. The in-game value does not depend on rarity.
     "RIFT_PRISM": 11,
@@ -165,7 +171,11 @@ def _normalize_rarity(rarity: Optional[str]) -> Optional[str]:
 
 
 def _magical_power_for_item(item_id: Optional[str], rarity: Optional[str]) -> int:
-    normalized_rarity = _normalize_rarity(rarity) or ""
+    item_key = (item_id or "").upper()
+    if item_key in ABICASE_IDS:
+        # Abiphone case gives 1 MP per 2 contacts; contacts handled separately
+        return 0
+    normalized_rarity = _normalize_rarity(rarity) or _normalize_rarity(RARITY_OVERRIDES.get(item_key)) or ""
     override = FIXED_MAGICAL_POWER_OVERRIDES.get(item_id or "")
     if override is not None:
         return override
@@ -267,6 +277,14 @@ def _parse_accessory_items(
         modifier = _titleize_identifier(_tag_value(extra.get("modifier")))
         enrichment = _titleize_identifier(_tag_value(extra.get("talisman_enrichment")))
         recombobulated = _safe_int(_tag_value(extra.get("rarity_upgrades")), 0) > 0
+        abiphone_contacts: Optional[int] = None
+        if (extra_id or item_id).upper() in ABICASE_IDS:
+            for line in lore:
+                if "contact" in line.lower():
+                    numbers = [int(part) for part in line.split() if part.isdigit()]
+                    if numbers:
+                        abiphone_contacts = numbers[0]
+                        break
 
         accessory = {
             "slot": index,
@@ -285,6 +303,7 @@ def _parse_accessory_items(
             "modifier": modifier,
             "enrichment": enrichment,
             "recombobulated": recombobulated,
+            "abiphone_contacts": abiphone_contacts,
         }
 
         items.append(accessory)
@@ -296,7 +315,10 @@ def _parse_accessory_items(
 
         counted_key = accessory["id"] or accessory["mc_id"]
         if counted_key and counted_key not in counted_ids:
-            magical_power_total += _magical_power_for_item(accessory["id"], display_rarity)
+            extra_mp = 0
+            if accessory["abiphone_contacts"] is not None and (accessory["id"] or "").upper() in ABICASE_IDS:
+                extra_mp = max(0, accessory["abiphone_contacts"] // 2)
+            magical_power_total += _magical_power_for_item(accessory["id"], display_rarity) + extra_mp
             counted_ids.add(counted_key)
 
     return items, rarity_counts, unique_ids, magical_power_total

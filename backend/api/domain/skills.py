@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 
-# XP thresholds for SkyBlock skills (levels 0-60). Last value is placeholder until official tables are published.
-SKILL_XP_TABLE = [
+# Default XP thresholds for most skills (levels 0-60). Last value is placeholder until official tables are published.
+DEFAULT_SKILL_XP_TABLE = [
     0,
     50,
     175,
@@ -66,7 +66,47 @@ SKILL_XP_TABLE = [
     90522425,
 ]
 
-MAX_SKILL_LEVEL = 60
+# RuneCrafting has its own curve and caps at 25.
+RUNECRAFTING_XP_TABLE = [
+    0,
+    50,
+    150,
+    250,
+    500,
+    1000,
+    2000,
+    3500,
+    6000,
+    10000,
+    15000,
+    21500,
+    30000,
+    40000,
+    52000,
+    66000,
+    82000,
+    100000,
+    120000,
+    150000,
+    200000,
+    275000,
+    380000,
+    525000,
+    700000,
+]
+
+SKILL_XP_TABLES: Dict[str, List[int]] = {
+    "runecrafting": RUNECRAFTING_XP_TABLE,
+}
+
+MAX_SKILL_LEVELS: Dict[str, int] = {
+    "fishing": 50,
+    "foraging": 54,
+    "alchemy": 50,
+    "carpentry": 50,
+    "runecrafting": len(RUNECRAFTING_XP_TABLE) - 1,
+}
+DEFAULT_MAX_SKILL_LEVEL = 60
 
 # Legacy key (v1) -> Modern key (v2) mapping
 SKILL_KEY_MAP: Dict[str, Tuple[str, str]] = {
@@ -93,22 +133,25 @@ class SkillStat:
     xp_for_next: int
 
 
-def xp_to_level(xp: int) -> SkillStat:
+def xp_to_level(skill: str, xp: int) -> SkillStat:
+    table = SKILL_XP_TABLES.get(skill, DEFAULT_SKILL_XP_TABLE)
+    max_level = MAX_SKILL_LEVELS.get(skill, DEFAULT_MAX_SKILL_LEVEL)
+
     if xp <= 0:
-        return SkillStat(0, 0.0, 0, 0, SKILL_XP_TABLE[1] - SKILL_XP_TABLE[0])
+        return SkillStat(0, 0.0, 0, 0, table[1] - table[0])
 
     lvl = 0
-    for i in range(1, min(MAX_SKILL_LEVEL, len(SKILL_XP_TABLE) - 1) + 1):
-        if xp >= SKILL_XP_TABLE[i]:
+    for i in range(1, min(max_level, len(table) - 1) + 1):
+        if xp >= table[i]:
             lvl = i
         else:
             break
 
-    if lvl >= MAX_SKILL_LEVEL:
-        return SkillStat(MAX_SKILL_LEVEL, 1.0, xp, xp - SKILL_XP_TABLE[MAX_SKILL_LEVEL], 0)
+    if lvl >= max_level:
+        return SkillStat(max_level, 1.0, xp, xp - table[max_level], 0)
 
-    base = SKILL_XP_TABLE[lvl]
-    need = SKILL_XP_TABLE[lvl + 1] - base
+    base = table[lvl]
+    need = table[lvl + 1] - base
     have = xp - base
     progress = max(0.0, min(1.0, have / need)) if need > 0 else 1.0
     return SkillStat(lvl, progress, xp, have, need)
@@ -142,7 +185,7 @@ def extract_skills(member: Dict[str, Any]) -> Dict[str, Any]:
 
     for name, (legacy_key, modern_key) in SKILL_KEY_MAP.items():
         xp = _skill_xp_from_member(member, legacy_key, modern_key)
-        stat = xp_to_level(xp)
+        stat = xp_to_level(name, xp)
         out[name] = {
             "level": stat.level,
             "progress": stat.progress,

@@ -421,6 +421,7 @@
   let equippedSetLabel = '';
   let equippedStats: AggregatedStat[] = [];
   let equippedBonuses: string[] = [];
+  let expectedEquippedSetIndex: number | null = null;
   let equippedSetIndexRaw: number | null = null;
   let equippedSetIndex: number | null = null;
   let slotOffset = 0;
@@ -468,6 +469,25 @@
   }
 
   $: equippedSetIndexRaw = summary?.wardrobe?.equipped_slot ?? null;
+  $: expectedEquippedSetIndex =
+    equippedSetIndexRaw === null ? null : groupingFromSlot(equippedSetIndexRaw, slotOffset).setIndex;
+
+  // Ensure the equipped set exists in the list even if wardrobe data for that slot is missing
+  $: if (
+    expectedEquippedSetIndex !== null &&
+    !setGroupMap.has(expectedEquippedSetIndex)
+  ) {
+    const bankIndex = Math.floor(expectedEquippedSetIndex / WARDROBE_SETS_PER_BANK);
+    const columnIndex = expectedEquippedSetIndex % WARDROBE_SETS_PER_BANK;
+    const placeholder: WardrobeSetGroup = {
+      setIndex: expectedEquippedSetIndex,
+      bankIndex,
+      columnIndex,
+      items: Array.from({ length: WARDROBE_SET_SIZE }, () => null)
+    };
+    setGroups = [...setGroups, placeholder].sort((a, b) => a.setIndex - b.setIndex);
+    setGroupMap = new Map(setGroups.map((group) => [group.setIndex, group]));
+  }
   $: equippedSetIndex = resolveEquippedSetIndex(equippedSetIndexRaw);
   $: {
     const group = equippedSetIndex !== null ? setGroupMap.get(equippedSetIndex) : undefined;
@@ -967,6 +987,7 @@
     border: 1px solid rgba(148, 163, 184, 0.14);
     transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    min-height: 96px;
   }
 
   .slot-shell:hover,
@@ -980,8 +1001,8 @@
     border-radius: 16px;
     border: 1px solid rgba(148, 163, 184, 0.28);
     background: rgba(15, 23, 42, 0.5);
-    width: 58px;
-    height: 58px;
+    width: 64px;
+    height: 64px;
     padding: 0;
     display: flex;
     align-items: center;
@@ -1030,7 +1051,7 @@
   .slot-details {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     flex: 1;
     min-width: 0;
   }
@@ -1071,10 +1092,11 @@
     margin: 0;
     font-weight: 600;
     color: rgba(248, 250, 252, 0.95);
-    font-size: 0.92rem;
+    font-size: 0.94rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.25;
   }
 
   .slot-placeholder {
@@ -1091,13 +1113,17 @@
     border-radius: 10px;
     padding: 10px 12px;
     min-width: 180px;
-    max-width: 240px;
+    max-width: 260px;
+    max-height: min(320px, 70vh);
     box-shadow: 0 16px 32px rgba(15, 23, 42, 0.42);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.18s ease, transform 0.18s ease;
     color: #e2e8f0;
     z-index: 20;
+    overflow: auto;
+    scrollbar-width: thin;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
   }
 
   .slot-shell:hover .slot-tooltip,

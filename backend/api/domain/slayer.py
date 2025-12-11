@@ -1,12 +1,22 @@
+import re
 from typing import Any, Dict
 
-# Approximate XP thresholds for Slayer levels 0-9.
-SLAYER_LEVELS = [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000]
+# Boss-specific XP thresholds (level 0..9). These differ slightly for some bosses in early levels.
+BOSS_LEVELS = {
+    "zombie": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
+    "spider": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
+    "wolf": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
+    "enderman": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
+    "blaze": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
+    # Vampire (Riftstalker) caps at 5 (claimed_levels preferred, this is only a fallback)
+    "vampire": [0, 15, 200, 1000, 5000, 20000],
+}
 
 
-def xp_to_level(xp: int) -> int:
+def xp_to_level(boss: str, xp: int) -> int:
+    levels = BOSS_LEVELS.get(boss, BOSS_LEVELS["zombie"])
     lvl = 0
-    for i, need in enumerate(SLAYER_LEVELS):
+    for i, need in enumerate(levels):
         if xp >= need:
             lvl = i
         else:
@@ -15,6 +25,29 @@ def xp_to_level(xp: int) -> int:
 
 
 BOSSES = ["zombie", "spider", "wolf", "enderman", "blaze", "vampire"]
+
+
+def level_from_claimed(claimed: Dict[str, Any]) -> int | None:
+    """
+    Hypixel stores claimed_levels like {"level_1": true, "level_2": true, ...}.
+    We prefer this over XP because some slayers (e.g., Riftstalker Bloodfiend) have
+    different caps and XP curves.
+    """
+    if not isinstance(claimed, dict):
+        return None
+    best = None
+    for key, value in claimed.items():
+        if not value:
+            continue
+        match = re.search(r"(\\d+)", str(key))
+        if not match:
+            continue
+        try:
+            number = int(match.group(1))
+        except ValueError:
+            continue
+        best = number if best is None else max(best, number)
+    return best
 
 
 def extract_slayer(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -45,7 +78,9 @@ def extract_slayer(data: Dict[str, Any]) -> Dict[str, Any]:
                 xp = int(float(xp_raw))
             except (TypeError, ValueError):
                 xp = 0
-        lvl = xp_to_level(xp)
+        claimed_levels = boss_data.get("claimed_levels") or {}
+        lvl_from_claims = level_from_claimed(claimed_levels)
+        lvl = lvl_from_claims if lvl_from_claims is not None else xp_to_level(boss, xp)
         out[boss] = {"xp": xp, "level": lvl}
         total_xp += xp
 
