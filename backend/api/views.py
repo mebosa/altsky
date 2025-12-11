@@ -5,7 +5,7 @@ import mimetypes
 import os
 from datetime import datetime, timezone
 from io import BytesIO
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from PIL import Image, ImageDraw, ImageFont
@@ -350,22 +350,43 @@ def _format_last_updated(value: Optional[Any]) -> str:
     return 'Cache: n/a'
 
 
-def _build_profile_lines(profiles: Optional[Any]) -> Tuple[str, ...]:
+def _build_profile_cards(profiles: Optional[Any]) -> Tuple[Dict[str, str], ...]:
     if not profiles:
-        return ('No profiles available yet.',)
+        return (
+            {
+                'label': 'No profiles yet',
+                'mode': 'Standard',
+                'members': '0 members',
+                'last_save': 'Last save unknown',
+            },
+        )
 
-    lines = []
+    cards: List[Dict[str, str]] = []
     for profile in profiles[:3]:
         if not isinstance(profile, dict):
             continue
         label = profile.get('cute_name') or profile.get('name') or 'Profile'
-        mode = profile.get('game_mode') or 'Standard'
-        members = profile.get('member_count') or 0
+        mode = (profile.get('game_mode') or 'Standard').replace('_', ' ').title()
+        members = profile.get('member_count')
+        if not isinstance(members, int):
+            members = 0
         last_save = _format_relative_timestamp(profile.get('last_save'))
-        pretty_mode = mode.replace('_', ' ').title()
-        lines.append(f'{label} • {pretty_mode} • {members} members • Last save {last_save}')
-    return tuple(lines) or ('No profiles available yet.',)
-
+        cards.append(
+            {
+                'label': label,
+                'mode': mode,
+                'members': f"{members} member{'s' if members != 1 else ''}",
+                'last_save': f'Last save {last_save}',
+            }
+        )
+    return tuple(cards) or (
+        {
+            'label': 'No profiles yet',
+            'mode': 'Standard',
+            'members': '0 members',
+            'last_save': 'Last save unknown',
+        },
+    )
 
 def _decode_preview_payload(encoded: Optional[str]) -> Optional[Dict[str, Any]]:
     if not encoded:
@@ -381,73 +402,204 @@ def _decode_preview_payload(encoded: Optional[str]) -> Optional[Dict[str, Any]]:
     return None
 
 
-def _draw_background(width: int, height: int) -> Image.Image:
-    base = Image.new('RGBA', (width, height), (5, 10, 22, 255))
-    top = Image.new('RGBA', (width, height), (15, 23, 42, 255))
-    blended = Image.blend(base, top, 0.6)
-
+def _draw_preview_background(width: int, height: int) -> Image.Image:
+    base = Image.new('RGBA', (width, height), (6, 10, 24, 255))
     overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
-    draw.ellipse((width * 0.35, -height * 0.4, width * 1.2, height * 0.8), fill=(59, 130, 246, 90))
-    draw.ellipse((-width * 0.2, height * 0.3, width * 0.8, height * 1.2), fill=(99, 102, 241, 70))
-    return Image.alpha_composite(blended, overlay)
+    draw.ellipse(
+        (-width * 0.4, -height * 0.25, width * 0.45, height * 0.7),
+        fill=(90, 62, 196, 185),
+    )
+    draw.ellipse(
+        (width * 0.25, -height * 0.35, width * 1.2, height * 0.9),
+        fill=(44, 120, 255, 150),
+    )
+    draw.rectangle((0, height * 0.58, width, height), fill=(3, 7, 18, 190))
+    return Image.alpha_composite(base, overlay)
 
 
 def _render_player_preview_image(payload: Dict[str, Any], fallback_name: str) -> Image.Image:
     width, height = 1200, 630
-    canvas = _draw_background(width, height)
+    canvas = _draw_preview_background(width, height)
     draw = ImageDraw.Draw(canvas)
 
-    heading_font = _load_font(42, 'regular')
-    name_font = _load_font(88, 'semibold')
-    body_font = _load_font(30, 'regular')
-    pill_font = _load_font(26, 'regular')
+    heading_font = _load_font(38, 'regular')
+    name_font = _load_font(96, 'semibold')
+    info_font = _load_font(30, 'regular')
+    pill_font = _load_font(28, 'regular')
+    card_title_font = _load_font(30, 'semibold')
+    card_body_font = _load_font(24, 'regular')
 
     player_name = (payload.get('name') or fallback_name).strip() or fallback_name
     profile_list = payload.get('profiles') or []
     profile_count = len(profile_list)
     cache_line = _format_last_updated(payload.get('last_updated'))
     uuid = payload.get('uuid')
-    lines = _build_profile_lines(profile_list)
+    uuid_line = f'UUID {uuid[:8]}…' if isinstance(uuid, str) and len(uuid) >= 8 else 'UUID unavailable'
+    cards = _build_profile_cards(profile_list)
 
-    draw.text((80, 70), 'AltSky · SkyBlock Preview', font=heading_font, fill=(148, 163, 184))
-    draw.text((80, 140), player_name, font=name_font, fill=(248, 250, 252))
+    draw.text((70, 80), 'AltSky · Player Preview', font=heading_font, fill=(186, 200, 224))
+    draw.text((70, 150), player_name, font=name_font, fill=(247, 249, 255))
 
     pill_text = f'{profile_count} profile{"s" if profile_count != 1 else ""}'
     bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
     pill_width = bbox[2] - bbox[0]
     pill_height = bbox[3] - bbox[1]
-    pill_left = 80
+    pill_left = 70
     pill_top = 250
-    padding_x = 28
-    padding_y = 14
     draw.rounded_rectangle(
-        (pill_left, pill_top, pill_left + pill_width + padding_x, pill_top + pill_height + padding_y),
-        radius=22,
-        fill=(30, 41, 59, 220),
+        (pill_left, pill_top, pill_left + pill_width + 36, pill_top + pill_height + 18),
+        radius=24,
+        fill=(32, 46, 86, 235),
+        outline=(120, 135, 255, 160),
     )
-    draw.text((pill_left + 14, pill_top + 8), pill_text, font=pill_font, fill=(226, 232, 240))
+    draw.text((pill_left + 18, pill_top + 8), pill_text, font=pill_font, fill=(224, 231, 255))
 
-    draw.text((80, 330), cache_line, font=body_font, fill=(203, 213, 225))
-    if uuid:
-        draw.text((80, 380), f'UUID: {uuid[:8]}…', font=body_font, fill=(203, 213, 225))
+    draw.text((70, 320), cache_line, font=info_font, fill=(205, 214, 233))
+    draw.text((70, 365), uuid_line, font=info_font, fill=(205, 214, 233))
 
-    box_top = 430
-    for line in lines:
+    panel_top = 410
+    panel_left = 60
+    panel_right = width - 60
+    panel_bottom = height - 70
+    draw.rounded_rectangle(
+        (panel_left, panel_top, panel_right, panel_bottom),
+        radius=40,
+        fill=(12, 16, 36, 235),
+        outline=(90, 104, 196, 120),
+    )
+
+    column_count = max(1, min(3, len(cards)))
+    gutter = 24
+    card_width = (panel_right - panel_left - gutter * (column_count - 1)) / column_count
+    card_height = panel_bottom - panel_top - 40
+
+    for idx, card in enumerate(cards[:column_count]):
+        x0 = panel_left + idx * (card_width + gutter) + 20
+        y0 = panel_top + 20
+        x1 = x0 + card_width - 40
+        y1 = y0 + card_height
         draw.rounded_rectangle(
-            (80, box_top - 20, width - 80, box_top + 58),
-            radius=24,
-            fill=(15, 23, 42, 230),
+            (x0, y0, x1, y1),
+            radius=28,
+            fill=(20, 26, 58, 255),
+            outline=(126, 140, 228, 90),
         )
-        draw.text((110, box_top), line, font=body_font, fill=(236, 239, 244))
-        box_top += 90
+        draw.text((x0 + 24, y0 + 24), card['label'], font=card_title_font, fill=(245, 248, 255))
+        draw.text((x0 + 24, y0 + 72), card['mode'], font=card_body_font, fill=(190, 200, 231))
+        draw.text((x0 + 24, y0 + 108), card['members'], font=card_body_font, fill=(190, 200, 231))
+        draw.text((x0 + 24, y0 + 144), card['last_save'], font=card_body_font, fill=(190, 200, 231))
 
     if payload.get('error'):
         error_message = payload.get('message') or payload.get('error')
-        draw.text((80, height - 70), f'⚠ {error_message}', font=body_font, fill=(248, 113, 113))
+        draw.text(
+            (70, height - 40),
+            f'⚠ {error_message}',
+            font=info_font,
+            fill=(248, 130, 130),
+        )
     else:
-        footer = f'altsky.app/u/{fallback_name}'
-        draw.text((80, height - 70), footer, font=body_font, fill=(148, 163, 184))
+        footer = f'altsky.info/u/{fallback_name}'
+        draw.text((70, height - 40), footer, font=info_font, fill=(168, 178, 209))
+
+    return canvas.convert('RGB')
+
+
+def _render_site_preview_image() -> Image.Image:
+    width, height = 1200, 630
+    canvas = _draw_preview_background(width, height)
+    draw = ImageDraw.Draw(canvas)
+
+    hero_font = _load_font(110, 'semibold')
+    sub_font = _load_font(38, 'regular')
+    chip_font = _load_font(32, 'regular')
+    card_title_font = _load_font(34, 'semibold')
+    card_body_font = _load_font(26, 'regular')
+
+    draw.text((80, 80), 'AltSky', font=hero_font, fill=(247, 249, 255))
+    draw.text(
+        (80, 200),
+        'Hypixel SkyBlock companion focused on calm visuals',
+        font=sub_font,
+        fill=(202, 210, 230),
+    )
+
+    chip_text = 'Fast player lookups · Wardrobe & accessories'
+    bbox = draw.textbbox((0, 0), chip_text, font=chip_font)
+    draw.rounded_rectangle(
+        (80, 250, 80 + bbox[2] + 40, 250 + bbox[3] + 24),
+        radius=28,
+        fill=(32, 46, 86, 235),
+        outline=(120, 135, 255, 160),
+    )
+    draw.text((100, 260), chip_text, font=chip_font, fill=(224, 231, 255))
+
+    draw.text(
+        (80, 340),
+        'Inspect player profiles, live armor, magical power, and more with a single link.',
+        font=card_body_font,
+        fill=(200, 208, 232),
+    )
+
+    panel_left = width * 0.52
+    panel_top = 120
+    panel_right = width - 80
+    panel_bottom = height - 80
+    draw.rounded_rectangle(
+        (panel_left, panel_top, panel_right, panel_bottom),
+        radius=36,
+        fill=(15, 20, 42, 235),
+        outline=(116, 130, 220, 120),
+    )
+
+    feature_cards = [
+        {
+            'title': 'Player preview cards',
+            'lines': [
+                'Share /u/<name> links to show live stats',
+                'Auto-updates with Hypixel cache',
+            ],
+        },
+        {
+            'title': 'Wardrobe insight',
+            'lines': [
+                'FurfSky textures rendered server-side',
+                'Highlights currently equipped armor',
+            ],
+        },
+        {
+            'title': 'Accessories & tuning',
+            'lines': [
+                'Counts magical power including Abicase',
+                'Readable tuning breakdown by power',
+            ],
+        },
+    ]
+
+    card_height = (panel_bottom - panel_top - 60) / len(feature_cards)
+    for idx, feature in enumerate(feature_cards):
+        top = panel_top + 20 + idx * (card_height + 20)
+        draw.rounded_rectangle(
+            (panel_left + 24, top, panel_right - 24, top + card_height),
+            radius=26,
+            fill=(23, 28, 62, 255),
+            outline=(126, 140, 228, 90),
+        )
+        draw.text((panel_left + 50, top + 20), feature['title'], font=card_title_font, fill=(247, 249, 255))
+        for line_idx, line in enumerate(feature['lines']):
+            draw.text(
+                (panel_left + 50, top + 70 + line_idx * 34),
+                f'• {line}',
+                font=card_body_font,
+                fill=(196, 205, 230),
+            )
+
+    draw.text(
+        (80, height - 70),
+        'altsky.info · Explore Hypixel SkyBlock calmly',
+        font=card_body_font,
+        fill=(176, 186, 214),
+    )
 
     return canvas.convert('RGB')
 
@@ -467,4 +619,15 @@ def player_preview_image(request: Request, name: str) -> HttpResponse:
     buffer.seek(0)
     response = HttpResponse(buffer.getvalue(), content_type='image/png')
     response['Cache-Control'] = 'public, max-age=600'
+    return response
+
+
+@api_view(['GET'])
+def site_preview_image(_: Request) -> HttpResponse:
+    image = _render_site_preview_image()
+    buffer = BytesIO()
+    image.save(buffer, format='PNG', optimize=True)
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type='image/png')
+    response['Cache-Control'] = 'public, max-age=1800'
     return response

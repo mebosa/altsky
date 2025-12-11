@@ -433,6 +433,14 @@
     return bankIndex * WARDROBE_SETS_PER_BANK + columnIndex + 1;
   }
 
+  function createEmptySet(): (WardrobeItem | null)[] {
+    return Array.from({ length: WARDROBE_SET_SIZE }, () => null);
+  }
+
+  function normalizeEquippedItems(items?: (WardrobeItem | null)[] | null) {
+    return Array.from({ length: WARDROBE_SET_SIZE }, (_, index) => items?.[index] ?? null);
+  }
+
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
   $: slotOffset = (() => {
@@ -488,12 +496,16 @@
     setGroups = [...setGroups, placeholder].sort((a, b) => a.setIndex - b.setIndex);
     setGroupMap = new Map(setGroups.map((group) => [group.setIndex, group]));
   }
+  $: liveEquippedItems = normalizeEquippedItems(summary?.wardrobe?.equipped_items ?? null);
+  $: hasLiveEquippedItems = liveEquippedItems.some((item) => !!item);
   $: equippedSetIndex = resolveEquippedSetIndex(equippedSetIndexRaw);
   $: {
     const group = equippedSetIndex !== null ? setGroupMap.get(equippedSetIndex) : undefined;
-    equippedGroupItems = group ? group.items : Array.from({ length: WARDROBE_SET_SIZE }, () => null);
+    const fallbackItems = group ? group.items : createEmptySet();
+    equippedGroupItems = hasLiveEquippedItems ? liveEquippedItems : fallbackItems;
     equippedItems = equippedGroupItems.filter((item): item is WardrobeItem => !!item);
   }
+  $: equippedDisplayAvailable = equippedGroupItems.some((item) => !!item);
   $: equippedSetLabel = deriveSetLabel(equippedItems);
   $: equippedStats = aggregateSetStats(equippedItems);
   $: equippedBonuses = gatherSetBonusLines(equippedItems);
@@ -514,7 +526,7 @@
       <p>No items found in wardrobe.</p>
     </div>
   {:else}
-    {#if equippedSetIndex !== null && equippedItems.length}
+    {#if equippedDisplayAvailable}
       <div
         class="equipped-summary"
         style={`--rarity-accent:${equippedAccent ?? DEFAULT_ACCENT}`}
@@ -523,12 +535,22 @@
           <div class="heading-copy">
             <span class="equipped-label">Currently Equipped</span>
             <h3>{equippedSetLabel || 'Custom Mix'}</h3>
+            {#if hasLiveEquippedItems}
+              <p class="equipped-note">Showing the armor currently worn in Hypixel.</p>
+            {/if}
           </div>
           <div class="equipped-meta">
             {#if equippedRarityLabel}
               <span class="rarity-chip">{equippedRarityLabel} Set</span>
             {/if}
-            {#if equippedSetIndex !== null}
+            {#if hasLiveEquippedItems}
+              <span class="equipped-slot-pill live">Live Armor</span>
+              {#if equippedSetIndex !== null}
+                <span class="equipped-slot-pill subtle">
+                  Wardrobe Slot {formatWardrobeSlot(equippedSetIndex)}
+                </span>
+              {/if}
+            {:else if equippedSetIndex !== null}
               <span class="equipped-slot-pill">Wardrobe Slot {formatWardrobeSlot(equippedSetIndex)}</span>
             {/if}
           </div>
@@ -545,7 +567,7 @@
                 {#if iconSrc}
                   <img
                     src={iconSrc}
-                    alt={`${item.name} icon`}
+                    alt={`${item?.name ?? 'Wardrobe item'} icon`}
                     loading="lazy"
                     width="60"
                     height="60"
@@ -613,7 +635,7 @@
                   {#if slotIcon}
                     <img
                       src={slotIcon}
-                      alt={`${item.name} icon`}
+                      alt={`${item?.name ?? 'Wardrobe item'} icon`}
                       loading="lazy"
                       width="42"
                       height="42"
@@ -794,6 +816,24 @@
     font-weight: 600;
     font-size: 0.85rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .equipped-slot-pill.live {
+    background: rgba(59, 130, 246, 0.18);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #bfdbfe;
+  }
+
+  .equipped-slot-pill.subtle {
+    background: rgba(15, 23, 42, 0.25);
+    border-color: rgba(226, 232, 240, 0.18);
+    color: rgba(226, 232, 240, 0.85);
+  }
+
+  .equipped-note {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    color: rgba(226, 232, 240, 0.78);
   }
 
   .equipped-body {

@@ -141,8 +141,10 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dic
     stats = simplify_stats(member)
     currency = summarize_currencies(member, profile)
 
-    wardrobe_inventory = member.get("inventory", {}).get("wardrobe_contents") or {}
-    wardrobe = parse_wardrobe(wardrobe_inventory)
+    inventory_data = member.get("inventory", {}) or {}
+    wardrobe_inventory = inventory_data.get("wardrobe_contents") or {}
+    armor_inventory = inventory_data.get("inv_armor")
+    wardrobe = parse_wardrobe(wardrobe_inventory, armor_inventory)
     equipped_slot = member.get("inventory", {}).get("wardrobe_equipped_slot")
 
     return {

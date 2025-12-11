@@ -46,6 +46,7 @@ export type ProfileSummaryResponse = {
     equipped_slot: number | null;
     items: (WardrobeItem | null)[];
     slots: number;
+    equipped_items?: (WardrobeItem | null)[];
   };
   accessories: AccessorySummary;
 };

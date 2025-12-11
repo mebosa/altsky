@@ -294,105 +294,137 @@ def _extract_skull_icon(tag: nbtlib.Compound) -> Optional[str]:
     return None
 
 
-def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Decode the wardrobe NBT payload into a list of slots with plain text metadata.
-    """
-    if not wardrobe_data:
-        return {"items": [], "slots": 0}
+def _parse_inventory_items(data: Optional[Dict[str, Any]]) -> List[Optional[Dict[str, Any]]]:
+    if not data:
+        return []
 
-    encoded = wardrobe_data.get("data")
-    payload = _decode_bytes(encoded)
+    encoded = data.get("data")
+    payload = _decode_bytes(encoded) if isinstance(encoded, str) else None
     if not payload:
-        return {"items": [], "slots": 0}
+        return []
 
-    file = nbtlib.File.parse(io.BytesIO(payload))
+    try:
+        file = nbtlib.File.parse(io.BytesIO(payload))
+    except Exception:
+        return []
+
     slots: List[Optional[Dict[str, Any]]] = []
-
     for index, compound in enumerate(file.get("i", [])):
-        if not compound or "id" not in compound:
-            slots.append(None)
+        slots.append(_parse_compound_item(compound, index))
+    return slots
+
+
+def _parse_compound_item(
+    compound: Optional[nbtlib.Compound], index: int
+) -> Optional[Dict[str, Any]]:
+    if not compound or "id" not in compound:
+        return None
+
+    item_id_raw = _tag_value(compound.get("id"))
+    item_id = str(item_id_raw) if item_id_raw is not None else ""
+
+    count_raw = _tag_value(compound.get("Count", 1))
+    try:
+        count = int(count_raw)
+    except (TypeError, ValueError):
+        count = 1
+
+    tag = compound.get("tag") or nbtlib.Compound()
+    display = tag.get("display") or nbtlib.Compound()
+    extra = tag.get("ExtraAttributes") or nbtlib.Compound()
+
+    name = _component_to_plain(_tag_value(display.get("Name")))
+    lore_entries = display.get("Lore") or []
+    lore = [_component_to_plain(_tag_value(line)) for line in lore_entries]
+    lore_colored = [_component_to_colored(_tag_value(line)) for line in lore_entries]
+
+    extra_id_raw = _tag_value(extra.get("id")) if extra else None
+    extra_id = str(extra_id_raw) if extra_id_raw else None
+    rarity = _detect_rarity(extra, lore)
+    leather_color = _extract_leather_color(display, extra)
+    if not leather_color:
+        resource = get_item_resource(extra_id or item_id)
+        color_meta = resource.get("color") if isinstance(resource, dict) else None
+        if isinstance(color_meta, str):
+            parts = [p.strip() for p in color_meta.split(",") if p.strip()]
+            if len(parts) == 3:
+                try:
+                    r, g, b = (int(part) for part in parts)
+                except ValueError:
+                    pass
+                else:
+                    r = max(0, min(r, 255))
+                    g = max(0, min(g, 255))
+                    b = max(0, min(b, 255))
+                    leather_color = f"#{r:02x}{g:02x}{b:02x}"
+
+    damage_raw = _tag_value(compound.get("Damage"))
+    try:
+        damage = int(damage_raw)
+    except (TypeError, ValueError):
+        damage = None
+
+    icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
+    fallback_icon = _extract_extra_texture(extra) or _extract_skull_icon(tag)
+    if fallback_icon:
+        for pack in TEXTURE_PACKS:
+            icon_variants.setdefault(pack, fallback_icon)
+
+    icon_url = next(
+        (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
+        None,
+    )
+
+    return {
+        "slot": index,
+        "id": extra_id or item_id,
+        "mc_id": item_id,
+        "name": name or item_id,
+        "count": count,
+        "rarity": rarity,
+        "lore": lore,
+        "lore_colored": lore_colored,
+        "icon_url": icon_url,
+        "icon_variants": {pack: url for pack, url in icon_variants.items() if url},
+        "leather_color": leather_color,
+    }
+
+
+def _normalize_equipped_items(
+    armor_items: List[Optional[Dict[str, Any]]],
+) -> List[Optional[Dict[str, Any]]]:
+    """
+    Hypixel stores inv_armor as [boots, leggings, chestplate, helmet].
+    Reorder into [helmet, chestplate, leggings, boots] for UI display.
+    """
+    if not armor_items:
+        return []
+
+    order_map = {3: 0, 2: 1, 1: 2, 0: 3}
+    normalized: List[Optional[Dict[str, Any]]] = [None, None, None, None]
+    for index, item in enumerate(armor_items):
+        target = order_map.get(index)
+        if target is None:
             continue
+        normalized[target] = item
+    return normalized
 
-        item_id_raw = _tag_value(compound.get("id"))
-        item_id = str(item_id_raw) if item_id_raw is not None else ""
 
-        count_raw = _tag_value(compound.get("Count", 1))
-        try:
-            count = int(count_raw)
-        except (TypeError, ValueError):
-            count = 1
-
-        tag = compound.get("tag") or nbtlib.Compound()
-        display = tag.get("display") or nbtlib.Compound()
-        extra = tag.get("ExtraAttributes") or nbtlib.Compound()
-
-        name = _component_to_plain(_tag_value(display.get("Name")))
-        lore_entries = display.get("Lore") or []
-        lore = [
-            _component_to_plain(_tag_value(line))
-            for line in lore_entries
-        ]
-        lore_colored = [
-            _component_to_colored(_tag_value(line))
-            for line in lore_entries
-        ]
-
-        extra_id_raw = _tag_value(extra.get("id")) if extra else None
-        extra_id = str(extra_id_raw) if extra_id_raw else None
-        rarity = _detect_rarity(extra, lore)
-        leather_color = _extract_leather_color(display, extra)
-        if not leather_color:
-            resource = get_item_resource(extra_id or item_id)
-            color_meta = resource.get("color") if isinstance(resource, dict) else None
-            if isinstance(color_meta, str):
-                parts = [p.strip() for p in color_meta.split(",") if p.strip()]
-                if len(parts) == 3:
-                    try:
-                        r, g, b = (int(part) for part in parts)
-                    except ValueError:
-                        pass
-                    else:
-                        r = max(0, min(r, 255))
-                        g = max(0, min(g, 255))
-                        b = max(0, min(b, 255))
-                        leather_color = f"#{r:02x}{g:02x}{b:02x}"
-        damage_raw = _tag_value(compound.get("Damage"))
-        try:
-            damage = int(damage_raw)
-        except (TypeError, ValueError):
-            damage = None
-
-        icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
-        fallback_icon = _extract_extra_texture(extra) or _extract_skull_icon(tag)
-        if fallback_icon:
-            for pack in TEXTURE_PACKS:
-                icon_variants.setdefault(pack, fallback_icon)
-
-        icon_url = next(
-            (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
-            None,
-        )
-
-        slots.append(
-            {
-                "slot": index,
-                "id": extra_id or item_id,
-                "mc_id": item_id,
-                "name": name or item_id,
-                "count": count,
-                "rarity": rarity,
-                "lore": lore,
-                "lore_colored": lore_colored,
-                "icon_url": icon_url,
-                "icon_variants": {
-                    pack: url for pack, url in icon_variants.items() if url
-                },
-                "leather_color": leather_color,
-            }
-        )
+def parse_wardrobe(
+    wardrobe_data: Dict[str, Any], armor_data: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Decode the wardrobe NBT payload into a list of slots with plain text metadata
+    and capture the actively equipped armor from inv_armor if available.
+    """
+    slots = _parse_inventory_items(wardrobe_data)
+    armor_items = _parse_inventory_items(armor_data) if armor_data else []
+    equipped_items = _normalize_equipped_items(armor_items) if armor_items else []
+    if equipped_items and not any(equipped_items):
+        equipped_items = []
 
     return {
         "items": slots,
         "slots": len(slots),
+        "equipped_items": equipped_items,
     }

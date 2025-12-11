@@ -3,6 +3,8 @@
   import { loadRecent, saveRecent } from '$lib/utils';
 
   const appVersion = import.meta.env?.VITE_APP_VERSION ?? 'v1';
+  const siteBase = import.meta.env?.VITE_SITE_BASE ?? 'https://altsky.info';
+  const sitePreviewImage = `${siteBase.replace(/\/$/, '')}/api/og/site.png`;
 
   let name = '';
   let recent: string[] = [];
@@ -88,7 +90,7 @@
   <meta name="description" content="Search Hypixel SkyBlock players and view their profiles with a calm, neumorphic UI." />
   <meta property="og:title" content="AltSky · Hypixel SkyBlock lookup" />
   <meta property="og:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
-  <meta property="og:image" content="https://altsky.info/og-default.svg" />
+  <meta property="og:image" content={sitePreviewImage} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:type" content="website" />
@@ -96,7 +98,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="AltSky · Hypixel SkyBlock lookup" />
   <meta name="twitter:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
-  <meta name="twitter:image" content="https://altsky.info/og-default.svg" />
+  <meta name="twitter:image" content={sitePreviewImage} />
 </svelte:head>
 
 <style>
@@ -229,8 +231,8 @@
     border-radius: 18px;
     background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
     padding: 22px;
-    box-shadow: var(--neu-elevated);
-    backdrop-filter: blur(12px);
+    box-shadow: var(--neu-elevated), inset 4px 4px 10px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(14px);
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -303,17 +305,17 @@
   </div>
 
   <div class="panel">
-    <div class="input-label">Minecraft 닉네임을 입력하세요.</div>
+    <div class="input-label">Enter a Minecraft username.</div>
     <div class="row">
       <input
-        placeholder="닉네임을 입력해주세요 (예: Technoblade)"
+        placeholder="Type a username"
         bind:value={name}
         on:input={() => (searchError = '')}
         on:keydown={onKey}
       />
       <button type="button" on:click={handleSearch}>Search</button>
     </div>
-    <p class="hint">Hypixel에서 사용하는 닉네임을 정확히 입력해야 조회됩니다.</p>
+    <p class="hint">Use the exact Hypixel username to find the player.</p>
     
     {#if searchError}
       <div class="error-message">

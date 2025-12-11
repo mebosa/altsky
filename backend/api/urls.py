@@ -7,6 +7,7 @@ urlpatterns = [
     path("profile/<str:uuid>", views.hypixel_profile),
     path("hypixel/profile/<str:uuid>", views.hypixel_profile),
     path("hypixel/profile/<str:uuid>/<str:profile_id>", views.hypixel_profile_summary),
+    path("og/site.png", views.site_preview_image),
     path("og/player/<str:name>.png", views.player_preview_image),
     re_path(r"^static/(?P<path>.*)$", views.serve_furfsky_texture),
 ]

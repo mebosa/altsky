@@ -108,7 +108,7 @@
     ? `Level ${summary.skyblock_level.level} | Avg Skill ${summary.skills.average_level} | Slayer XP ${formatNumber(summary.slayer.total_xp)} | Coins ${formatLargeNumber(summary.currencies.total_coins)}`
     : 'Inspect Hypixel SkyBlock stats with AltSky.';
 
-  $: shareImage = 'https://via.placeholder.com/1200x630.png?text=AltSky';
+  $: shareImage = `${SITE_BASE}/api/og/player/${encodeURIComponent(params.name)}.png?v=${summary?.last_updated ?? Date.now()}`;
 
   const canonicalUrl = `${SITE_BASE}/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(
     params.profileId
@@ -221,6 +221,7 @@
     justify-content: space-between;
     gap: 32px;
     transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    box-shadow: var(--neu-elevated), inset 2px 2px 6px rgba(0, 0, 0, 0.18);
   }
 
   .breadcrumb {
@@ -296,7 +297,7 @@
     background: var(--theme-control-bg);
     border: 1px solid var(--theme-control-border);
     color: var(--theme-text-secondary);
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+    box-shadow: var(--neu-soft);
   }
 
   .actions a:hover {
@@ -308,7 +309,7 @@
     border: none;
     background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
     color: #ffffff;
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.35);
+    box-shadow: var(--neu-elevated);
   }
 
   .actions button:hover {

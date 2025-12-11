@@ -323,65 +323,7 @@
     position: relative;
   }
 
-  :global(body[data-gradient-enabled="true"]) {
-    background:
-      radial-gradient(circle at var(--cursor-x) var(--cursor-y), var(--bg-radial-1), transparent 58%),
-      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), var(--bg-radial-2), transparent 64%),
-      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), var(--bg-radial-3), transparent 70%),
-      linear-gradient(145deg, #040915 0%, #050b19 28%, #040712 100%);
-  }
-
-  :global(body)::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.08), transparent 58%),
-      radial-gradient(circle at 82% 28%, rgba(255, 255, 255, 0.04), transparent 60%);
-    opacity: 0.45;
-    mix-blend-mode: screen;
-    transition: opacity 0.6s ease;
-  }
-
-  :global(body[data-theme-mode='light']) {
-    background: var(--theme-bg);
-  }
-
-  :global(body[data-theme-mode='light'][data-gradient-enabled="true"]) {
-    background:
-      radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(96, 165, 250, 0.28), transparent 58%),
-      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), rgba(148, 163, 184, 0.22), transparent 64%),
-      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), rgba(167, 139, 250, 0.2), transparent 70%),
-      linear-gradient(135deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.92)),
-      #f8fafc;
-  }
-
-  :global(body[data-theme-mode='light'])::before {
-    opacity: 0.3;
-    mix-blend-mode: normal;
-  }
-
-  :global(body[data-theme='catgirl']) {
-    background: var(--theme-bg);
-  }
-
-  :global(body[data-theme='catgirl'][data-gradient-enabled="true"]) {
-    background:
-      radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(244, 114, 182, 0.42), transparent 58%),
-      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), rgba(168, 85, 247, 0.34), transparent 64%),
-      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), rgba(59, 130, 246, 0.18), transparent 72%),
-      linear-gradient(135deg, rgba(24, 4, 31, 0.94), rgba(37, 8, 52, 0.92)),
-      var(--theme-bg);
-  }
-
-  :global(body[data-theme='catgirl'])::before {
-    background:
-      radial-gradient(circle at 16% 20%, rgba(255, 176, 222, 0.6), transparent 52%),
-      radial-gradient(circle at 84% 26%, rgba(178, 102, 255, 0.38), transparent 60%);
-    opacity: 0.85;
-    mix-blend-mode: lighten;
-  }
+  /* Gradients removed: solid background only */
 
 
 
@@ -395,7 +337,7 @@
 
   .container {
     max-width: 960px;
-    margin: 36px auto;
-    padding: 0 16px;
+    margin: 40px auto;
+    padding: 0 18px;
   }
 </style>

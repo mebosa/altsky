@@ -534,13 +534,17 @@ def resolve_item_icon_for_pack(
         entry_durability = entry.get("durability")
         entry_internal = entry.get("internalname")
 
-    if icon_url:
+    # FurSky: try override on internal name first
+    if normalized_pack == "furfsky" and icon_url:
         return icon_url
 
     if normalized_pack == "furfsky":
         override = _furfsky_icon_override(item_id, entry_internal if entry_internal else None)
         if override:
             return override
+
+    if icon_url:
+        return icon_url
 
     icon_url = _material_texture(entry_material, entry_durability, pack=normalized_pack)
     if icon_url:

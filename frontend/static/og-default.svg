@@ -1,24 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="AltSky preview">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0b1020"/>
-      <stop offset="50%" stop-color="#111b38"/>
-      <stop offset="100%" stop-color="#0c1f2c"/>
+      <stop offset="0%" stop-color="#0a0f1f"/>
+      <stop offset="50%" stop-color="#0c162c"/>
+      <stop offset="100%" stop-color="#0f1f33"/>
     </linearGradient>
-    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#5f71f5" stop-opacity="0.75"/>
-      <stop offset="50%" stop-color="#7ae0d1" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#5f71f5" stop-opacity="0.75"/>
+    <linearGradient id="pill" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6b7dff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#4fd1c5" stop-opacity="0.9"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <circle cx="260" cy="200" r="260" fill="#5f71f5" opacity="0.12"/>
-  <circle cx="940" cy="420" r="280" fill="#1fb6a6" opacity="0.1"/>
-  <rect x="80" y="140" width="1040" height="350" rx="32" fill="#0d1429" opacity="0.72"/>
-  <rect x="80" y="140" width="1040" height="350" rx="32" fill="none" stroke="url(#glow)" stroke-width="3" opacity="0.8"/>
-  <text x="140" y="270" fill="#e8eefc" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="88" font-weight="700">AltSky</text>
-  <text x="140" y="340" fill="#9fb4d9" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="42" font-weight="500">Hypixel SkyBlock player lookup</text>
-  <text x="140" y="410" fill="#cde4ff" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="32" font-weight="500">Search players · Inspect profiles · Wardrobe, stats, accessories</text>
-  <rect x="140" y="440" width="260" height="54" rx="14" fill="url(#glow)" opacity="0.9"/>
-  <text x="170" y="477" fill="#0b1020" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="28" font-weight="700">altsky.info</text>
+  <circle cx="260" cy="170" r="220" fill="#6b7dff" opacity="0.12"/>
+  <circle cx="950" cy="430" r="260" fill="#4fd1c5" opacity="0.1"/>
+  <rect x="80" y="120" width="1040" height="390" rx="34" fill="#0b1224" opacity="0.82" stroke="#1b2740" stroke-width="2"/>
+  <text x="140" y="230" fill="#e8ecf7" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="92" font-weight="700">AltSky</text>
+  <text x="140" y="290" fill="#a9b7d7" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="34" font-weight="500">Hypixel SkyBlock player lookup</text>
+  <rect x="140" y="330" width="280" height="56" rx="16" fill="url(#pill)" opacity="0.95"/>
+  <text x="172" y="366" fill="#0a0f1f" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="26" font-weight="700">Search players</text>
+  <rect x="140" y="400" width="360" height="60" rx="18" fill="#0f172a" opacity="0.8" stroke="#243049" stroke-width="2"/>
+  <text x="170" y="438" fill="#d6e3ff" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="28" font-weight="600">Inspect stats & profiles</text>
+  <rect x="540" y="330" width="520" height="130" rx="18" fill="#101b33" opacity="0.85" stroke="#22314d" stroke-width="2"/>
+  <text x="570" y="375" fill="#8fb7ff" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="26" font-weight="600">Smart previews</text>
+  <text x="570" y="410" fill="#cdd7e8" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="22" font-weight="500">Share /u/username to show live stats card.</text>
 </svg>
