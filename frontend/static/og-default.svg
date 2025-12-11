@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="AltSky preview">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="50%" stop-color="#111b38"/>
+      <stop offset="100%" stop-color="#0c1f2c"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5f71f5" stop-opacity="0.75"/>
+      <stop offset="50%" stop-color="#7ae0d1" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#5f71f5" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="260" cy="200" r="260" fill="#5f71f5" opacity="0.12"/>
+  <circle cx="940" cy="420" r="280" fill="#1fb6a6" opacity="0.1"/>
+  <rect x="80" y="140" width="1040" height="350" rx="32" fill="#0d1429" opacity="0.72"/>
+  <rect x="80" y="140" width="1040" height="350" rx="32" fill="none" stroke="url(#glow)" stroke-width="3" opacity="0.8"/>
+  <text x="140" y="270" fill="#e8eefc" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="88" font-weight="700">AltSky</text>
+  <text x="140" y="340" fill="#9fb4d9" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="42" font-weight="500">Hypixel SkyBlock player lookup</text>
+  <text x="140" y="410" fill="#cde4ff" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="32" font-weight="500">Search players · Inspect profiles · Wardrobe, stats, accessories</text>
+  <rect x="140" y="440" width="260" height="54" rx="14" fill="url(#glow)" opacity="0.9"/>
+  <text x="170" y="477" fill="#0b1020" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="28" font-weight="700">altsky.info</text>
+</svg>

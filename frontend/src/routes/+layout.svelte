@@ -302,6 +302,9 @@
     --bg-radial-1: rgba(95, 113, 245, 0.18);
     --bg-radial-2: rgba(31, 182, 166, 0.12);
     --bg-radial-3: rgba(148, 163, 184, 0.12);
+    --neu-elevated: 12px 12px 28px rgba(0, 0, 0, 0.35), -12px -12px 28px rgba(80, 110, 160, 0.14);
+    --neu-soft: 8px 8px 18px rgba(0, 0, 0, 0.32), -8px -8px 18px rgba(80, 110, 160, 0.12);
+    --neu-inset: inset 6px 6px 14px rgba(0, 0, 0, 0.28), inset -6px -6px 14px rgba(80, 110, 160, 0.16);
   }
 
   :global(html),
@@ -318,6 +321,7 @@
       linear-gradient(145deg, #040915 0%, #050b19 28%, #040712 100%);
     color: var(--theme-text-primary);
     font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-variant-numeric: lining-nums tabular-nums;
     transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.6s ease, background-position 0.8s ease-in-out;
     position: relative;
   }

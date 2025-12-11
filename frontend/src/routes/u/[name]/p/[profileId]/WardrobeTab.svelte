@@ -452,16 +452,19 @@
 
   function resolveEquippedSetIndex(raw: number | null): number | null {
     if (raw === null) return null;
+    // Try direct match (API may already provide set index)
     if (setGroupMap.has(raw)) return raw;
+
+    // Convert raw wardrobe slot (absolute slot) into set index (column within bank)
+    const grouping = groupingFromSlot(raw, slotOffset);
+    if (setGroupMap.has(grouping.setIndex)) return grouping.setIndex;
+
+    // Fallback: try normalized by slotOffset
     const candidate = raw - slotOffset;
     if (setGroupMap.has(candidate)) return candidate;
-    const normalized = Math.max(0, candidate);
-    const bankIndex = Math.floor(normalized / WARDROBE_SETS_PER_BANK);
-    const columnIndex = normalized % WARDROBE_SETS_PER_BANK;
-    const setIndex = bankIndex * WARDROBE_SETS_PER_BANK + columnIndex;
-    if (setGroupMap.has(setIndex)) return setIndex;
-    const firstSet = setGroups[0]?.setIndex;
-    return typeof firstSet === 'number' ? firstSet : null;
+
+    // If no match, it likely means the equipped armor isn't in the wardrobe.
+    return null;
   }
 
   $: equippedSetIndexRaw = summary?.wardrobe?.equipped_slot ?? null;
@@ -491,7 +494,7 @@
       <p>No items found in wardrobe.</p>
     </div>
   {:else}
-    {#if equippedItems.length}
+    {#if equippedSetIndex !== null && equippedItems.length}
       <div
         class="equipped-summary"
         style={`--rarity-accent:${equippedAccent ?? DEFAULT_ACCENT}`}
@@ -555,6 +558,10 @@
             {/if}
           </div>
         </div>
+      </div>
+    {:else}
+      <div class="card empty-card">
+        <p>Equipped armor is not present in the wardrobe slots.</p>
       </div>
     {/if}
 

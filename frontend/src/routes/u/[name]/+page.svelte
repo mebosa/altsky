@@ -247,17 +247,17 @@
     padding: 11px 16px;
     border-radius: 12px;
     border: 1px solid color-mix(in srgb, var(--theme-accent) 70%, #ffffff 10%);
-    background: var(--theme-accent);
+    background: color-mix(in srgb, var(--theme-accent) 95%, #0b1020 5%);
     color: #0b1020;
     cursor: pointer;
     font-weight: 600;
     transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
-    box-shadow: 0 12px 26px rgba(5, 7, 14, 0.3);
+    box-shadow: var(--neu-elevated);
   }
 
   button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgba(5, 7, 14, 0.35);
+    box-shadow: var(--neu-elevated);
   }
 
   button:disabled {
@@ -269,7 +269,7 @@
     background: transparent;
     color: var(--theme-text-secondary);
     border: 1px solid color-mix(in srgb, var(--theme-control-border) 90%, transparent);
-    box-shadow: none;
+    box-shadow: var(--neu-soft);
   }
 
   .ghost:hover {
@@ -282,7 +282,7 @@
     border-radius: 14px;
     padding: 18px 18px;
     background: color-mix(in srgb, var(--theme-surface) 90%, transparent);
-    box-shadow: 0 10px 26px rgba(5, 7, 14, 0.32);
+    box-shadow: var(--neu-elevated);
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;

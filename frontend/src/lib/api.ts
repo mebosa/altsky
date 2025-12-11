@@ -163,10 +163,17 @@ function resolveBrowserBase() {
 }
 
 export function resolveApiBase(context?: { url?: URL }) {
+  const origin = context?.url?.origin ?? (typeof window !== 'undefined' ? window.location.origin : undefined);
+
+  // 서버 사이드 렌더링 시에는 내부 네트워크용 베이스를 우선 사용
+  if (import.meta.env.SSR && import.meta.env.VITE_INTERNAL_API_BASE !== undefined) {
+    const internalRaw = normalizeConfiguredBase(String(import.meta.env.VITE_INTERNAL_API_BASE));
+    return materializeRawBase(internalRaw, origin);
+  }
+
   const envRaw = import.meta.env.VITE_API_BASE;
   if (envRaw !== undefined) {
     const rawBase = normalizeConfiguredBase(String(envRaw));
-    const origin = context?.url?.origin ?? (typeof window !== 'undefined' ? window.location.origin : undefined);
     let resolved = materializeRawBase(rawBase, origin);
     if (typeof window !== 'undefined' && origin) {
       resolved = adaptBaseForBrowser(resolved, window.location.origin);

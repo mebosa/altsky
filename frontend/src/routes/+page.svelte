@@ -81,6 +81,22 @@
   $: recent = loadRecent();
 </script>
 
+<svelte:head>
+  <title>AltSky · Hypixel SkyBlock lookup</title>
+  <meta name="description" content="Search Hypixel SkyBlock players and view their profiles with a calm, neumorphic UI." />
+  <meta property="og:title" content="AltSky · Hypixel SkyBlock lookup" />
+  <meta property="og:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
+  <meta property="og:image" content="https://altsky.info/og-default.svg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://altsky.info/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AltSky · Hypixel SkyBlock lookup" />
+  <meta name="twitter:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
+  <meta name="twitter:image" content="https://altsky.info/og-default.svg" />
+</svelte:head>
+
 <style>
   .wrap {
     max-width: 720px;
@@ -119,10 +135,10 @@
     font-size: 17px;
     border: 1px solid color-mix(in srgb, var(--theme-form-border) 90%, transparent);
     border-radius: 12px;
-    background: color-mix(in srgb, var(--theme-form-bg) 90%, #040915 10%);
+    background: color-mix(in srgb, var(--theme-form-bg) 92%, #040915 8%);
     color: var(--theme-text-primary);
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: none;
+    box-shadow: var(--neu-inset);
   }
 
   input::placeholder {
@@ -139,12 +155,12 @@
     padding: 13px 18px;
     border-radius: 12px;
     border: 1px solid color-mix(in srgb, var(--theme-accent) 70%, #ffffff 10%);
-    background: var(--theme-accent);
+    background: color-mix(in srgb, var(--theme-accent) 95%, #0b1020 5%);
     color: #0b1020;
     cursor: pointer;
     font-weight: 600;
     letter-spacing: 0.01em;
-    box-shadow: 0 12px 26px rgba(5, 7, 14, 0.3);
+    box-shadow: var(--neu-elevated);
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   }
 
@@ -168,12 +184,12 @@
   .chip {
     padding: 8px 12px;
     border-radius: 14px;
-    background: color-mix(in srgb, var(--theme-chip-bg) 80%, transparent);
+    background: color-mix(in srgb, var(--theme-chip-bg) 95%, transparent);
     border: 1px solid color-mix(in srgb, var(--theme-chip-border) 90%, transparent);
     cursor: pointer;
     transition: background 0.25s ease, border 0.25s ease, transform 0.2s ease;
     color: var(--theme-chip-text);
-    box-shadow: none;
+    box-shadow: var(--neu-soft);
   }
 
   .chip:hover,
@@ -203,18 +219,19 @@
     color: rgb(248, 180, 180);
     border-radius: 10px;
     font-size: 0.94rem;
+    box-shadow: var(--neu-inset);
   }
 
   .panel {
-    border: 1px solid color-mix(in srgb, var(--theme-surface-border) 90%, transparent);
-    border-radius: 16px;
-    background: color-mix(in srgb, var(--theme-surface) 92%, transparent);
-    padding: 20px;
-    box-shadow: 0 10px 26px rgba(4, 7, 14, 0.32);
-    backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--theme-surface-border) 80%, transparent);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
+    padding: 22px;
+    box-shadow: var(--neu-elevated);
+    backdrop-filter: blur(12px);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 
   .badge {

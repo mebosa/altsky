@@ -20,5 +20,10 @@ export default defineConfig({
 		fs: {
 			strict: false
 		}
+	},
+	preview: {
+		host: true,
+		port: 4173,
+		allowedHosts: ['localhost', '127.0.0.1', 'altsky.info', 'www.altsky.info', '.trycloudflare.com']
 	}
 });
