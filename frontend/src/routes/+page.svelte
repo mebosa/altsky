@@ -2,6 +2,8 @@
   import { goto } from '$app/navigation';
   import { loadRecent, saveRecent } from '$lib/utils';
 
+  const appVersion = import.meta.env?.VITE_APP_VERSION ?? 'v1';
+
   let name = '';
   let recent: string[] = [];
   let searchError = '';
@@ -248,20 +250,31 @@
     letter-spacing: 0.01em;
   }
 
-  .badge::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--theme-accent);
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--theme-accent) 24%, transparent);
-  }
+.badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--theme-accent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--theme-accent) 24%, transparent);
+}
 
-  .recent {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+.input-label {
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+
+.hint {
+  margin: 6px 0 0;
+  color: var(--theme-text-soft);
+  font-size: 0.9rem;
+}
+
+.recent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
   @media (max-width: 640px) {
     .row {
@@ -286,19 +299,21 @@
       <h1>AltSky</h1>
       <p class="muted">Enter a Minecraft username to view Hypixel SkyBlock stats.</p>
     </div>
-    <span class="badge">Faster lookups, calmer UI</span>
+    <span class="badge">Version {appVersion}</span>
   </div>
 
   <div class="panel">
+    <div class="input-label">Minecraft 닉네임을 입력하세요.</div>
     <div class="row">
       <input
-        placeholder="e.g. Technoblade"
+        placeholder="닉네임을 입력해주세요 (예: Technoblade)"
         bind:value={name}
         on:input={() => (searchError = '')}
         on:keydown={onKey}
       />
       <button type="button" on:click={handleSearch}>Search</button>
     </div>
+    <p class="hint">Hypixel에서 사용하는 닉네임을 정확히 입력해야 조회됩니다.</p>
     
     {#if searchError}
       <div class="error-message">

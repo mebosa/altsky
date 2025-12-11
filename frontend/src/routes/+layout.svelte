@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import ThemePicker from '$lib/components/ThemePicker.svelte';
-  import { theme } from '$lib/theme';
+  import { theme, gradient } from '$lib/theme';
   import { iconPack } from '$lib/iconPack';
 
   let teardownBackground: (() => void) | undefined;
@@ -9,6 +9,7 @@
 
   onMount(() => {
     theme.init();
+    gradient.init();
     iconPack.init();
     teardownIconPack = iconPack.subscribe((pack) => {
       if (typeof document !== 'undefined') {
@@ -314,16 +315,20 @@
 
   :global(body) {
     margin: 0;
-    background:
-      radial-gradient(circle at var(--cursor-x) var(--cursor-y), var(--bg-radial-1), transparent 58%),
-      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), var(--bg-radial-2), transparent 64%),
-      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), var(--bg-radial-3), transparent 70%),
-      linear-gradient(145deg, #040915 0%, #050b19 28%, #040712 100%);
+    background: var(--theme-bg);
     color: var(--theme-text-primary);
     font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-variant-numeric: lining-nums tabular-nums;
     transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.6s ease, background-position 0.8s ease-in-out;
     position: relative;
+  }
+
+  :global(body[data-gradient-enabled="true"]) {
+    background:
+      radial-gradient(circle at var(--cursor-x) var(--cursor-y), var(--bg-radial-1), transparent 58%),
+      radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), var(--bg-radial-2), transparent 64%),
+      radial-gradient(circle at var(--cursor-tertiary-x) var(--cursor-tertiary-y), var(--bg-radial-3), transparent 70%),
+      linear-gradient(145deg, #040915 0%, #050b19 28%, #040712 100%);
   }
 
   :global(body)::before {
@@ -340,6 +345,10 @@
   }
 
   :global(body[data-theme-mode='light']) {
+    background: var(--theme-bg);
+  }
+
+  :global(body[data-theme-mode='light'][data-gradient-enabled="true"]) {
     background:
       radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(96, 165, 250, 0.28), transparent 58%),
       radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), rgba(148, 163, 184, 0.22), transparent 64%),
@@ -354,6 +363,10 @@
   }
 
   :global(body[data-theme='catgirl']) {
+    background: var(--theme-bg);
+  }
+
+  :global(body[data-theme='catgirl'][data-gradient-enabled="true"]) {
     background:
       radial-gradient(circle at var(--cursor-x) var(--cursor-y), rgba(244, 114, 182, 0.42), transparent 58%),
       radial-gradient(circle at var(--cursor-secondary-x) var(--cursor-secondary-y), rgba(168, 85, 247, 0.34), transparent 64%),

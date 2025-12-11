@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import CaretDownIcon from '$lib/icons/CaretDownIcon.svelte';
-  import { theme, themeOptions } from '$lib/theme';
+  import { theme, themeOptions, gradient } from '$lib/theme';
   import { iconPack, iconPackOptions } from '$lib/iconPack';
 
   let expanded = false;
@@ -202,6 +202,15 @@
     aria-expanded={expanded}>
     <CaretDownIcon />
   </button>
+  <button
+    type="button"
+    class="gradient-toggle"
+    on:click|stopPropagation={() => gradient.toggle()}
+    aria-label={$gradient ? 'Disable gradient background' : 'Enable gradient background'}
+    aria-pressed={$gradient}
+    title={$gradient ? 'Gradient ON' : 'Gradient OFF'}>
+    <span class="gradient-icon" aria-hidden="true"></span>
+  </button>
   <div class="panel" aria-hidden={!expanded}>
     <span class="title">Palette</span>
     <div class="swatches">
@@ -325,6 +334,47 @@
 
   .palette-shell.expanded .toggle :global(svg) {
     transform: rotate(180deg);
+  }
+
+  .gradient-toggle {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(9, 13, 24, 0.8);
+    color: var(--theme-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+    overflow: hidden;
+    transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .gradient-toggle:hover,
+  .gradient-toggle:focus-visible {
+    background: rgba(95, 113, 245, 0.2);
+    border-color: rgba(95, 113, 245, 0.6);
+    box-shadow: 0 6px 16px rgba(5, 7, 14, 0.4);
+    outline: none;
+  }
+
+  .gradient-toggle[aria-pressed="true"] {
+    background: rgba(95, 113, 245, 0.25);
+    border-color: rgba(95, 113, 245, 0.5);
+    box-shadow: 0 6px 16px rgba(95, 113, 245, 0.25);
+  }
+
+  .gradient-icon {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, rgba(95, 113, 245, 0.8), rgba(31, 182, 166, 0.8));
+    border-radius: 3px;
+    display: block;
   }
 
   .panel {

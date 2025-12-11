@@ -36,6 +36,7 @@ export type ThemeDefinition = {
 };
 
 const STORAGE_KEY = 'altsky_theme';
+const GRADIENT_STORAGE_KEY = 'altsky_gradient';
 
 function rgba(hex: string, alpha: number) {
   const normalized = hex.replace('#', '');
@@ -324,3 +325,52 @@ function createThemeStore(): ThemeStore {
 }
 
 export const theme = createThemeStore();
+
+type GradientStore = {
+  subscribe: ReturnType<typeof writable<boolean>>['subscribe'];
+  init: () => void;
+  toggle: () => void;
+};
+
+function createGradientStore(): GradientStore {
+  const { subscribe, set } = writable<boolean>(true);
+  let initialized = false;
+
+  function init() {
+    if (initialized || typeof window === 'undefined') return;
+    initialized = true;
+
+    const stored = window.localStorage.getItem(GRADIENT_STORAGE_KEY);
+    const shouldEnableGradient = stored === null ? true : stored === 'true';
+    set(shouldEnableGradient);
+    applyGradientState(shouldEnableGradient);
+  }
+
+  function applyGradientState(enabled: boolean) {
+    if (typeof document === 'undefined') return;
+    if (enabled) {
+      document.body.dataset.gradientEnabled = 'true';
+    } else {
+      delete document.body.dataset.gradientEnabled;
+    }
+  }
+
+  function toggle() {
+    let current = true;
+    const unsubscribe = subscribe((value) => {
+      current = value;
+    });
+    unsubscribe();
+
+    const next = !current;
+    set(next);
+    applyGradientState(next);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(GRADIENT_STORAGE_KEY, String(next));
+    }
+  }
+
+  return { subscribe, init, toggle };
+}
+
+export const gradient = createGradientStore();
