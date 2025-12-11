@@ -1,9 +1,14 @@
+import base64
+import json
 import logging
 import mimetypes
 import os
+from datetime import datetime, timezone
+from io import BytesIO
 from typing import Any, Dict, Optional, Tuple
 
 import requests
+from PIL import Image, ImageDraw, ImageFont
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.views.static import serve
@@ -71,72 +76,76 @@ def _fetch_hypixel_profiles(uuid: str) -> Tuple[Optional[Dict[str, Any]], Option
     return body, None
 
 
-@api_view(['GET'])
-def health(_: Request) -> Response:
-    return Response({'ok': True})
+def _get_player_lookup_result(name: str) -> Tuple[Dict[str, Any], int]:
+    trimmed = (name or '').strip()
+    if not trimmed or len(trimmed) > 16:
+        return ({'error': 'invalid_username', 'message': 'Invalid username length'}, 400)
 
+    identifier = trimmed.replace('_', '')
+    if not identifier.isalnum():
+        return ({'error': 'invalid_username', 'message': 'Username contains invalid characters'}, 400)
 
-@api_view(['GET'])
-def player_lookup(_: Request, name: str) -> Response:
-    if not name or len(name) > 16:  # Minecraft username max length is 16
-        return Response({'error': 'invalid_username', 'message': 'Invalid username length'}, status=400)
-    
-    if not name.replace('_', '').isalnum():  # Only alphanumeric and underscore allowed
-        return Response({'error': 'invalid_username', 'message': 'Username contains invalid characters'}, status=400)
-    
-    # Case-insensitive search
-    name = name.lower()
-    cache_key = f'uuid:{name}'
+    normalized = trimmed.lower()
+    cache_key = f'uuid:{normalized}'
+
     try:
         uuid = cache.get(cache_key)
-        
+
         if not uuid:
             try:
                 result = requests.get(
-                    f'https://api.mojang.com/users/profiles/minecraft/{name}',
+                    f'https://api.mojang.com/users/profiles/minecraft/{normalized}',
                     timeout=5,
                 )
-                
+
                 if result.status_code in (204, 404):
-                    return Response(
-                        {'error': 'player_not_found', 'message': f'Player {name} not found'}, 
-                        status=404
+                    return (
+                        {
+                            'error': 'player_not_found',
+                            'message': f'Player {normalized} not found',
+                        },
+                        404,
                     )
-                
+
                 result.raise_for_status()
                 data = result.json()
-                
+
                 if not data or 'id' not in data:
-                    return Response(
-                        {'error': 'invalid_response', 'message': 'Invalid response from Mojang API'},
-                        status=502
+                    return (
+                        {
+                            'error': 'invalid_response',
+                            'message': 'Invalid response from Mojang API',
+                        },
+                        502,
                     )
-                
+
                 uuid = data['id']
                 cache.set(cache_key, uuid, 3600)
-                
+
             except requests.Timeout:
-                return Response(
+                return (
                     {'error': 'timeout', 'message': 'Mojang API request timed out'},
-                    status=504
+                    504,
                 )
-            except requests.RequestException as e:
-                return Response(
-                    {'error': 'request_failed', 'message': str(e)},
-                    status=502
+            except requests.RequestException as exc:
+                return (
+                    {'error': 'request_failed', 'message': str(exc)},
+                    502,
                 )
-            except (ValueError, KeyError) as e:
-                return Response(
-                    {'error': 'parse_error', 'message': f'Failed to parse Mojang API response: {str(e)}'},
-                    status=502
+            except (ValueError, KeyError) as exc:
+                return (
+                    {
+                        'error': 'parse_error',
+                        'message': f'Failed to parse Mojang API response: {str(exc)}',
+                    },
+                    502,
                 )
-        
-        # Fetch Hypixel profiles after successful UUID lookup
+
         body, error = _fetch_hypixel_profiles(uuid)
         if error:
             detail = error.get('detail')
-            payload = {
-                'name': name,
+            payload: Dict[str, Any] = {
+                'name': normalized,
                 'uuid': uuid,
                 'profiles': None,
                 'error': error.get('error'),
@@ -147,37 +156,52 @@ def player_lookup(_: Request, name: str) -> Response:
             if 'status' in error:
                 payload['error_status'] = error['status']
 
-            if error.get('fatal'):
-                return Response(payload, status=error.get('status') or 502)
-
-            return Response(payload)
+            status_code = error.get('status') or (502 if error.get('fatal') else 200)
+            return payload, status_code
 
         raw_profiles = body.get('profiles') or []
         profiles = []
         for raw in raw_profiles:
             members = raw.get('members') or {}
-            profiles.append({
-                'profile_id': raw.get('profile_id') or raw.get('uuid'),
-                'cute_name': raw.get('cute_name'),
-                'name': raw.get('name'),
-                'game_mode': raw.get('game_mode'),
-                'last_save': raw.get('last_save'),
-                'last_save_iso': raw.get('last_save_iso') or raw.get('lastSaveIso'),
-                'member_count': len(members),
-            })
+            profiles.append(
+                {
+                    'profile_id': raw.get('profile_id') or raw.get('uuid'),
+                    'cute_name': raw.get('cute_name'),
+                    'name': raw.get('name'),
+                    'game_mode': raw.get('game_mode'),
+                    'last_save': raw.get('last_save'),
+                    'last_save_iso': raw.get('last_save_iso') or raw.get('lastSaveIso'),
+                    'member_count': len(members),
+                }
+            )
 
-        return Response({
-            'name': name,
+        payload = {
+            'name': normalized,
             'uuid': uuid,
             'profiles': profiles,
-            'last_updated': body.get('last_updated') or body.get('lastUpdated')
-        })
-        
-    except Exception as e:
-        return Response({
-            'error': 'server_error',
-            'message': f'An unexpected error occurred: {str(e)}'
-        }, status=500)
+            'last_updated': body.get('last_updated') or body.get('lastUpdated'),
+        }
+        return payload, 200
+
+    except Exception as exc:  # pragma: no cover - defensive
+        return (
+            {
+                'error': 'server_error',
+                'message': f'An unexpected error occurred: {str(exc)}',
+            },
+            500,
+        )
+
+
+@api_view(['GET'])
+def health(_: Request) -> Response:
+    return Response({'ok': True})
+
+
+@api_view(['GET'])
+def player_lookup(_: Request, name: str) -> Response:
+    payload, status_code = _get_player_lookup_result(name)
+    return Response(payload, status=status_code)
 
 
 @api_view(['GET'])
@@ -227,3 +251,220 @@ def hypixel_profile_summary(_: Request, uuid: str, profile_id: str) -> Response:
             **summary,
         }
     )
+
+
+FONT_CANDIDATES = {
+    'regular': [
+        '/usr/share/fonts/truetype/inter/Inter-Regular.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        '/Library/Fonts/Arial.ttf',
+        'C:/Windows/Fonts/arial.ttf',
+        'arial.ttf',
+    ],
+    'semibold': [
+        '/usr/share/fonts/truetype/inter/Inter-SemiBold.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+        '/Library/Fonts/Arial Bold.ttf',
+        'C:/Windows/Fonts/arialbd.ttf',
+        'arialbd.ttf',
+    ],
+}
+
+
+def _load_font(size: int, weight: str = 'regular') -> ImageFont.FreeTypeFont:
+    for path in FONT_CANDIDATES.get(weight, []):
+        if path and os.path.exists(path):
+            try:
+                return ImageFont.truetype(path, size=size)
+            except OSError:
+                continue
+    return ImageFont.load_default()
+
+
+def _format_relative_timestamp(value: Optional[Any]) -> str:
+    if value is None:
+        return 'Unknown'
+    try:
+        raw = float(value)
+    except (TypeError, ValueError):
+        try:
+            raw = float(str(value))
+        except ValueError:
+            return 'Unknown'
+
+    if raw > 1_000_000_000_000:
+        raw = raw / 1000.0
+    elif raw > 1_000_000_000:
+        raw = raw / 1000.0
+
+    try:
+        timestamp = datetime.fromtimestamp(raw, tz=timezone.utc)
+    except (ValueError, OSError):
+        return 'Unknown'
+
+    delta = datetime.now(timezone.utc) - timestamp
+    seconds = int(delta.total_seconds())
+    if seconds < 60:
+        return 'just now'
+    minutes = seconds // 60
+    if minutes < 60:
+        return f'{minutes}m ago'
+    hours = minutes // 60
+    if hours < 24:
+        return f'{hours}h ago'
+    days = hours // 24
+    if days < 30:
+        return f'{days}d ago'
+    months = days // 30
+    if months < 12:
+        return f'{months}mo ago'
+    years = months // 12
+    return f'{years}y ago'
+
+
+def _format_last_updated(value: Optional[Any]) -> str:
+    if not value:
+        return 'Cache: n/a'
+
+    if isinstance(value, (int, float)):
+        return f'Cache: {_format_relative_timestamp(value)}'
+
+    if isinstance(value, str):
+        sample = value.strip()
+        if sample.isdigit():
+            return f'Cache: {_format_relative_timestamp(int(sample))}'
+        try:
+            dt = datetime.fromisoformat(sample.replace('Z', '+00:00'))
+            delta = datetime.now(timezone.utc) - dt
+            minutes = int(delta.total_seconds() // 60)
+            if minutes < 60:
+                return f'Cache: {minutes}m ago'
+            hours = minutes // 60
+            if hours < 24:
+                return f'Cache: {hours}h ago'
+            days = hours // 24
+            return f'Cache: {days}d ago'
+        except ValueError:
+            return f'Cache: {sample}'
+
+    return 'Cache: n/a'
+
+
+def _build_profile_lines(profiles: Optional[Any]) -> Tuple[str, ...]:
+    if not profiles:
+        return ('No profiles available yet.',)
+
+    lines = []
+    for profile in profiles[:3]:
+        if not isinstance(profile, dict):
+            continue
+        label = profile.get('cute_name') or profile.get('name') or 'Profile'
+        mode = profile.get('game_mode') or 'Standard'
+        members = profile.get('member_count') or 0
+        last_save = _format_relative_timestamp(profile.get('last_save'))
+        pretty_mode = mode.replace('_', ' ').title()
+        lines.append(f'{label} • {pretty_mode} • {members} members • Last save {last_save}')
+    return tuple(lines) or ('No profiles available yet.',)
+
+
+def _decode_preview_payload(encoded: Optional[str]) -> Optional[Dict[str, Any]]:
+    if not encoded:
+        return None
+    try:
+        padding = '=' * (-len(encoded) % 4)
+        raw = base64.urlsafe_b64decode(f'{encoded}{padding}'.encode('utf-8'))
+        data = json.loads(raw.decode('utf-8'))
+        if isinstance(data, dict):
+            return data
+    except (ValueError, json.JSONDecodeError) as exc:
+        LOGGER.debug('Failed to decode preview payload: %s', exc)
+    return None
+
+
+def _draw_background(width: int, height: int) -> Image.Image:
+    base = Image.new('RGBA', (width, height), (5, 10, 22, 255))
+    top = Image.new('RGBA', (width, height), (15, 23, 42, 255))
+    blended = Image.blend(base, top, 0.6)
+
+    overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    draw.ellipse((width * 0.35, -height * 0.4, width * 1.2, height * 0.8), fill=(59, 130, 246, 90))
+    draw.ellipse((-width * 0.2, height * 0.3, width * 0.8, height * 1.2), fill=(99, 102, 241, 70))
+    return Image.alpha_composite(blended, overlay)
+
+
+def _render_player_preview_image(payload: Dict[str, Any], fallback_name: str) -> Image.Image:
+    width, height = 1200, 630
+    canvas = _draw_background(width, height)
+    draw = ImageDraw.Draw(canvas)
+
+    heading_font = _load_font(42, 'regular')
+    name_font = _load_font(88, 'semibold')
+    body_font = _load_font(30, 'regular')
+    pill_font = _load_font(26, 'regular')
+
+    player_name = (payload.get('name') or fallback_name).strip() or fallback_name
+    profile_list = payload.get('profiles') or []
+    profile_count = len(profile_list)
+    cache_line = _format_last_updated(payload.get('last_updated'))
+    uuid = payload.get('uuid')
+    lines = _build_profile_lines(profile_list)
+
+    draw.text((80, 70), 'AltSky · SkyBlock Preview', font=heading_font, fill=(148, 163, 184))
+    draw.text((80, 140), player_name, font=name_font, fill=(248, 250, 252))
+
+    pill_text = f'{profile_count} profile{"s" if profile_count != 1 else ""}'
+    bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
+    pill_width = bbox[2] - bbox[0]
+    pill_height = bbox[3] - bbox[1]
+    pill_left = 80
+    pill_top = 250
+    padding_x = 28
+    padding_y = 14
+    draw.rounded_rectangle(
+        (pill_left, pill_top, pill_left + pill_width + padding_x, pill_top + pill_height + padding_y),
+        radius=22,
+        fill=(30, 41, 59, 220),
+    )
+    draw.text((pill_left + 14, pill_top + 8), pill_text, font=pill_font, fill=(226, 232, 240))
+
+    draw.text((80, 330), cache_line, font=body_font, fill=(203, 213, 225))
+    if uuid:
+        draw.text((80, 380), f'UUID: {uuid[:8]}…', font=body_font, fill=(203, 213, 225))
+
+    box_top = 430
+    for line in lines:
+        draw.rounded_rectangle(
+            (80, box_top - 20, width - 80, box_top + 58),
+            radius=24,
+            fill=(15, 23, 42, 230),
+        )
+        draw.text((110, box_top), line, font=body_font, fill=(236, 239, 244))
+        box_top += 90
+
+    if payload.get('error'):
+        error_message = payload.get('message') or payload.get('error')
+        draw.text((80, height - 70), f'⚠ {error_message}', font=body_font, fill=(248, 113, 113))
+    else:
+        footer = f'altsky.app/u/{fallback_name}'
+        draw.text((80, height - 70), footer, font=body_font, fill=(148, 163, 184))
+
+    return canvas.convert('RGB')
+
+
+@api_view(['GET'])
+def player_preview_image(request: Request, name: str) -> HttpResponse:
+    provided = _decode_preview_payload(request.GET.get('payload')) if request else None
+    if provided:
+        provided.setdefault('name', name)
+        payload = provided  # type: ignore[assignment]
+    else:
+        payload, _ = _get_player_lookup_result(name)
+
+    image = _render_player_preview_image(payload, name)
+    buffer = BytesIO()
+    image.save(buffer, format='PNG', optimize=True)
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type='image/png')
+    response['Cache-Control'] = 'public, max-age=600'
+    return response

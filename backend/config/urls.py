@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
+from django.views.generic import TemplateView
 import os
 
 from api import views as api_views
@@ -24,6 +25,8 @@ from api import views as api_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
+    # 루트 URL에서 프론트엔드 제공
+    path("", TemplateView.as_view(template_name="index.html")),
 ]
 
 if settings.DEBUG:

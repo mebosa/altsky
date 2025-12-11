@@ -5,7 +5,7 @@ import os
 import zipfile
 from functools import lru_cache
 from io import BytesIO
-from typing import Dict, Iterable, Iterator, Optional
+from typing import Dict, Iterable, Iterator, Literal, Optional, Set, Tuple
 
 import requests
 
@@ -24,10 +24,18 @@ FURFSKY_TEXTURES_PATH = os.path.join(os.path.dirname(__file__), "furfsky_texture
 FURFSKY_TEXTURES_ZIP = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "furfsky.zip")
 )
+NEU_ICON_BASE_URL = (
+    "https://raw.githubusercontent.com/Moulberry/NotEnoughUpdates-REPO/master/items"
+)
+NEU_TEXTURE_CACHE = os.path.join(os.path.dirname(__file__), "texture_cache")
 
 SESSION = requests.Session()
 _ASSET_CACHE: Dict[str, Optional[str]] = {}
 _TALL_TEXTURE_NOTICE_EMITTED = False
+_NEU_ICON_MISSING: Set[str] = set()
+
+TexturePack = Literal["furfsky", "vanilla"]
+TEXTURE_PACKS: Tuple[TexturePack, ...] = ("furfsky", "vanilla")
 
 LEGACY_DYE_COLORS = [
     "white",
@@ -153,11 +161,14 @@ def load_furfsky_texture(filename: str) -> Optional[bytes]:
         return None
 
     try:
-        local_path = os.path.join(FURFSKY_TEXTURES_PATH, filename)
-        if os.path.exists(local_path):
-            with open(local_path, "rb") as handle:
-                payload = handle.read()
-            return _normalize_texture_payload(payload)
+        for root in (FURFSKY_TEXTURES_PATH, NEU_TEXTURE_CACHE):
+            if not root:
+                continue
+            local_path = os.path.join(root, filename)
+            if os.path.exists(local_path):
+                with open(local_path, "rb") as handle:
+                    payload = handle.read()
+                return _normalize_texture_payload(payload)
 
         mapping = _furfsky_zip_index()
         relative = mapping.get(filename)
@@ -255,7 +266,44 @@ def _furfsky_icon_override(*values: Optional[str]) -> Optional[str]:
         for candidate in _furfsky_icon_candidates(value):
             if furfsky_texture_exists(candidate):
                 return f"/api/static/{candidate}"
+        neu_texture = _ensure_neu_texture(value)
+        if neu_texture:
+            return f"/api/static/{neu_texture}"
     return None
+
+
+def _ensure_neu_texture(identifier: Optional[str]) -> Optional[str]:
+    normalized = _normalize_identifier(identifier)
+    if not normalized:
+        return None
+
+    neu_key = normalized.upper()
+    if neu_key in _NEU_ICON_MISSING:
+        return None
+
+    filename = f"neu_{neu_key}.png"
+    os.makedirs(NEU_TEXTURE_CACHE, exist_ok=True)
+    local_path = os.path.join(NEU_TEXTURE_CACHE, filename)
+    if os.path.exists(local_path):
+        return filename
+
+    url = f"{NEU_ICON_BASE_URL}/{neu_key}.png"
+    try:
+        response = SESSION.get(url, timeout=6)
+    except requests.RequestException:
+        return None
+
+    if response.status_code != 200 or not response.content:
+        _NEU_ICON_MISSING.add(neu_key)
+        return None
+
+    try:
+        with open(local_path, "wb") as handle:
+            handle.write(response.content)
+    except OSError:
+        return None
+
+    return filename
 
 
 @lru_cache(maxsize=1)
@@ -417,7 +465,11 @@ def _local_asset_path(candidate: str) -> Optional[str]:
     return None
 
 
-def _material_texture(name: Optional[str], durability: Optional[int] = None) -> Optional[str]:
+def _material_texture(
+    name: Optional[str],
+    durability: Optional[int] = None,
+    pack: TexturePack = "furfsky",
+) -> Optional[str]:
     if not name:
         return None
     normalized = name
@@ -435,10 +487,13 @@ def _material_texture(name: Optional[str], durability: Optional[int] = None) -> 
 
     normalized = MATERIAL_ALIASES.get(str(normalized).lower(), str(normalized))
 
+    normalized_pack = "vanilla" if str(pack).lower() == "vanilla" else "furfsky"
+
     for candidate in _build_material_candidates(str(normalized), durability):
-        local_path = _local_asset_path(candidate)
-        if local_path:
-            return local_path
+        if normalized_pack == "furfsky":
+            local_path = _local_asset_path(candidate)
+            if local_path:
+                return local_path
 
         url = _cached_asset_path(candidate)
         if url:
@@ -446,39 +501,77 @@ def _material_texture(name: Optional[str], durability: Optional[int] = None) -> 
     return None
 
 
-def resolve_item_icon(
+def _normalize_pack(pack: str) -> TexturePack:
+    return "vanilla" if str(pack).lower() == "vanilla" else "furfsky"
+
+
+def resolve_item_icon_for_pack(
     item_id: Optional[str],
     mc_id: Optional[str],
     damage: Optional[int] = None,
+    pack: TexturePack = "furfsky",
 ) -> Optional[str]:
     """
-    Return an HTTPS URL pointing to an icon representing the SkyBlock item.
+    Resolve an icon URL for the requested texture pack.
     Preference order:
         1. Hypixel custom skin texture
-        2. FurSky pack overrides for the SkyBlock item identifier
+        2. Pack-specific overrides (FurSky only)
         3. Vanilla material texture, using Hypixel material hints/durability
         4. Vanilla material texture derived from the raw mc_id/damage combo
     """
+    normalized_pack = _normalize_pack(pack)
     resource_map = _load_item_resource_map()
     icon_url: Optional[str] = None
 
     entry = resource_map.get(item_id) if item_id else None
     entry_durability: Optional[int] = None
+    entry_material = None
+    entry_internal = None
 
     if entry:
         icon_url = _decode_skin_url(entry.get("skin"))  # type: ignore[arg-type]
         entry_material = entry.get("material")
         entry_durability = entry.get("durability")
-        if not icon_url:
-            icon_url = _furfsky_icon_override(item_id, entry.get("internalname"))
-        if not icon_url:
-            icon_url = _material_texture(entry_material, entry_durability)
+        entry_internal = entry.get("internalname")
 
-    if not icon_url and mc_id:
-        effective_durability = damage if damage is not None else entry_durability
+    if icon_url:
+        return icon_url
+
+    if normalized_pack == "furfsky":
+        override = _furfsky_icon_override(item_id, entry_internal if entry_internal else None)
+        if override:
+            return override
+
+    icon_url = _material_texture(entry_material, entry_durability, pack=normalized_pack)
+    if icon_url:
+        return icon_url
+
+    if not mc_id:
+        return None
+
+    effective_durability = damage if damage is not None else entry_durability
+    if normalized_pack == "furfsky":
         override = _furfsky_icon_override(mc_id)
         if override:
             return override
-        icon_url = _material_texture(mc_id, effective_durability)
 
-    return icon_url
+    return _material_texture(mc_id, effective_durability, pack=normalized_pack)
+
+
+def resolve_item_icon_variants(
+    item_id: Optional[str],
+    mc_id: Optional[str],
+    damage: Optional[int] = None,
+) -> Dict[TexturePack, Optional[str]]:
+    variants: Dict[TexturePack, Optional[str]] = {}
+    for pack in TEXTURE_PACKS:
+        variants[pack] = resolve_item_icon_for_pack(item_id, mc_id, damage, pack=pack)
+    return variants
+
+
+def resolve_item_icon(
+    item_id: Optional[str],
+    mc_id: Optional[str],
+    damage: Optional[int] = None,
+) -> Optional[str]:
+    return resolve_item_icon_for_pack(item_id, mc_id, damage, pack="furfsky")

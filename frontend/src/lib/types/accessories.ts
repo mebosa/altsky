@@ -1,3 +1,5 @@
+import type { TexturePack } from '$lib/stores/texturePack';
+
 export type AccessoryItem = {
   slot: number;
   id: string;
@@ -6,7 +8,9 @@ export type AccessoryItem = {
   count: number;
   rarity?: string | null;
   lore: string[];
+  lore_colored?: string[];
   icon_url?: string | null;
+  icon_variants?: Partial<Record<TexturePack, string>>;
   leather_color?: string | null;
   modifier?: string | null;
   enrichment?: string | null;

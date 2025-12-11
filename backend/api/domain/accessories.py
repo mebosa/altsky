@@ -5,9 +5,14 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import nbtlib
 
-from .item_textures import get_item_resource, resolve_item_icon
+from .item_textures import (
+    TEXTURE_PACKS,
+    get_item_resource,
+    resolve_item_icon_variants,
+)
 from .wardrobe import (
     _component_to_plain,
+    _component_to_colored,
     _decode_bytes,
     _detect_rarity,
     _extract_extra_texture,
@@ -210,9 +215,14 @@ def _parse_accessory_items(
         extra = tag.get("ExtraAttributes") or nbtlib.Compound()
 
         name = _component_to_plain(_tag_value(display.get("Name")))
+        lore_entries = (display.get("Lore") or [])
         lore = [
             _component_to_plain(_tag_value(line))
-            for line in (display.get("Lore") or [])
+            for line in lore_entries
+        ]
+        lore_colored = [
+            _component_to_colored(_tag_value(line))
+            for line in lore_entries
         ]
 
         extra_id_raw = _tag_value(extra.get("id")) if extra else None
@@ -243,9 +253,16 @@ def _parse_accessory_items(
         except (TypeError, ValueError):
             damage = None
 
-        icon_url = resolve_item_icon(extra_id or item_id, item_id or None, damage)
-        if not icon_url:
-            icon_url = _extract_extra_texture(extra) or _extract_skull_icon(tag)
+        icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
+        fallback_icon = _extract_extra_texture(extra) or _extract_skull_icon(tag)
+        if fallback_icon:
+            for pack in TEXTURE_PACKS:
+                icon_variants.setdefault(pack, fallback_icon)
+
+        icon_url = next(
+            (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
+            None,
+        )
 
         modifier = _titleize_identifier(_tag_value(extra.get("modifier")))
         enrichment = _titleize_identifier(_tag_value(extra.get("talisman_enrichment")))
@@ -259,7 +276,11 @@ def _parse_accessory_items(
             "count": count,
             "rarity": display_rarity,
             "lore": lore,
+            "lore_colored": lore_colored,
             "icon_url": icon_url,
+            "icon_variants": {
+                pack: url for pack, url in icon_variants.items() if url
+            },
             "leather_color": leather_color,
             "modifier": modifier,
             "enrichment": enrichment,

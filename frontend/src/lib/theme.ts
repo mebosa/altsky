@@ -66,7 +66,7 @@ const darkBase = {
   chipBackground: 'rgba(15, 23, 42, 0.65)',
   chipBorder: 'rgba(148, 163, 184, 0.25)',
   chipText: '#e2e8f0',
-  cardShadow: '0 16px 40px rgba(15, 23, 42, 0.45)',
+  cardShadow: '0 12px 30px rgba(8, 13, 26, 0.32)',
   controlBg: 'rgba(15, 23, 42, 0.75)',
   controlHover: 'rgba(30, 41, 59, 0.85)',
   controlBorder: 'rgba(148, 163, 184, 0.35)',
@@ -89,7 +89,7 @@ const lightBase = {
   chipBackground: '#f1f5f9',
   chipBorder: 'rgba(15, 23, 42, 0.08)',
   chipText: '#0f172a',
-  cardShadow: '0 18px 40px rgba(15, 23, 42, 0.06)',
+  cardShadow: '0 12px 26px rgba(15, 23, 42, 0.08)',
   controlBg: 'rgba(241, 245, 249, 0.95)',
   controlHover: '#e2e8f0',
   controlBorder: 'rgba(15, 23, 42, 0.12)',
@@ -177,7 +177,7 @@ export const themeOptions: ThemeDefinition[] = [
   },
   {
     id: 'catgirl',
-    label: 'Catgirl Neon',
+    label: 'Neon Bloom',
     primary: '#f472b6',
     secondary: '#a855f7',
     headerGradient: 'linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(168, 85, 247, 0.25))',
@@ -308,8 +308,7 @@ function createThemeStore(): ThemeStore {
       }
     }
 
-    const randomTheme = themeOptions[Math.floor(Math.random() * themeOptions.length)];
-    apply(randomTheme, false);
+    apply(themeOptions[0], false);
   }
 
   function select(id: string) {

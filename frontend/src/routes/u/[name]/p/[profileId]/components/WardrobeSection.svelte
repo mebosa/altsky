@@ -2,6 +2,8 @@
 <script lang="ts">
   import type { WardrobeItem } from '$lib/types/wardrobe';
   import type { ProfileSummaryResponse } from '$lib/types/profile';
+  import { texturePackStore } from '$lib/stores/texturePack';
+  import type { TexturePack } from '$lib/stores/texturePack';
   import {
     buildStyleString,
     ensureTintedIcon,
@@ -40,12 +42,38 @@
   }
 
   const pendingTintKeys = new Set<string>();
+  const TEXTURE_PACK_ORDER: TexturePack[] = ['furfsky', 'vanilla'];
 
-  function resolveIconUrl(item: WardrobeItem | null, _version: number): string | null {
+  type IconSource = TexturePack | 'legacy';
+
+  function pickIconVariant(
+    item: WardrobeItem | null,
+    pack?: TexturePack
+  ): { url: string; source: IconSource } | null {
     if (!item) return null;
-    const iconUrl = item.icon_url ?? null;
-    if (!iconUrl || isFallbackIcon(iconUrl)) {
-      return null;
+    const variants = item.icon_variants ?? {};
+    if (pack && variants[pack]) {
+      return { url: variants[pack]!, source: pack };
+    }
+    for (const fallback of TEXTURE_PACK_ORDER) {
+      const candidate = variants[fallback];
+      if (candidate) {
+        return { url: candidate, source: fallback };
+      }
+    }
+    if (item.icon_url) {
+      return { url: item.icon_url, source: 'legacy' };
+    }
+    return null;
+  }
+
+  function resolveIconUrl(item: WardrobeItem | null, _version: number, pack?: TexturePack): string | null {
+    if (!item) return null;
+    const picked = pickIconVariant(item, pack);
+    if (!picked) return null;
+    const { url: iconUrl, source } = picked;
+    if (source !== 'vanilla' || !iconUrl || isFallbackIcon(iconUrl)) {
+      return iconUrl;
     }
 
     const leatherColor = formatLeatherColor(item.leather_color);
@@ -107,7 +135,7 @@
           <div class="wardrobe-column">
             {#each column as item}
               {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
-              {@const iconSrc = resolveIconUrl(item, iconVersion)}
+              {@const iconSrc = resolveIconUrl(item, iconVersion, $texturePackStore)}
               {@const hasIcon = !!iconSrc}
               {@const styleValue = buildStyleString([
                 rarityColor ? `--rarity-color:${rarityColor}` : null

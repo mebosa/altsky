@@ -131,8 +131,39 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+type RGB = { r: number; g: number; b: number };
+
+function parseColor(color: string): RGB | null {
+  const trimmed = color.trim();
+  if (/^#?[0-9a-f]{6}$/i.test(trimmed)) {
+    const hex = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+    return {
+      r: parseInt(hex.slice(0, 2), 16),
+      g: parseInt(hex.slice(2, 4), 16),
+      b: parseInt(hex.slice(4, 6), 16)
+    };
+  }
+
+  const rgbMatch = trimmed.match(
+    /^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i
+  );
+  if (rgbMatch) {
+    const [, r, g, b] = rgbMatch.map((value) => Number(value));
+    if ([r, g, b].every((channel) => channel >= 0 && channel <= 255)) {
+      return { r, g, b };
+    }
+  }
+
+  return null;
+}
+
 async function tintIcon(iconUrl: string, color: string): Promise<string> {
   if (!hasDOM()) {
+    return iconUrl;
+  }
+
+  const tint = parseColor(color);
+  if (!tint) {
     return iconUrl;
   }
 
@@ -157,20 +188,15 @@ async function tintIcon(iconUrl: string, color: string): Promise<string> {
     const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      data[i] = data[i + 1] = data[i + 2] = luminance;
+      if (data[i + 3] === 0) continue;
+      data[i] = Math.min(255, Math.round((data[i] * tint.r) / 255));
+      data[i + 1] = Math.min(255, Math.round((data[i + 1] * tint.g) / 255));
+      data[i + 2] = Math.min(255, Math.round((data[i + 2] * tint.b) / 255));
     }
     ctx.putImageData(imageData, 0, 0);
   } catch (_err) {
     return iconUrl;
   }
-
-  ctx.globalCompositeOperation = 'source-in';
-  ctx.fillStyle = color;
-  ctx.fillRect(0, 0, width, height);
 
   return canvas.toDataURL('image/png');
 }
@@ -207,4 +233,96 @@ export function ensureTintedIcon(iconUrl: string, color: string): Promise<string
 function formatStat(label: string, value: number) {
   // Add stat formatting logic here
   return `${value}`;
+}
+
+export type LegacySegment = {
+  text: string;
+  color?: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+  obfuscated?: boolean;
+};
+
+const LEGACY_COLORS: Record<string, string> = {
+  '0': '#000000',
+  '1': '#0000AA',
+  '2': '#00AA00',
+  '3': '#00AAAA',
+  '4': '#AA0000',
+  '5': '#AA00AA',
+  '6': '#FFAA00',
+  '7': '#AAAAAA',
+  '8': '#555555',
+  '9': '#5555FF',
+  a: '#55FF55',
+  b: '#55FFFF',
+  c: '#FF5555',
+  d: '#FF55FF',
+  e: '#FFFF55',
+  f: '#FFFFFF'
+};
+
+const DEFAULT_SEGMENT_STYLE: LegacySegment = {
+  color: '#f5f5f5',
+  bold: false,
+  italic: false,
+  underline: false,
+  strikethrough: false,
+  obfuscated: false
+};
+
+export function parseLegacyText(line: string): LegacySegment[] {
+  const segments: LegacySegment[] = [];
+  let buffer = '';
+  let style: LegacySegment = { ...DEFAULT_SEGMENT_STYLE };
+
+  const pushSegment = () => {
+    if (!buffer) return;
+    segments.push({ ...style, text: buffer });
+    buffer = '';
+  };
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    if (char === '§' && i + 1 < line.length) {
+      const code = line[i + 1].toLowerCase();
+      i += 1;
+      pushSegment();
+
+      if (code === 'r') {
+        style = { ...DEFAULT_SEGMENT_STYLE };
+        continue;
+      }
+      if (LEGACY_COLORS[code]) {
+        style = { ...DEFAULT_SEGMENT_STYLE, color: LEGACY_COLORS[code] };
+        continue;
+      }
+      switch (code) {
+        case 'k':
+          style = { ...style, obfuscated: true };
+          break;
+        case 'l':
+          style = { ...style, bold: true };
+          break;
+        case 'm':
+          style = { ...style, strikethrough: true };
+          break;
+        case 'n':
+          style = { ...style, underline: true };
+          break;
+        case 'o':
+          style = { ...style, italic: true };
+          break;
+        default:
+          break;
+      }
+      continue;
+    }
+    buffer += char;
+  }
+
+  pushSegment();
+  return segments.filter((segment) => segment.text.length > 0);
 }

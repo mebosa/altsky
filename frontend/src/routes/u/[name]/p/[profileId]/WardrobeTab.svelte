@@ -1,6 +1,15 @@
 <script lang="ts">
   import { formatNumber } from '$lib/utils';
-  import { rarityToBackground } from '$lib/utils/wardrobe';
+  import {
+    ensureTintedIcon,
+    peekTintedIcon,
+    rarityToBackground,
+    isFallbackIcon,
+    parseLegacyText,
+    type LegacySegment
+  } from '$lib/utils/wardrobe';
+  import { texturePackStore } from '$lib/stores/texturePack';
+  import type { TexturePack } from '$lib/stores/texturePack';
   import type {
     AggregatedStat,
     ProfileSummaryResponse,
@@ -36,6 +45,34 @@
   const ICON_RETRY_LIMIT = 3;
   const ICON_RETRY_BASE_DELAY = 400;
   const ICON_RETRY_BACKOFF = 1.5;
+  const TEXTURE_PACK_ORDER: TexturePack[] = ['furfsky', 'vanilla'];
+  const pendingTintKeys = new Set<string>();
+  let tintedIconVersion = 0;
+
+  function legacySegmentStyle(segment: LegacySegment) {
+    const styles: string[] = [];
+    if (segment.color) {
+      styles.push(`color:${segment.color}`);
+    }
+    const decorations: string[] = [];
+    if (segment.underline) decorations.push('underline');
+    if (segment.strikethrough) decorations.push('line-through');
+    if (decorations.length) {
+      styles.push(`text-decoration:${decorations.join(' ')}`);
+    }
+    return styles.length ? styles.join(';') : undefined;
+  }
+
+  function legacySegmentClasses(segment: LegacySegment) {
+    return [
+      'mc-span',
+      segment.bold ? 'mc-bold' : '',
+      segment.italic ? 'mc-italic' : '',
+      segment.obfuscated ? 'mc-obfuscated' : ''
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
 
   type WardrobeSetGroup = {
     setIndex: number;
@@ -312,6 +349,69 @@
     }, delay);
   }
 
+  type IconSource = TexturePack | 'legacy';
+
+  function pickIconVariant(
+    item: WardrobeItem | null,
+    pack?: TexturePack
+  ): { url: string; source: IconSource } | null {
+    if (!item) return null;
+    const variants = item.icon_variants ?? {};
+    if (pack && variants[pack]) {
+      return { url: variants[pack]!, source: pack };
+    }
+    for (const fallback of TEXTURE_PACK_ORDER) {
+      const candidate = variants[fallback];
+      if (candidate) {
+        return { url: candidate, source: fallback };
+      }
+    }
+    if (item.icon_url) {
+      return { url: item.icon_url, source: 'legacy' };
+    }
+    return null;
+  }
+
+  function resolveDisplayIcon(
+    item: WardrobeItem | null,
+    _version: number,
+    pack?: TexturePack
+  ): string | null {
+    if (!item) return null;
+    const picked = pickIconVariant(item, pack);
+    if (!picked) {
+      return null;
+    }
+
+    const { url: baseIcon, source } = picked;
+    if (source !== 'vanilla') {
+      return baseIcon;
+    }
+
+    const leatherColor = formatLeatherColor(item.leather_color);
+    if (!leatherColor || isFallbackIcon(baseIcon)) {
+      return baseIcon;
+    }
+
+    const key = `${baseIcon}|${leatherColor}`;
+    const cached = peekTintedIcon(baseIcon, leatherColor);
+    if (cached) {
+      return cached;
+    }
+
+    if (!pendingTintKeys.has(key)) {
+      pendingTintKeys.add(key);
+      ensureTintedIcon(baseIcon, leatherColor)
+        .catch(() => baseIcon)
+        .then(() => {
+          pendingTintKeys.delete(key);
+          tintedIconVersion += 1;
+        });
+    }
+
+    return baseIcon;
+  }
+
   let wardrobeItems: (WardrobeItem | null)[] = [];
   let wardrobeHasItems = false;
   let setGroups: WardrobeSetGroup[] = [];
@@ -414,19 +514,20 @@
           <div class="equipped-icons">
             {#each equippedGroupItems as item, index (index)}
               {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
+              {@const iconSrc = resolveDisplayIcon(item ?? null, tintedIconVersion, $texturePackStore)}
               <div
-                class={`equipped-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                class={`equipped-icon ${iconSrc ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
                 style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
-                {#if item?.icon_url}
+                {#if iconSrc}
                   <img
-                    src={item.icon_url}
+                    src={iconSrc}
                     alt={`${item.name} icon`}
                     loading="lazy"
                     width="60"
                     height="60"
                     on:load={handleIconLoad}
-                    on:error={(event) => handleIconError(event, item?.icon_url)}
+                    on:error={(event) => handleIconError(event, iconSrc)}
                   />
                 {/if}
                 <span class="equipped-piece">{pieceLabelFromIndex(index)}</span>
@@ -476,20 +577,21 @@
           <div class="set-slots">
             {#each column.items as item, index (index)}
               {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
+              {@const slotIcon = resolveDisplayIcon(item ?? null, tintedIconVersion, $texturePackStore)}
               <button class="slot-shell" data-piece={pieceLabelFromIndex(index)} type="button">
                 <div
-                  class={`slot-icon ${item?.icon_url ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
+                  class={`slot-icon ${slotIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
                   style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
                 >
-                  {#if item?.icon_url}
+                  {#if slotIcon}
                     <img
-                      src={item.icon_url}
+                      src={slotIcon}
                       alt={`${item.name} icon`}
                       loading="lazy"
                       width="42"
                       height="42"
                       on:load={handleIconLoad}
-                      on:error={(event) => handleIconError(event, item?.icon_url)}
+                      on:error={(event) => handleIconError(event, slotIcon)}
                     />
                   {:else if item}
                     <span class="slot-initial">{item.name.slice(0, 1).toUpperCase()}</span>
@@ -520,7 +622,27 @@
                     {#if item.rarity}
                       <div class="tooltip-rarity">{item.rarity}</div>
                     {/if}
-                    {#if item.lore.length}
+                    {#if item.lore_colored?.length}
+                      <div class="tooltip-lore">
+                        {#each item.lore_colored as line, lineIndex (lineIndex)}
+                          {@const segments = parseLegacyText(line)}
+                          <p>
+                            {#if segments.length}
+                              {#each segments as segment, segIndex (segIndex)}
+                                <span
+                                  class={legacySegmentClasses(segment)}
+                                  style={legacySegmentStyle(segment)}
+                                >
+                                  {segment.text}
+                                </span>
+                              {/each}
+                            {:else}
+                              <span class="mc-span">&nbsp;</span>
+                            {/if}
+                          </p>
+                        {/each}
+                      </div>
+                    {:else if item.lore.length}
                       <div class="tooltip-lore">
                         {#each item.lore as line}
                           <p>{line}</p>
@@ -768,7 +890,7 @@
       ),
       rgba(8, 12, 26, 0.88);
     box-shadow: 0 18px 36px rgba(2, 6, 23, 0.45);
-    overflow: hidden;
+    overflow: visible;
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
@@ -783,6 +905,7 @@
     background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 35%);
     opacity: 0.4;
     pointer-events: none;
+    border-radius: inherit;
   }
 
   .wardrobe-set > * {
@@ -967,7 +1090,7 @@
     pointer-events: none;
     transition: opacity 0.18s ease, transform 0.18s ease;
     color: #e2e8f0;
-    z-index: 10;
+    z-index: 20;
   }
 
   .slot-shell:hover .slot-tooltip,
@@ -1004,17 +1127,47 @@
     gap: 2px;
     font-size: 0.75rem;
     color: #cbd5f5;
-    max-height: 160px;
+    max-height: min(280px, 50vh);
     overflow-y: auto;
+    padding-right: 4px;
   }
 
   .tooltip-lore p {
     margin: 0;
+    line-height: 1.35;
   }
 
   .tooltip-empty {
     font-size: 0.8rem;
     opacity: 0.75;
+  }
+
+  .mc-span {
+    display: inline;
+  }
+
+  .mc-bold {
+    font-weight: 700;
+  }
+
+  .mc-italic {
+    font-style: italic;
+  }
+
+  .mc-obfuscated {
+    animation: obfuscate 1s steps(10) infinite;
+  }
+
+  @keyframes obfuscate {
+    0% {
+      filter: blur(0.6px);
+    }
+    50% {
+      filter: blur(0);
+    }
+    100% {
+      filter: blur(0.6px);
+    }
   }
 
   @media (max-width: 900px) {

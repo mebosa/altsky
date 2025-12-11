@@ -1,6 +1,7 @@
 <script lang="ts">
   import { formatNumber } from '$lib/utils';
-  import { rarityToBackground } from '$lib/utils/wardrobe';
+  import { rarityToBackground, parseLegacyText, type LegacySegment } from '$lib/utils/wardrobe';
+  import { texturePackStore } from '$lib/stores/texturePack';
   import type { ProfileSummaryResponse } from './profileTypes';
 
   export let summary: ProfileSummaryResponse;
@@ -39,6 +40,31 @@
   function formatIdentifier(value?: string | null) {
     const normalized = normalizeIdentifier(value);
     return normalized ? titleize(normalized) : null;
+  }
+
+  function legacySegmentStyle(segment: LegacySegment) {
+    const styles: string[] = [];
+    if (segment.color) {
+      styles.push(`color:${segment.color}`);
+    }
+    const decorations: string[] = [];
+    if (segment.underline) decorations.push('underline');
+    if (segment.strikethrough) decorations.push('line-through');
+    if (decorations.length) {
+      styles.push(`text-decoration:${decorations.join(' ')}`);
+    }
+    return styles.length ? styles.join(';') : undefined;
+  }
+
+  function legacySegmentClasses(segment: LegacySegment) {
+    return [
+      'mc-span',
+      segment.bold ? 'mc-bold' : '',
+      segment.italic ? 'mc-italic' : '',
+      segment.obfuscated ? 'mc-obfuscated' : ''
+    ]
+      .filter(Boolean)
+      .join(' ');
   }
 
   function normalizeRarity(value?: string | null) {
@@ -198,16 +224,22 @@
     <div class="accessory-grid">
       {#each sortedItems as item (item.slot)}
         {@const rarityColor = rarityToBackground(item.rarity)}
+        {@const iconSrc =
+            item.icon_variants?.[$texturePackStore] ??
+            item.icon_variants?.furfsky ??
+            item.icon_variants?.vanilla ??
+            item.icon_url ??
+            null}
         <div class="accessory-slot">
           <button
             type="button"
-            class={`accessory-icon ${item.icon_url ? '' : 'placeholder'}`}
+            class={`accessory-icon ${iconSrc ? '' : 'placeholder'}`}
             style={rarityColor ? `--rarity-color:${rarityColor}` : undefined}
             aria-label={item.name}
           >
-            {#if item.icon_url}
+            {#if iconSrc}
               <img
-                src={item.icon_url}
+                src={iconSrc}
                 alt=""
                 loading="lazy"
                 width="56"
@@ -234,7 +266,27 @@
                 <span class="highlight">Recombobulated</span>
               {/if}
             </div>
-            {#if item.lore.length}
+            {#if item.lore_colored?.length}
+              <div class="tooltip-lore">
+                {#each item.lore_colored as line, lineIndex (lineIndex)}
+                  {@const segments = parseLegacyText(line)}
+                  <p>
+                    {#if segments.length}
+                      {#each segments as segment, segIndex (segIndex)}
+                        <span
+                          class={legacySegmentClasses(segment)}
+                          style={legacySegmentStyle(segment)}
+                        >
+                          {segment.text}
+                        </span>
+                      {/each}
+                    {:else}
+                      <span class="mc-span">&nbsp;</span>
+                    {/if}
+                  </p>
+                {/each}
+              </div>
+            {:else if item.lore.length}
               <div class="tooltip-lore">
                 {#each item.lore as line, index (index)}
                   <p>{line}</p>
@@ -465,7 +517,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 180px;
+    max-height: min(280px, 50vh);
     overflow-y: auto;
     padding-right: 4px;
   }
@@ -474,6 +526,35 @@
     margin: 0;
     font-size: 0.8rem;
     color: rgba(226, 232, 240, 0.88);
+    line-height: 1.35;
+  }
+
+  .mc-span {
+    display: inline;
+  }
+
+  .mc-bold {
+    font-weight: 700;
+  }
+
+  .mc-italic {
+    font-style: italic;
+  }
+
+  .mc-obfuscated {
+    animation: obfuscate 1s steps(10) infinite;
+  }
+
+  @keyframes obfuscate {
+    0% {
+      filter: blur(0.6px);
+    }
+    50% {
+      filter: blur(0);
+    }
+    100% {
+      filter: blur(0.6px);
+    }
   }
 
   @media (max-width: 768px) {

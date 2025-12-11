@@ -8,7 +8,11 @@ from typing import Any, Dict, List, Optional
 
 import nbtlib
 
-from .item_textures import resolve_item_icon, get_item_resource
+from .item_textures import (
+    TEXTURE_PACKS,
+    get_item_resource,
+    resolve_item_icon_variants,
+)
 
 RARITY_KEYWORDS = {
     "COMMON",
@@ -94,6 +98,74 @@ def _component_to_plain(component: Any) -> str:
             pieces.append(str(component["color"]))
         return "".join(pieces)
     return _strip_color_codes(str(component))
+
+
+LEGACY_COLOR_CODES = {
+    "black": "0",
+    "dark_blue": "1",
+    "dark_green": "2",
+    "dark_aqua": "3",
+    "dark_red": "4",
+    "dark_purple": "5",
+    "gold": "6",
+    "gray": "7",
+    "grey": "7",
+    "dark_gray": "8",
+    "dark_grey": "8",
+    "blue": "9",
+    "green": "a",
+    "aqua": "b",
+    "red": "c",
+    "light_purple": "d",
+    "yellow": "e",
+    "white": "f",
+}
+
+LEGACY_FORMAT_CODES = {
+    "obfuscated": "k",
+    "bold": "l",
+    "strikethrough": "m",
+    "underline": "n",
+    "italic": "o",
+}
+
+
+def _component_to_colored(component: Any) -> str:
+    if component is None:
+        return ""
+    if isinstance(component, str):
+        try:
+            parsed = json.loads(component)
+        except json.JSONDecodeError:
+            return str(component)
+        return _component_to_colored(parsed)
+    if isinstance(component, (int, float)):
+        return str(component)
+    if isinstance(component, list):
+        return "".join(_component_to_colored(part) for part in component)
+    if isinstance(component, dict):
+        pieces = []
+        prefix = ""
+        color = component.get("color")
+        if isinstance(color, str):
+            code = LEGACY_COLOR_CODES.get(color.lower())
+            if code:
+                prefix += f"§{code}"
+        for attr, code in LEGACY_FORMAT_CODES.items():
+            if component.get(attr):
+                prefix += f"§{code}"
+        if prefix:
+            pieces.append(prefix)
+        if "text" in component:
+            pieces.append(_component_to_colored(component["text"]))
+        if "translate" in component:
+            pieces.append(_component_to_colored(component["translate"]))
+        if "extra" in component:
+            pieces.append(_component_to_colored(component["extra"]))
+        if prefix:
+            pieces.append("§r")
+        return "".join(pieces)
+    return str(component)
 
 
 def _detect_rarity(extra: Dict[str, Any], lore: List[str]) -> Optional[str]:
@@ -256,9 +328,14 @@ def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
         extra = tag.get("ExtraAttributes") or nbtlib.Compound()
 
         name = _component_to_plain(_tag_value(display.get("Name")))
+        lore_entries = display.get("Lore") or []
         lore = [
             _component_to_plain(_tag_value(line))
-            for line in (display.get("Lore") or [])
+            for line in lore_entries
+        ]
+        lore_colored = [
+            _component_to_colored(_tag_value(line))
+            for line in lore_entries
         ]
 
         extra_id_raw = _tag_value(extra.get("id")) if extra else None
@@ -286,9 +363,16 @@ def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
         except (TypeError, ValueError):
             damage = None
 
-        icon_url = resolve_item_icon(extra_id or item_id, item_id or None, damage)
-        if not icon_url:
-            icon_url = _extract_extra_texture(extra) or _extract_skull_icon(tag)
+        icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
+        fallback_icon = _extract_extra_texture(extra) or _extract_skull_icon(tag)
+        if fallback_icon:
+            for pack in TEXTURE_PACKS:
+                icon_variants.setdefault(pack, fallback_icon)
+
+        icon_url = next(
+            (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
+            None,
+        )
 
         slots.append(
             {
@@ -299,7 +383,11 @@ def parse_wardrobe(wardrobe_data: Dict[str, Any]) -> Dict[str, Any]:
                 "count": count,
                 "rarity": rarity,
                 "lore": lore,
+                "lore_colored": lore_colored,
                 "icon_url": icon_url,
+                "icon_variants": {
+                    pack: url for pack, url in icon_variants.items() if url
+                },
                 "leather_color": leather_color,
             }
         )

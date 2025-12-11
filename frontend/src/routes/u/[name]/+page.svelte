@@ -9,6 +9,8 @@
   export let data: {
     player: Player | null;
     fetchError?: string;
+    ogImageUrl?: string;
+    canonicalUrl: string;
   };
 
   type Player = {
@@ -31,6 +33,7 @@
   let activeController: AbortController | null = null;
   let hydrated = false;
   let lastParamsName = params.name;
+  let metaDescription = 'Search Hypixel SkyBlock players and inspect their stats on AltSky.';
 
   function formatErrorFromPayload(payload: Player | null) {
     if (!payload) return '';
@@ -74,6 +77,10 @@
   }
 
   applyPlayerPayload(data?.player ?? null, data?.fetchError);
+
+  $: metaDescription = player
+    ? `${params.name} has ${profiles.length} SkyBlock profile${profiles.length === 1 ? '' : 's'}. Inspect skills, dungeons, and gear on AltSky.`
+    : 'Search Hypixel SkyBlock players and inspect their stats on AltSky.';
 
   onMount(() => {
     hydrated = true;
@@ -162,11 +169,27 @@
   }
 </script>
 
+<svelte:head>
+  <title>AltSky · {params.name}</title>
+  <meta name="description" content={metaDescription} />
+  <meta property="og:title" content={`AltSky · ${params.name}`} />
+  <meta property="og:description" content={metaDescription} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={data.canonicalUrl} />
+  {#if data.ogImageUrl}
+    <meta property="og:image" content={data.ogImageUrl} />
+    <meta name="twitter:image" content={data.ogImageUrl} />
+  {/if}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={`AltSky · ${params.name}`} />
+  <meta name="twitter:description" content={metaDescription} />
+</svelte:head>
+
 <style>
   .wrap {
     max-width: 960px;
-    margin: 48px auto;
-    padding: 0 16px 48px;
+    margin: 56px auto;
+    padding: 0 18px 48px;
     color: var(--theme-text-primary);
     display: flex;
     flex-direction: column;
@@ -188,7 +211,7 @@
   }
 
   h1 {
-    font-size: 24px;
+    font-size: 26px;
     margin: 0;
     letter-spacing: -0.02em;
     color: var(--theme-text-primary);
@@ -217,24 +240,24 @@
 
   .back-button {
     width: auto;
-    padding: 8px 16px;
+    padding: 9px 14px;
   }
 
   button {
-    padding: 10px 16px;
+    padding: 11px 16px;
     border-radius: 12px;
-    border: none;
-    background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
-    color: #ffffff;
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 70%, #ffffff 10%);
+    background: var(--theme-accent);
+    color: #0b1020;
     cursor: pointer;
     font-weight: 600;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease, opacity 0.25s ease;
-    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.32);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 12px 26px rgba(5, 7, 14, 0.3);
   }
 
   button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 34px rgba(15, 23, 42, 0.4);
+    box-shadow: 0 14px 28px rgba(5, 7, 14, 0.35);
   }
 
   button:disabled {
@@ -243,24 +266,24 @@
   }
 
   .ghost {
-    background: var(--theme-control-bg);
+    background: transparent;
     color: var(--theme-text-secondary);
-    border: 1px solid var(--theme-control-border);
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+    border: 1px solid color-mix(in srgb, var(--theme-control-border) 90%, transparent);
+    box-shadow: none;
   }
 
   .ghost:hover {
-    background: var(--theme-control-hover);
+    background: color-mix(in srgb, var(--theme-control-bg) 70%, transparent);
     transform: translateY(-2px);
   }
 
   .card {
     border: 1px solid var(--theme-surface-border);
-    border-radius: 18px;
-    padding: 20px 22px;
-    background: var(--theme-surface);
-    box-shadow: var(--theme-card-shadow);
-    backdrop-filter: blur(12px);
+    border-radius: 14px;
+    padding: 18px 18px;
+    background: color-mix(in srgb, var(--theme-surface) 90%, transparent);
+    box-shadow: 0 10px 26px rgba(5, 7, 14, 0.32);
+    backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -300,10 +323,10 @@
   .err {
     padding: 14px 16px;
     border-radius: 14px;
-    background: rgba(239, 68, 68, 0.12);
-    border: 1px solid rgba(248, 113, 113, 0.32);
-    color: #fecaca;
-    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.24);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.28);
+    color: #fbb6b6;
+    box-shadow: 0 12px 22px rgba(5, 7, 14, 0.24);
   }
 
   .row-end {
@@ -341,7 +364,7 @@
           }
         }}
       >
-        ← Back
+         Back
       </button>
       <h1>Player: <strong>{params.name}</strong></h1>
       {#if player}<span class="uuid">UUID: {shortUUID(player.uuid)}</span>{/if}

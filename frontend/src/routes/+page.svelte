@@ -84,30 +84,45 @@
 <style>
   .wrap {
     max-width: 720px;
-    margin: 64px auto;
-    padding: 0 16px;
+    margin: 88px auto 64px;
+    padding: 0 18px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
     color: var(--theme-text-primary);
+  }
+
+  .hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--theme-text-soft);
+    margin: 0 0 6px;
   }
 
   .row {
     display: flex;
-    gap: 8px;
-    backdrop-filter: blur(16px);
+    gap: 10px;
+    align-items: center;
   }
 
   input {
     flex: 1;
-    padding: 12px 14px;
-    font-size: 16px;
-    border: 1px solid var(--theme-form-border);
+    padding: 14px 16px;
+    font-size: 17px;
+    border: 1px solid color-mix(in srgb, var(--theme-form-border) 90%, transparent);
     border-radius: 12px;
-    background: var(--theme-form-bg);
+    background: color-mix(in srgb, var(--theme-form-bg) 90%, #040915 10%);
     color: var(--theme-text-primary);
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+    box-shadow: none;
   }
 
   input::placeholder {
@@ -121,26 +136,26 @@
   }
 
   button {
-    padding: 12px 16px;
+    padding: 13px 18px;
     border-radius: 12px;
-    border: none;
-    background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
-    color: #ffffff;
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 70%, #ffffff 10%);
+    background: var(--theme-accent);
+    color: #0b1020;
     cursor: pointer;
     font-weight: 600;
     letter-spacing: 0.01em;
-    box-shadow: 0 18px 32px rgba(15, 23, 42, 0.32);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+    box-shadow: 0 12px 26px rgba(5, 7, 14, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   }
 
   button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 22px 36px rgba(15, 23, 42, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(5, 7, 14, 0.35);
   }
 
   button:focus-visible {
-    outline: 3px solid rgba(255, 255, 255, 0.35);
-    outline-offset: 2px;
+    outline: 2px solid color-mix(in srgb, var(--theme-accent) 80%, #ffffff 20%);
+    outline-offset: 3px;
   }
 
   .chips {
@@ -151,43 +166,84 @@
   }
 
   .chip {
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: var(--theme-chip-bg);
-    border: 1px solid var(--theme-chip-border);
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--theme-chip-bg) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-chip-border) 90%, transparent);
     cursor: pointer;
     transition: background 0.25s ease, border 0.25s ease, transform 0.2s ease;
     color: var(--theme-chip-text);
-    box-shadow: 0 12px 20px rgba(15, 23, 42, 0.18);
+    box-shadow: none;
   }
 
   .chip:hover,
   .chip:focus-visible {
-    transform: translateY(-2px);
-    background: var(--theme-accent-alpha-22);
-    border-color: var(--theme-accent);
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--theme-accent-alpha-25) 70%, transparent);
+    border-color: color-mix(in srgb, var(--theme-accent) 60%, #ffffff 10%);
     outline: none;
   }
 
   h1 {
-    font-size: 42px;
-    margin: 0 0 12px;
+    font-size: clamp(40px, 6vw, 52px);
+    margin: 0 0 10px;
     letter-spacing: -0.03em;
     color: var(--theme-text-primary);
   }
 
   p.muted {
     color: var(--theme-text-soft);
-    margin: 0 0 24px;
+    margin: 0;
   }
 
   .error-message {
-    padding: 12px 16px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: rgb(239, 68, 68);
+    padding: 12px 14px;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.24);
+    color: rgb(248, 180, 180);
+    border-radius: 10px;
+    font-size: 0.94rem;
+  }
+
+  .panel {
+    border: 1px solid color-mix(in srgb, var(--theme-surface-border) 90%, transparent);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--theme-surface) 92%, transparent);
+    padding: 20px;
+    box-shadow: 0 10px 26px rgba(4, 7, 14, 0.32);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
     border-radius: 12px;
-    font-size: 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 40%, #ffffff 10%);
+    color: var(--theme-text-primary);
+    background: color-mix(in srgb, var(--theme-accent-alpha-22) 60%, transparent);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--theme-accent);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--theme-accent) 24%, transparent);
+  }
+
+  .recent {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   @media (max-width: 640px) {
@@ -198,40 +254,56 @@
     button {
       width: 100%;
     }
+
+    .hero {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   }
 </style>
 
 <div class="wrap">
-  <h1>AltSky</h1>
-  <p class="muted">Enter a Minecraft username to view Hypixel SkyBlock stats.</p>
-
-  <div class="row">
-    <input
-      placeholder="e.g. Technoblade"
-      bind:value={name}
-      on:input={() => (searchError = '')}
-      on:keydown={onKey}
-    />
-    <button type="button" on:click={handleSearch}>Search</button>
+  <div class="hero">
+    <div>
+      <p class="eyebrow">Hypixel SkyBlock companion</p>
+      <h1>AltSky</h1>
+      <p class="muted">Enter a Minecraft username to view Hypixel SkyBlock stats.</p>
+    </div>
+    <span class="badge">Faster lookups, calmer UI</span>
   </div>
-  
-  {#if searchError}
-    <div class="error-message">
-      {searchError}
-    </div>
-  {/if}
 
-  {#if recent.length}
-    <div class="chips">
-      {#each recent as r}
-        <button
-          type="button"
-          class="chip"
-          on:click={() => toUser(r)}
-        >
-          {r}
-        </button>
-      {/each}
+  <div class="panel">
+    <div class="row">
+      <input
+        placeholder="e.g. Technoblade"
+        bind:value={name}
+        on:input={() => (searchError = '')}
+        on:keydown={onKey}
+      />
+      <button type="button" on:click={handleSearch}>Search</button>
     </div>
-  {/if}
+    
+    {#if searchError}
+      <div class="error-message">
+        {searchError}
+      </div>
+    {/if}
+
+    {#if recent.length}
+      <div class="recent">
+        <span class="eyebrow" style="margin-bottom:0;">Recent</span>
+        <div class="chips">
+          {#each recent as r}
+            <button
+              type="button"
+              class="chip"
+              on:click={() => toUser(r)}
+            >
+              {r}
+            </button>
+          {/each}
+        </div>
+      </div>
+    {/if}
+  </div>
 </div>

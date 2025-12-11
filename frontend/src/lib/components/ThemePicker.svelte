@@ -217,8 +217,8 @@
           aria-label={`Activate ${option.label} theme`}
           aria-pressed={$theme.id === option.id}
         >
-          <span class="chip">
-            <span class="face" aria-hidden="true">=^._.^=</span>
+          <span class="chip" aria-hidden="true">
+            <span class="grain"></span>
           </span>
           <span class="name">{option.label}</span>
           {#if option.special}
@@ -277,23 +277,24 @@
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(9, 13, 24, 0.8);
     color: var(--theme-text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
     pointer-events: auto;
     overflow: hidden;
-    transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+    transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   }
 
   .toggle:hover,
   .toggle:focus-visible {
-    background: rgba(37, 99, 235, 0.35);
-    border-color: var(--theme-accent);
+    background: rgba(95, 113, 245, 0.2);
+    border-color: rgba(95, 113, 245, 0.6);
+    box-shadow: 0 6px 16px rgba(5, 7, 14, 0.4);
     outline: none;
   }
 
@@ -333,10 +334,10 @@
     gap: 10px;
     padding: 14px 16px;
     border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    background: rgba(15, 23, 42, 0.72);
-    backdrop-filter: blur(14px);
-    box-shadow: 0 18px 32px rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(7, 11, 20, 0.88);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 14px 28px rgba(5, 7, 14, 0.38);
     max-width: 280px;
     opacity: 0;
     transform: translateX(-12px) scale(0.96);
@@ -351,8 +352,8 @@
     inset: -35%;
     background: radial-gradient(
       45% 45% at var(--glow-x) var(--glow-y),
-      rgba(59, 130, 246, 0.35),
-      rgba(99, 102, 241, 0.22),
+      rgba(95, 113, 245, 0.28),
+      rgba(99, 102, 241, 0.18),
       transparent 70%
     );
     opacity: 0;
@@ -372,10 +373,10 @@
 
   .title {
     font-size: 0.64rem;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 600;
-    opacity: 0.7;
+    opacity: 0.72;
   }
 
   .swatches {
@@ -390,11 +391,11 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    padding: 6px 4px 10px;
+    padding: 8px 4px 10px;
     border-radius: 12px;
-    border: 1px solid transparent;
-    background: rgba(15, 23, 42, 0.22);
-    color: var(--theme-text-soft);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(12, 18, 32, 0.6);
+    color: var(--theme-text-secondary);
     cursor: pointer;
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
       background 0.25s ease;
@@ -406,19 +407,21 @@
   }
 
   .swatches button.special {
-    background: rgba(244, 114, 182, 0.22);
+    border-color: rgba(95, 113, 245, 0.3);
   }
 
   .swatches button:hover,
   .swatches button:focus-visible {
     transform: translateY(-2px);
+    border-color: var(--theme-accent-alpha-32);
+    background: rgba(12, 18, 32, 0.72);
     outline: none;
   }
 
   .swatches button.selected {
     border-color: var(--theme-accent);
-    box-shadow: 0 12px 26px var(--theme-glow);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+    box-shadow: 0 10px 18px var(--theme-glow);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   }
 
   .swatches button.light.selected {
@@ -436,7 +439,7 @@
     height: 14px;
     border-radius: 999px;
     background: linear-gradient(135deg, var(--swatch-primary), var(--swatch-secondary));
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
+    box-shadow: 0 6px 14px rgba(5, 7, 14, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -445,71 +448,37 @@
   }
 
   .swatches button.selected .chip {
-    box-shadow: 0 8px 18px var(--theme-glow);
+    box-shadow: 0 8px 16px var(--theme-glow);
   }
 
-  .face {
-    display: none;
-    font-size: 0.55rem;
-    color: #fff7fb;
-    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.45);
-    pointer-events: none;
-  }
-
-  .swatches button[data-theme='catgirl'] .chip::before,
-  .swatches button[data-theme='catgirl'] .chip::after {
-    content: '';
+  .grain {
     position: absolute;
-    width: 9px;
-    height: 9px;
-    top: -6px;
-    background: var(--swatch-primary);
-    clip-path: polygon(50% 0, 0 100%, 100% 100%);
-    filter: drop-shadow(0 2px 6px rgba(244, 114, 182, 0.45));
-    z-index: -1;
-  }
-
-  .swatches button[data-theme='catgirl'] .chip::before {
-    left: 5px;
-    transform: rotate(-8deg);
-  }
-
-  .swatches button[data-theme='catgirl'] .chip::after {
-    right: 5px;
-    transform: rotate(8deg);
-    background: var(--swatch-secondary);
-  }
-
-  .swatches button[data-theme='catgirl'] .face {
-    display: block;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.24), transparent 48%),
+      radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.16), transparent 46%);
+    opacity: 0.5;
+    mix-blend-mode: screen;
   }
 
   .name {
     font-size: 0.66rem;
     font-weight: 600;
-    color: inherit;
-    opacity: 0;
-    transform: translateY(2px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    text-align: center;
-  }
-
-  .swatches button:hover .name,
-  .swatches button:focus-visible .name {
-    opacity: 0.45;
+    color: var(--theme-text-secondary);
+    opacity: 0.65;
     transform: translateY(0);
+    transition: opacity 0.18s ease;
+    text-align: center;
   }
 
   .swatches button.selected .name {
     opacity: 1;
-    transform: translateY(0);
   }
 
   .marker {
     font-size: 0.65rem;
     color: #fde68a;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    opacity: 0.45;
+    transition: opacity 0.18s ease;
   }
 
   .swatches button.special.selected .marker {
