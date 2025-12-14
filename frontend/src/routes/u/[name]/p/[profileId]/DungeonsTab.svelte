@@ -23,6 +23,11 @@
     </div>
     <div class="catacombs-level">Lv. {summary.dungeons.catacombs.level}</div>
     <div class="sub">Total XP {formatNumber(summary.dungeons.catacombs.xp)}</div>
+    {#if summary.dungeons.catacombs.overflow > 0}
+      <div class="sub accent">
+        Overflow {formatNumber(summary.dungeons.catacombs.overflow)} XP
+      </div>
+    {/if}
   </div>
 
   {#each Object.entries(summary.dungeons.classes) as [key, info]}
@@ -41,6 +46,9 @@
       </div>
       <span class="dungeon-level">Lv. {info.level}</span>
       <span class="sub">{formatNumber(info.xp)} XP</span>
+      {#if info.overflow > 0}
+        <span class="sub accent">Overflow {formatNumber(info.overflow)} XP</span>
+      {/if}
     </div>
   {/each}
 </section>
@@ -98,5 +106,10 @@
   .sub {
     font-size: 0.95rem;
     color: var(--theme-text-soft);
+  }
+
+  .sub.accent {
+    color: var(--theme-accent);
+    font-weight: 600;
   }
 </style>

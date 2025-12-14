@@ -26,8 +26,25 @@ export type ProfileSummaryResponse = {
   skills: Record<string, SkillStat> & { average_level: number };
   slayer: Record<string, { level: number; xp: number }> & { total_xp: number };
   dungeons: {
-    catacombs: { level: number; xp: number };
-    classes: Record<string, { level: number; xp: number }>;
+    catacombs: {
+      level: number;
+      xp: number;
+      progress: number;
+      current: number;
+      to_next: number;
+      overflow: number;
+    };
+    classes: Record<
+      string,
+      {
+        level: number;
+        xp: number;
+        progress: number;
+        current: number;
+        to_next: number;
+        overflow: number;
+      }
+    >;
   };
   stats: Record<string, number>;
   currencies: {

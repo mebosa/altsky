@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, Dict
 
 # XP thresholds for Catacombs levels 0-50 (cumulative).
@@ -52,18 +53,61 @@ CATACOMBS_LEVELS = [
     285559640,
     360559640,
     453559640,
-    569809640,
+    569809640,  # Level 50 cap
 ]
 
 
-def xp_to_level(xp: int) -> int:
-    lvl = 0
-    for i, need in enumerate(CATACOMBS_LEVELS):
-        if xp >= need:
-            lvl = i
+@dataclass
+class DungeonStat:
+    level: int
+    xp: int
+    progress: float
+    current: int
+    to_next: int
+    overflow: int
+
+
+def xp_to_stat(xp: int) -> DungeonStat:
+    """
+    Convert raw XP into a level/progress snapshot with overflow tracking.
+    """
+    if xp <= 0:
+        need = CATACOMBS_LEVELS[1] - CATACOMBS_LEVELS[0]
+        return DungeonStat(level=0, xp=0, progress=0.0, current=0, to_next=need, overflow=0)
+
+    cap_level = len(CATACOMBS_LEVELS) - 1
+    level = 0
+    for i in range(1, cap_level + 1):
+        if xp >= CATACOMBS_LEVELS[i]:
+            level = i
         else:
             break
-    return min(lvl, 50)
+
+    overflow = max(0, xp - CATACOMBS_LEVELS[-1])
+
+    if level >= cap_level:
+        base = CATACOMBS_LEVELS[cap_level]
+        return DungeonStat(
+            level=cap_level,
+            xp=xp,
+            progress=1.0,
+            current=xp - base,
+            to_next=0,
+            overflow=overflow,
+        )
+
+    base = CATACOMBS_LEVELS[level]
+    need = CATACOMBS_LEVELS[level + 1] - base
+    have = xp - base
+    progress = max(0.0, min(1.0, have / need)) if need else 1.0
+    return DungeonStat(
+        level=level,
+        xp=xp,
+        progress=progress,
+        current=have,
+        to_next=need,
+        overflow=0,
+    )
 
 
 CLASSES = ["healer", "mage", "berserk", "archer", "tank"]
@@ -84,15 +128,30 @@ def extract_dungeons(member: Dict[str, Any]) -> Dict[str, Any]:
 
     catacombs_raw = dungeon_data.get("dungeon_types", {}).get("catacombs", {}) or {}
     catacombs_xp = _safe_int(catacombs_raw.get("experience"))
-    catacombs_level = xp_to_level(catacombs_xp)
+    catacombs = xp_to_stat(catacombs_xp)
 
     classes_raw = dungeon_data.get("player_classes", {}) or {}
     classes_out: Dict[str, Dict[str, int]] = {}
     for cls in CLASSES:
         xp = _safe_int(classes_raw.get(cls, {}).get("experience"))
-        classes_out[cls] = {"xp": xp, "level": xp_to_level(xp)}
+        stat = xp_to_stat(xp)
+        classes_out[cls] = {
+            "xp": stat.xp,
+            "level": stat.level,
+            "progress": stat.progress,
+            "current": stat.current,
+            "to_next": stat.to_next,
+            "overflow": stat.overflow,
+        }
 
     return {
-        "catacombs": {"xp": catacombs_xp, "level": catacombs_level},
+        "catacombs": {
+            "xp": catacombs.xp,
+            "level": catacombs.level,
+            "progress": catacombs.progress,
+            "current": catacombs.current,
+            "to_next": catacombs.to_next,
+            "overflow": catacombs.overflow,
+        },
         "classes": classes_out,
     }

@@ -88,35 +88,42 @@
     pieceIndex: number;
   };
 
-  function groupingFromSlot(slot: number, offset: number): WardrobeGrouping {
-    const normalized = Math.max(0, slot - offset);
-    const columnIndex =
-      ((normalized % WARDROBE_SETS_PER_BANK) + WARDROBE_SETS_PER_BANK) % WARDROBE_SETS_PER_BANK;
-    const pieceIndex = Math.floor(normalized / WARDROBE_SETS_PER_BANK) % WARDROBE_SET_SIZE;
+  function groupingFromSlot(slot: number): WardrobeGrouping {
+    const normalized = Math.max(0, slot);
     const bankIndex = Math.floor(normalized / WARDROBE_BANK_SLOT_COUNT);
+    const withinBank =
+      ((normalized % WARDROBE_BANK_SLOT_COUNT) + WARDROBE_BANK_SLOT_COUNT) %
+      WARDROBE_BANK_SLOT_COUNT;
+    const columnIndex = withinBank % WARDROBE_SETS_PER_BANK;
+    const pieceIndex = Math.floor(withinBank / WARDROBE_SETS_PER_BANK) % WARDROBE_SET_SIZE;
     const setIndex = bankIndex * WARDROBE_SETS_PER_BANK + columnIndex;
     return { setIndex, bankIndex, columnIndex, pieceIndex };
   }
 
-  function buildWardrobeSets(items: (WardrobeItem | null)[], offset: number): WardrobeSetGroup[] {
+  function buildWardrobeSets(items: (WardrobeItem | null)[]): WardrobeSetGroup[] {
     const grouped = new Map<string, WardrobeSetGroup>();
 
-    for (const item of items) {
-      if (!item) continue;
-      const grouping = groupingFromSlot(item.slot ?? 0, offset);
+    items.forEach((item, index) => {
+      const slotValue =
+        typeof item?.slot === 'number'
+          ? item.slot
+          : index;
+      const grouping = groupingFromSlot(slotValue);
       const key = `${grouping.bankIndex}-${grouping.columnIndex}`;
       if (!grouped.has(key)) {
         grouped.set(key, {
           setIndex: grouping.setIndex,
           bankIndex: grouping.bankIndex,
           columnIndex: grouping.columnIndex,
-          items: Array.from({ length: WARDROBE_SET_SIZE }, () => null)
+          items: createEmptySet()
         });
       }
       const group = grouped.get(key)!;
       const clampedIndex = Math.min(WARDROBE_SET_SIZE - 1, Math.max(0, grouping.pieceIndex));
-      group.items[clampedIndex] = item;
-    }
+      if (item) {
+        group.items[clampedIndex] = item;
+      }
+    });
 
     return Array.from(grouped.values()).sort((a, b) => a.setIndex - b.setIndex);
   }
@@ -424,7 +431,6 @@
   let expectedEquippedSetIndex: number | null = null;
   let equippedSetIndexRaw: number | null = null;
   let equippedSetIndex: number | null = null;
-  let slotOffset = 0;
 
   function formatWardrobeSlot(setIndex: number | null) {
     if (setIndex === null) return '';
@@ -437,26 +443,52 @@
     return Array.from({ length: WARDROBE_SET_SIZE }, () => null);
   }
 
+  function createPlaceholderGroup(setIndex: number): WardrobeSetGroup {
+    const bankIndex = Math.floor(setIndex / WARDROBE_SETS_PER_BANK);
+    const columnIndex = setIndex % WARDROBE_SETS_PER_BANK;
+    return {
+      setIndex,
+      bankIndex,
+      columnIndex,
+      items: createEmptySet()
+    };
+  }
+
   function normalizeEquippedItems(items?: (WardrobeItem | null)[] | null) {
     return Array.from({ length: WARDROBE_SET_SIZE }, (_, index) => items?.[index] ?? null);
   }
 
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
-  $: slotOffset = (() => {
-    const slots = wardrobeItems
-      .map((item) => (item ? item.slot : null))
-      .filter((slot): slot is number => typeof slot === 'number' && Number.isFinite(slot));
-    if (!slots.length) return 0;
-    const minSlot = Math.min(...slots);
-    return minSlot >= 1 ? 1 : 0;
-  })();
   $: if (wardrobeItems.length) {
-    setGroups = buildWardrobeSets(wardrobeItems, slotOffset);
+    setGroups = buildWardrobeSets(wardrobeItems);
     setGroupMap = new Map(setGroups.map((group) => [group.setIndex, group]));
   } else {
     setGroups = [];
     setGroupMap = new Map();
+  }
+
+  $: {
+    const totalSlotsAvailable = summary?.wardrobe?.slots ?? wardrobeItems.length;
+    const expectedSetCount =
+      totalSlotsAvailable > 0 ? Math.ceil(totalSlotsAvailable / WARDROBE_SET_SIZE) : 0;
+    const currentMaxIndex = setGroups.length ? setGroups[setGroups.length - 1].setIndex + 1 : 0;
+    const targetCount = Math.max(expectedSetCount, currentMaxIndex);
+    if (targetCount > 0) {
+      let changed = false;
+      for (let setIndex = 0; setIndex < targetCount; setIndex += 1) {
+        if (!setGroupMap.has(setIndex)) {
+          const placeholder = createPlaceholderGroup(setIndex);
+          setGroups = [...setGroups, placeholder];
+          setGroupMap.set(setIndex, placeholder);
+          changed = true;
+        }
+      }
+      if (changed) {
+        setGroups = [...setGroups].sort((a, b) => a.setIndex - b.setIndex);
+        setGroupMap = new Map(setGroups.map((group) => [group.setIndex, group]));
+      }
+    }
   }
 
   function resolveEquippedSetIndex(raw: number | null): number | null {
@@ -465,12 +497,8 @@
     if (setGroupMap.has(raw)) return raw;
 
     // Convert raw wardrobe slot (absolute slot) into set index (column within bank)
-    const grouping = groupingFromSlot(raw, slotOffset);
+    const grouping = groupingFromSlot(raw);
     if (setGroupMap.has(grouping.setIndex)) return grouping.setIndex;
-
-    // Fallback: try normalized by slotOffset
-    const candidate = raw - slotOffset;
-    if (setGroupMap.has(candidate)) return candidate;
 
     // If no match, it likely means the equipped armor isn't in the wardrobe.
     return null;
@@ -478,7 +506,7 @@
 
   $: equippedSetIndexRaw = summary?.wardrobe?.equipped_slot ?? null;
   $: expectedEquippedSetIndex =
-    equippedSetIndexRaw === null ? null : groupingFromSlot(equippedSetIndexRaw, slotOffset).setIndex;
+    equippedSetIndexRaw === null ? null : groupingFromSlot(equippedSetIndexRaw).setIndex;
 
   // Ensure the equipped set exists in the list even if wardrobe data for that slot is missing
   $: if (
@@ -1259,3 +1287,32 @@
     }
   }
 </style>
+  function guessPieceIndex(item: WardrobeItem | null): number | null {
+    if (!item) return null;
+    const id = (item.id ?? '').toString().toLowerCase();
+    const name = (item.name ?? '').toLowerCase();
+
+    const helmetTokens = ['helmet', 'mask', 'helm', 'head', 'cap', 'hat', 'crown', 'visor'];
+    const chestTokens = ['chestplate', 'chest', 'shirt', 'mail', 'robe', 'tunic', 'jacket', 'top', 'harness'];
+    const legsTokens = ['leggings', 'legs', 'pants', 'trousers', 'skirt', 'greaves'];
+    const bootsTokens = ['boots', 'shoes', 'sandals', 'sabatons', 'feet', 'foot', 'striders'];
+
+    const tokenSets: [string[], number][] = [
+      [helmetTokens, 0],
+      [chestTokens, 1],
+      [legsTokens, 2],
+      [bootsTokens, 3]
+    ];
+
+    for (const [tokens, index] of tokenSets) {
+      if (tokens.some((token) => id.includes(token))) {
+        return index;
+      }
+    }
+    for (const [tokens, index] of tokenSets) {
+      if (tokens.some((token) => name.includes(token))) {
+        return index;
+      }
+    }
+    return null;
+  }

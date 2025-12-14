@@ -23,6 +23,8 @@ RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
     curl \
+    fonts-inter \
+    fonts-dejavu \
     && rm -rf /var/lib/apt/lists/*
 
 # Python 패키지 설치
@@ -30,6 +32,7 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
 # 백엔드 코드 복사
+COPY furfsky.zip ./furfsky.zip
 COPY backend/ ./backend/
 
 WORKDIR /app/backend
