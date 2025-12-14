@@ -36,6 +36,65 @@ def serve_furfsky_texture(request, path):
 
     content_type, _ = mimetypes.guess_type(path)
     return HttpResponse(payload, content_type=content_type or "application/octet-stream")
+
+
+VANILLA_TEXTURE_CACHE_DIR = os.path.join(os.path.dirname(__file__), "domain", "texture_cache")
+VANILLA_ASSET_BASE = (
+    "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1"
+    "/assets/minecraft/textures"
+)
+
+
+def serve_vanilla_texture(request, path):
+    """
+    Proxy vanilla Minecraft textures from GitHub, caching locally to avoid CORS issues.
+    """
+    # Ensure cache directory exists
+    os.makedirs(VANILLA_TEXTURE_CACHE_DIR, exist_ok=True)
+    
+    # Generate cache filename
+    safe_filename = path.replace("/", "_").replace("\\", "_")
+    cache_path = os.path.join(VANILLA_TEXTURE_CACHE_DIR, f"vanilla_{safe_filename}")
+    
+    # Check if cached
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, "rb") as f:
+                payload = f.read()
+            content_type, _ = mimetypes.guess_type(path)
+            response = HttpResponse(payload, content_type=content_type or "image/png")
+            response["Cache-Control"] = "public, max-age=86400"
+            return response
+        except OSError:
+            pass
+    
+    # Fetch from GitHub
+    url = f"{VANILLA_ASSET_BASE}/{path}"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code != 200:
+            LOGGER.debug("Vanilla texture not found: %s (status=%s)", path, response.status_code)
+            return HttpResponse(status=404)
+        
+        payload = response.content
+        
+        # Cache the response
+        try:
+            with open(cache_path, "wb") as f:
+                f.write(payload)
+        except OSError as exc:
+            LOGGER.warning("Failed to cache vanilla texture %s: %s", path, exc)
+        
+        content_type, _ = mimetypes.guess_type(path)
+        http_response = HttpResponse(payload, content_type=content_type or "image/png")
+        http_response["Cache-Control"] = "public, max-age=86400"
+        return http_response
+        
+    except requests.RequestException as exc:
+        LOGGER.warning("Failed to fetch vanilla texture %s: %s", path, exc)
+        return HttpResponse(status=404)
+
+
 HYPIXEL_PROFILES_URL = 'https://api.hypixel.net/v2/skyblock/profiles'
 
 

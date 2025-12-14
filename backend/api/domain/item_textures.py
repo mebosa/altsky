@@ -363,19 +363,52 @@ def _decode_skin_url(skin: Optional[Dict[str, str]]) -> Optional[str]:
 
 
 def _cached_asset_path(candidate: str) -> Optional[str]:
+    """
+    Return a local proxy URL for vanilla textures instead of direct GitHub links.
+    This avoids CORS issues and improves reliability.
+    """
     if candidate in _ASSET_CACHE:
         return _ASSET_CACHE[candidate]
 
-    url = f"{ASSET_BASE}/{candidate}"
+    # Use local proxy path for all vanilla textures
+    proxy_url = f"/api/vanilla/{candidate}"
+    
+    # Skip HEAD validation for common vanilla armor textures
+    # These are standard Minecraft items that should always exist
+    common_vanilla_items = [
+        'item/leather_helmet.png',
+        'item/leather_chestplate.png', 
+        'item/leather_leggings.png',
+        'item/leather_boots.png',
+        'item/iron_helmet.png',
+        'item/iron_chestplate.png',
+        'item/iron_leggings.png',
+        'item/iron_boots.png',
+        'item/diamond_helmet.png',
+        'item/diamond_chestplate.png',
+        'item/diamond_leggings.png',
+        'item/diamond_boots.png',
+        'item/golden_helmet.png',
+        'item/golden_chestplate.png',
+        'item/golden_leggings.png',
+        'item/golden_boots.png',
+    ]
+    
+    if candidate in common_vanilla_items:
+        _ASSET_CACHE[candidate] = proxy_url
+        return proxy_url
+    
+    # For other items, still validate with HEAD request to GitHub
+    github_url = f"{ASSET_BASE}/{candidate}"
     try:
-        response = SESSION.head(url, timeout=5)
+        response = SESSION.head(github_url, timeout=5)
     except requests.RequestException:  # pragma: no cover - network failure
         _ASSET_CACHE[candidate] = None
         return None
 
     if response.status_code == 200:
-        _ASSET_CACHE[candidate] = url
-        return url
+        _ASSET_CACHE[candidate] = proxy_url  # Use proxy URL even if GitHub check succeeds
+        return proxy_url
 
     _ASSET_CACHE[candidate] = None
     return None

@@ -1,0 +1,43 @@
+﻿{
+    "name":  "mebosa",
+    "uuid":  "84473185b58a4bc18801ad24110b5db1",
+    "profiles":  [
+                     {
+                         "profile_id":  "517aa67b-b200-4e7d-8d76-f74134860f09",
+                         "cute_name":  "Peach",
+                         "name":  null,
+                         "game_mode":  null,
+                         "last_save":  null,
+                         "last_save_iso":  null,
+                         "member_count":  0
+                     },
+                     {
+                         "profile_id":  "84473185-b58a-4bc1-8801-ad24110b5db1",
+                         "cute_name":  "Lemon",
+                         "name":  null,
+                         "game_mode":  null,
+                         "last_save":  null,
+                         "last_save_iso":  null,
+                         "member_count":  3
+                     },
+                     {
+                         "profile_id":  "6b2321f9-529e-448e-98cf-672c8a6820db",
+                         "cute_name":  "Mango",
+                         "name":  null,
+                         "game_mode":  "bingo",
+                         "last_save":  null,
+                         "last_save_iso":  null,
+                         "member_count":  1
+                     },
+                     {
+                         "profile_id":  "a4da63f1-0d70-48a3-a513-a4033b53cb76",
+                         "cute_name":  "Cucumber",
+                         "name":  null,
+                         "game_mode":  null,
+                         "last_save":  null,
+                         "last_save_iso":  null,
+                         "member_count":  0
+                     }
+                 ],
+    "last_updated":  null
+}
