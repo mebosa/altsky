@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { resolveApiBase } from '$lib/api';
 import { Buffer } from 'node:buffer';
+import { env } from '$env/dynamic/private';
 
 type PlayerResponse = {
   name: string;
@@ -110,12 +111,17 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
     query.set('payload', previewPayload);
   }
   query.set('v', String(versionToken));
-  const ogImageUrl = `${url.origin}/api/og/player/${ogSafeName}.png?${query.toString()}`;
+  const configuredOrigin = env.SITE_BASE?.trim();
+  const requestOrigin = url.origin;
+  const normalizedOrigin =
+    configuredOrigin ||
+    (requestOrigin.startsWith('http://altsky.') ? requestOrigin.replace('http://', 'https://') : requestOrigin);
+  const ogImageUrl = `${normalizedOrigin}/api/og/player/${ogSafeName}.png?${query.toString()}`;
 
   return {
     player,
     fetchError,
     ogImageUrl,
-    canonicalUrl: `${url.origin}/u/${ogSafeName}`,
+    canonicalUrl: `${normalizedOrigin}/u/${ogSafeName}`,
   };
 };

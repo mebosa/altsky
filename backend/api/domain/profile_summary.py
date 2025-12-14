@@ -18,6 +18,12 @@ class SkyBlockLevel:
     experience: int
 
 
+# Active coop membership window. Some profiles keep historical/invited members
+# indefinitely; we only consider members with data and either recent activity
+# or recorded experience within this horizon.
+ACTIVE_MEMBER_WINDOW_MS = 500 * 24 * 60 * 60 * 1000
+
+
 def _safe_float(value: Any) -> float:
     try:
         return float(value)
@@ -33,6 +39,33 @@ def _safe_int(value: Any) -> int:
             return int(float(value))
         except (TypeError, ValueError):
             return 0
+
+
+def is_active_member(member: Dict[str, Any], *, now_ms: Optional[int] = None) -> bool:
+    if not isinstance(member, dict):
+        return False
+
+    profile_data = member.get("profile") or {}
+
+    first_join = _safe_int(profile_data.get("first_join") or member.get("first_join"))
+    last_save = _safe_int(profile_data.get("last_save") or member.get("last_save"))
+
+    inventory = member.get("inventory") or {}
+    has_inventory = bool(inventory.get("inv_contents"))
+    has_stats = bool(member.get("player_stats"))
+    has_xp = bool((member.get("player_data") or {}).get("experience"))
+    has_pets = bool((member.get("pets_data") or {}).get("pets"))
+
+    confirmed = bool((profile_data.get("coop_invitation") or {}).get("confirmed", True))
+
+    activity_ts = last_save or first_join
+    current_ms = now_ms if now_ms is not None else int(datetime.now(timezone.utc).timestamp() * 1000)
+    recent = activity_ts > 0 and (current_ms - activity_ts) <= ACTIVE_MEMBER_WINDOW_MS
+
+    has_data = has_inventory or has_stats or has_xp or has_pets
+
+    # Treat members as active only when we have data and recent activity within the window
+    return confirmed and has_data and recent
 
 
 def compute_skyblock_level(member: Dict[str, Any]) -> SkyBlockLevel:
@@ -124,6 +157,11 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dic
     if not member:
         return None
 
+    def _active_members_count() -> int:
+        now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+        active = sum(1 for data in members.values() if is_active_member(data, now_ms=now_ms))
+        return active
+
     cute_name = profile.get("cute_name")
     profile_id = profile.get("profile_id")
     game_mode = profile.get("game_mode") or profile.get("mode")
@@ -152,7 +190,7 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dic
             "profile_id": profile_id,
             "cute_name": cute_name,
             "game_mode": game_mode,
-            "member_count": len(members),
+            "member_count": _active_members_count(),
             "last_save": last_save,
             "last_save_iso": last_save_iso,
         },

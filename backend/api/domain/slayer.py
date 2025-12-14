@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 # Boss-specific XP thresholds (level 0..9). These differ slightly for some bosses in early levels.
 BOSS_LEVELS = {
@@ -27,7 +27,7 @@ def xp_to_level(boss: str, xp: int) -> int:
 BOSSES = ["zombie", "spider", "wolf", "enderman", "blaze", "vampire"]
 
 
-def level_from_claimed(claimed: Dict[str, Any]) -> int | None:
+def level_from_claimed(claimed: Dict[str, Any]) -> Optional[int]:
     """
     Hypixel stores claimed_levels like {"level_1": true, "level_2": true, ...}.
     We prefer this over XP because some slayers (e.g., Riftstalker Bloodfiend) have

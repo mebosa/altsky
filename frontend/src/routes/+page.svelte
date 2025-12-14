@@ -1,10 +1,28 @@
 ﻿<script lang="ts">
   import { goto } from '$app/navigation';
+  import { get } from '$lib/api';
   import { loadRecent, saveRecent } from '$lib/utils';
 
   const appVersion = import.meta.env?.VITE_APP_VERSION ?? 'v1';
   const siteBase = import.meta.env?.VITE_SITE_BASE ?? 'https://altsky.info';
-  const sitePreviewImage = `${siteBase.replace(/\/$/, '')}/api/og/site.png`;
+  // 항상 HTTPS로 정규화
+  const normalizedBase = siteBase.replace(/^http:/, 'https:');
+  const siteUrl = `${normalizedBase.replace(/\/$/, '')}/`;
+  // Bump version to force social preview cache refresh (Kakao/Twitter/Facebook)
+  // Use path-based cache buster (query can be stripped by some scrapers)
+  const sitePreviewImage = `${normalizedBase.replace(/\/$/, '')}/api/og/site-v2.png`;
+  const sitePreviewImageSecure = sitePreviewImage;
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'AltSky',
+    url: siteUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}u/{player}`,
+      'query-input': 'required name=player'
+    }
+  };
 
   let name = '';
   let recent: string[] = [];
@@ -24,7 +42,14 @@
     };
   }
 
-  // Debounced `toUser` - validates input, saves recent, and navigates.
+  function prefetchPlayer(name: string) {
+    const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
+    void get(`/api/player/${encodedName}`, { query: { prefetch: '1' } }).catch(() => {
+      // Prefetch failures are non-blocking; ignore silently.
+    });
+  }
+
+  // Debounced `toUser` - validates input, prefetches data, saves recent, and navigates.
   const toUser = debounce(async (raw: string) => {
     if (isLoading) return;
     isLoading = true;
@@ -44,6 +69,8 @@
         searchError = 'Username is too long. Maximum length is 16 characters.';
         return;
       }
+
+      prefetchPlayer(sanitizedValue);
 
       // Save recent and update local list
       await saveRecent(sanitizedValue);
@@ -91,14 +118,19 @@
   <meta property="og:title" content="AltSky · Hypixel SkyBlock lookup" />
   <meta property="og:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
   <meta property="og:image" content={sitePreviewImage} />
+  <meta property="og:image:secure_url" content={sitePreviewImageSecure} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://altsky.info/" />
+  <meta property="og:url" content={siteUrl} />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="AltSky · Hypixel SkyBlock lookup" />
   <meta name="twitter:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
   <meta name="twitter:image" content={sitePreviewImage} />
+  <link rel="canonical" href={siteUrl} />
+  <script type="application/ld+json">
+    {JSON.stringify(structuredData)}
+  </script>
 </svelte:head>
 
 <style>

@@ -97,14 +97,18 @@ RUNECRAFTING_XP_TABLE = [
 
 SKILL_XP_TABLES: Dict[str, List[int]] = {
     "runecrafting": RUNECRAFTING_XP_TABLE,
+    # Social uses the same curve/cap as Runecrafting.
+    "social": RUNECRAFTING_XP_TABLE,
 }
 
 MAX_SKILL_LEVELS: Dict[str, int] = {
     "fishing": 50,
-    "foraging": 54,
+    "foraging": 50,
     "alchemy": 50,
+    "taming": 50,
     "carpentry": 50,
     "runecrafting": len(RUNECRAFTING_XP_TABLE) - 1,
+    "social": len(RUNECRAFTING_XP_TABLE) - 1,
 }
 DEFAULT_MAX_SKILL_LEVEL = 60
 

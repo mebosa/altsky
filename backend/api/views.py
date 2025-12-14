@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from .decorators import rate_limit
 from .domain.item_textures import load_furfsky_texture
-from .domain.profile_summary import summarize_profile
+from .domain.profile_summary import is_active_member, summarize_profile
 
 LOGGER = logging.getLogger(__name__)
 
@@ -161,8 +161,16 @@ def _get_player_lookup_result(name: str) -> Tuple[Dict[str, Any], int]:
 
         raw_profiles = body.get('profiles') or []
         profiles = []
+        now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
         for raw in raw_profiles:
             members = raw.get('members') or {}
+
+            active_members = sum(
+                1 for data in members.values() if is_active_member(data, now_ms=now_ms)
+            )
+            # Count only active coop members to avoid inflating with historical entries
+            member_count = active_members
+
             profiles.append(
                 {
                     'profile_id': raw.get('profile_id') or raw.get('uuid'),
@@ -171,7 +179,7 @@ def _get_player_lookup_result(name: str) -> Tuple[Dict[str, Any], int]:
                     'game_mode': raw.get('game_mode'),
                     'last_save': raw.get('last_save'),
                     'last_save_iso': raw.get('last_save_iso') or raw.get('lastSaveIso'),
-                    'member_count': len(members),
+                    'member_count': member_count,
                 }
             )
 
@@ -403,18 +411,22 @@ def _decode_preview_payload(encoded: Optional[str]) -> Optional[Dict[str, Any]]:
 
 
 def _draw_preview_background(width: int, height: int) -> Image.Image:
-    base = Image.new('RGBA', (width, height), (6, 10, 24, 255))
+    base = Image.new('RGBA', (width, height), (7, 10, 24, 255))
     overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
+    draw.rectangle((0, height * 0.55, width, height), fill=(5, 8, 18, 235))
     draw.ellipse(
-        (-width * 0.4, -height * 0.25, width * 0.45, height * 0.7),
-        fill=(90, 62, 196, 185),
+        (-width * 0.45, -height * 0.65, width * 0.55, height * 0.35),
+        fill=(62, 90, 220, 120),
     )
     draw.ellipse(
-        (width * 0.25, -height * 0.35, width * 1.2, height * 0.9),
-        fill=(44, 120, 255, 150),
+        (width * 0.15, -height * 0.3, width * 1.2, height * 0.9),
+        fill=(28, 113, 241, 95),
     )
-    draw.rectangle((0, height * 0.58, width, height), fill=(3, 7, 18, 190))
+    draw.ellipse(
+        (-width * 0.15, height * 0.35, width * 0.65, height * 1.3),
+        fill=(22, 170, 190, 70),
+    )
     return Image.alpha_composite(base, overlay)
 
 
@@ -423,86 +435,33 @@ def _render_player_preview_image(payload: Dict[str, Any], fallback_name: str) ->
     canvas = _draw_preview_background(width, height)
     draw = ImageDraw.Draw(canvas)
 
-    heading_font = _load_font(38, 'regular')
-    name_font = _load_font(96, 'semibold')
-    info_font = _load_font(30, 'regular')
-    pill_font = _load_font(28, 'regular')
-    card_title_font = _load_font(30, 'semibold')
-    card_body_font = _load_font(24, 'regular')
+    label_font = _load_font(52, 'regular')
+    name_font = _load_font(160, 'semibold')
+    stat_font = _load_font(76, 'semibold')
+    info_font = _load_font(56, 'regular')
 
     player_name = (payload.get('name') or fallback_name).strip() or fallback_name
     profile_list = payload.get('profiles') or []
     profile_count = len(profile_list)
-    cache_line = _format_last_updated(payload.get('last_updated'))
-    uuid = payload.get('uuid')
-    uuid_line = f'UUID {uuid[:8]}…' if isinstance(uuid, str) and len(uuid) >= 8 else 'UUID unavailable'
-    cards = _build_profile_cards(profile_list)
 
-    draw.text((70, 80), 'AltSky · Player Preview', font=heading_font, fill=(186, 200, 224))
-    draw.text((70, 150), player_name, font=name_font, fill=(247, 249, 255))
-
-    pill_text = f'{profile_count} profile{"s" if profile_count != 1 else ""}'
-    bbox = draw.textbbox((0, 0), pill_text, font=pill_font)
-    pill_width = bbox[2] - bbox[0]
-    pill_height = bbox[3] - bbox[1]
-    pill_left = 70
-    pill_top = 250
-    draw.rounded_rectangle(
-        (pill_left, pill_top, pill_left + pill_width + 36, pill_top + pill_height + 18),
-        radius=24,
-        fill=(32, 46, 86, 235),
-        outline=(120, 135, 255, 160),
-    )
-    draw.text((pill_left + 18, pill_top + 8), pill_text, font=pill_font, fill=(224, 231, 255))
-
-    draw.text((70, 320), cache_line, font=info_font, fill=(205, 214, 233))
-    draw.text((70, 365), uuid_line, font=info_font, fill=(205, 214, 233))
-
-    panel_top = 410
-    panel_left = 60
-    panel_right = width - 60
-    panel_bottom = height - 70
-    draw.rounded_rectangle(
-        (panel_left, panel_top, panel_right, panel_bottom),
-        radius=40,
-        fill=(12, 16, 36, 235),
-        outline=(90, 104, 196, 120),
+    draw.text((80, 40), 'AltSky', font=label_font, fill=(194, 205, 230))
+    draw.text((80, 100), player_name, font=name_font, fill=(247, 249, 255))
+    draw.text(
+        (80, 280),
+        f"{profile_count} profile{'s' if profile_count != 1 else ''}",
+        font=stat_font,
+        fill=(226, 232, 255),
     )
 
-    column_count = max(1, min(3, len(cards)))
-    gutter = 24
-    card_width = (panel_right - panel_left - gutter * (column_count - 1)) / column_count
-    card_height = panel_bottom - panel_top - 40
-
-    for idx, card in enumerate(cards[:column_count]):
-        x0 = panel_left + idx * (card_width + gutter) + 20
-        y0 = panel_top + 20
-        x1 = x0 + card_width - 40
-        y1 = y0 + card_height
-        draw.rounded_rectangle(
-            (x0, y0, x1, y1),
-            radius=28,
-            fill=(20, 26, 58, 255),
-            outline=(126, 140, 228, 90),
-        )
-        draw.text((x0 + 24, y0 + 24), card['label'], font=card_title_font, fill=(245, 248, 255))
-        draw.text((x0 + 24, y0 + 72), card['mode'], font=card_body_font, fill=(190, 200, 231))
-        draw.text((x0 + 24, y0 + 108), card['members'], font=card_body_font, fill=(190, 200, 231))
-        draw.text((x0 + 24, y0 + 144), card['last_save'], font=card_body_font, fill=(190, 200, 231))
+    footer = f'altsky.info/u/{fallback_name}'
+    draw.text((80, height - 80), footer, font=info_font, fill=(168, 178, 209))
 
     if payload.get('error'):
         error_message = payload.get('message') or payload.get('error')
-        draw.text(
-            (70, height - 40),
-            f'⚠ {error_message}',
-            font=info_font,
-            fill=(248, 130, 130),
-        )
-    else:
-        footer = f'altsky.info/u/{fallback_name}'
-        draw.text((70, height - 40), footer, font=info_font, fill=(168, 178, 209))
+        draw.text((80, height - 80), f"⚠ {error_message}", font=info_font, fill=(248, 130, 130))
 
     return canvas.convert('RGB')
+
 
 
 def _render_site_preview_image() -> Image.Image:
@@ -510,68 +469,61 @@ def _render_site_preview_image() -> Image.Image:
     canvas = _draw_preview_background(width, height)
     draw = ImageDraw.Draw(canvas)
 
-    hero_font = _load_font(110, 'semibold')
-    sub_font = _load_font(38, 'regular')
-    chip_font = _load_font(32, 'regular')
-    card_title_font = _load_font(34, 'semibold')
-    card_body_font = _load_font(26, 'regular')
+    hero_font = _load_font(170, 'semibold')
+    sub_font = _load_font(60, 'semibold')
+    chip_font = _load_font(46, 'regular')
+    panel_title_font = _load_font(50, 'semibold')
+    panel_body_font = _load_font(40, 'regular')
 
     draw.text((80, 80), 'AltSky', font=hero_font, fill=(247, 249, 255))
     draw.text(
-        (80, 200),
-        'Hypixel SkyBlock companion focused on calm visuals',
+        (80, 230),
+        'Hypixel SkyBlock lookup',
         font=sub_font,
-        fill=(202, 210, 230),
+        fill=(218, 224, 240),
     )
 
-    chip_text = 'Fast player lookups · Wardrobe & accessories'
+    chip_text = 'Player preview · Wardrobe · Accessories'
     bbox = draw.textbbox((0, 0), chip_text, font=chip_font)
     draw.rounded_rectangle(
-        (80, 250, 80 + bbox[2] + 40, 250 + bbox[3] + 24),
+        (80, 330, 80 + bbox[2] + 40, 330 + bbox[3] + 28),
         radius=28,
         fill=(32, 46, 86, 235),
         outline=(120, 135, 255, 160),
     )
-    draw.text((100, 260), chip_text, font=chip_font, fill=(224, 231, 255))
+    draw.text((100, 340), chip_text, font=chip_font, fill=(224, 231, 255))
 
-    draw.text(
-        (80, 340),
-        'Inspect player profiles, live armor, magical power, and more with a single link.',
-        font=card_body_font,
-        fill=(200, 208, 232),
-    )
-
-    panel_left = width * 0.52
+    panel_left = width * 0.55
     panel_top = 120
     panel_right = width - 80
     panel_bottom = height - 80
     draw.rounded_rectangle(
         (panel_left, panel_top, panel_right, panel_bottom),
-        radius=36,
+        radius=34,
         fill=(15, 20, 42, 235),
-        outline=(116, 130, 220, 120),
+        outline=(90, 104, 196, 120),
     )
 
     feature_cards = [
         {
-            'title': 'Player preview cards',
+            'title': 'Player previews',
             'lines': [
-                'Share /u/<name> links to show live stats',
-                'Auto-updates with Hypixel cache',
+                'Share /u/<name> links instantly',
+                'Shows live cache & UUID',
             ],
         },
         {
-            'title': 'Wardrobe insight',
+            'title': 'Wardrobe snapshot',
             'lines': [
-                'FurfSky textures rendered server-side',
-                'Highlights currently equipped armor',
+                'Server-side FurfSky textures',
+                'Equipped armor highlighted',
             ],
         },
         {
             'title': 'Accessories & tuning',
             'lines': [
-                'Counts magical power including Abicase',
-                'Readable tuning breakdown by power',
+                'Magical power counted cleanly',
+                'Readable tuning breakdown',
             ],
         },
     ]
@@ -580,28 +532,29 @@ def _render_site_preview_image() -> Image.Image:
     for idx, feature in enumerate(feature_cards):
         top = panel_top + 20 + idx * (card_height + 20)
         draw.rounded_rectangle(
-            (panel_left + 24, top, panel_right - 24, top + card_height),
+            (panel_left + 26, top, panel_right - 26, top + card_height),
             radius=26,
             fill=(23, 28, 62, 255),
             outline=(126, 140, 228, 90),
         )
-        draw.text((panel_left + 50, top + 20), feature['title'], font=card_title_font, fill=(247, 249, 255))
+        draw.text((panel_left + 50, top + 22), feature['title'], font=panel_title_font, fill=(247, 249, 255))
         for line_idx, line in enumerate(feature['lines']):
             draw.text(
-                (panel_left + 50, top + 70 + line_idx * 34),
+                (panel_left + 50, top + 80 + line_idx * 36),
                 f'• {line}',
-                font=card_body_font,
+                font=panel_body_font,
                 fill=(196, 205, 230),
             )
 
     draw.text(
         (80, height - 70),
-        'altsky.info · Explore Hypixel SkyBlock calmly',
-        font=card_body_font,
+        'altsky.info · Calm Hypixel SkyBlock lookup',
+        font=panel_body_font,
         fill=(176, 186, 214),
     )
 
     return canvas.convert('RGB')
+
 
 
 @api_view(['GET'])
@@ -618,7 +571,8 @@ def player_preview_image(request: Request, name: str) -> HttpResponse:
     image.save(buffer, format='PNG', optimize=True)
     buffer.seek(0)
     response = HttpResponse(buffer.getvalue(), content_type='image/png')
-    response['Cache-Control'] = 'public, max-age=600'
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    response['Pragma'] = 'no-cache'
     return response
 
 
@@ -629,5 +583,18 @@ def site_preview_image(_: Request) -> HttpResponse:
     image.save(buffer, format='PNG', optimize=True)
     buffer.seek(0)
     response = HttpResponse(buffer.getvalue(), content_type='image/png')
-    response['Cache-Control'] = 'public, max-age=1800'
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    return response
+
+
+@api_view(['GET'])
+def site_preview_image_v2(_: Request) -> HttpResponse:
+    image = _render_site_preview_image()
+    buffer = BytesIO()
+    image.save(buffer, format='PNG', optimize=True)
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type='image/png')
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    response['Pragma'] = 'no-cache'
     return response

@@ -24,16 +24,17 @@ from .wardrobe import (
 Identifier = Optional[str]
 
 MAGICAL_POWER_BY_RARITY = {
+    # Source: Hypixel Wiki (Magical Power) — per-accessory MP by rarity
     "COMMON": 3,
     "UNCOMMON": 5,
     "RARE": 8,
     "EPIC": 12,
     "LEGENDARY": 16,
     "MYTHIC": 22,
-    "DIVINE": 22,  # Same tier as Mythic for accessories that reach Divine
+    "DIVINE": 22,
     "SPECIAL": 3,
     "VERY SPECIAL": 5,
-    "SUPREME": 22,  # Legacy rarity that now maps to Divine
+    "SUPREME": 22,
 }
 
 DOUBLE_MAGICAL_POWER_IDS = {
@@ -327,7 +328,8 @@ def _parse_accessory_items(
         if counted_key and counted_key not in counted_ids:
             extra_mp = 0
             if accessory["abiphone_contacts"] is not None and (accessory["id"] or "").upper() in ABICASE_IDS:
-                extra_mp = max(0, accessory["abiphone_contacts"] // 2)
+                # Abicase: +1 MP per 2 contacts, capped at +10 MP (wiki)
+                extra_mp = min(10, max(0, accessory["abiphone_contacts"] // 2))
             magical_power_total += _magical_power_for_item(accessory["id"], display_rarity) + extra_mp
             counted_ids.add(counted_key)
 
@@ -338,6 +340,7 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
     inventory = member.get("inventory") or {}
     storage = member.get("accessory_bag_storage") or inventory.get("accessory_bag_storage") or {}
     bag_contents = inventory.get("bag_contents") or {}
+    talisman_bag = bag_contents.get("talisman_bag") if isinstance(bag_contents, dict) else {}
 
     sources = [
         storage,
@@ -365,20 +368,14 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(storage, dict):
         total_slots = max(total_slots, _safe_int(storage.get("bag_size"), 0))
 
-    magical_power = _safe_int(
-        (storage or {}).get("magical_power")
-        if isinstance(storage, dict)
-        else 0,
-        0,
-    )
-    highest_magical_power = _safe_int(
-        (storage or {}).get("highest_magical_power")
-        if isinstance(storage, dict)
-        else 0,
-        magical_power,
-    )
-    magical_power = max(magical_power, calculated_magical_power)
-    highest_magical_power = max(highest_magical_power, calculated_magical_power)
+    storage_magical_power = _safe_int((storage or {}).get("magical_power") if isinstance(storage, dict) else 0, 0)
+    bag_magical_power = _safe_int((talisman_bag or {}).get("magical_power") if isinstance(talisman_bag, dict) else 0, 0)
+    storage_highest_mp = _safe_int((storage or {}).get("highest_magical_power") if isinstance(storage, dict) else 0, 0)
+    bag_highest_mp = _safe_int((talisman_bag or {}).get("highest_magical_power") if isinstance(talisman_bag, dict) else 0, 0)
+
+    # Use the most generous value provided (server authoritative numbers can include buffs or dungeon doubling).
+    magical_power = max(storage_magical_power, bag_magical_power, calculated_magical_power, storage_highest_mp, bag_highest_mp)
+    highest_magical_power = max(storage_highest_mp, bag_highest_mp, magical_power)
 
     selected_power = _format_identifier(storage.get("selected_power") if isinstance(storage, dict) else None)
 
