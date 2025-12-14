@@ -10,7 +10,7 @@
   const siteUrl = `${normalizedBase.replace(/\/$/, '')}/`;
   // Bump version to force social preview cache refresh (Kakao/Twitter/Facebook)
   // Use path-based cache buster (query can be stripped by some scrapers)
-  const sitePreviewImage = `${normalizedBase.replace(/\/$/, '')}/api/og/site-v2.png`;
+  const sitePreviewImage = `${normalizedBase.replace(/\/$/, '')}/api/og/site-v3.png`;
   const sitePreviewImageSecure = sitePreviewImage;
   const structuredData = {
     '@context': 'https://schema.org',

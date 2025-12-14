@@ -42,12 +42,13 @@
     return acc;
   }, {});
   const DEFAULT_ACCENT = 'rgba(120, 137, 255, 0.28)';
-  const ICON_RETRY_LIMIT = 3;
   const ICON_RETRY_BASE_DELAY = 400;
   const ICON_RETRY_BACKOFF = 1.5;
+  const ICON_RETRY_MAX_DELAY = 8000;
   const TEXTURE_PACK_ORDER: TexturePack[] = ['furfsky', 'vanilla'];
   const pendingTintKeys = new Set<string>();
   let tintedIconVersion = 0;
+  const pendingRetryTimers = new WeakMap<HTMLImageElement, number>();
 
   function legacySegmentStyle(segment: LegacySegment) {
     const styles: string[] = [];
@@ -323,9 +324,23 @@
     target.parentElement?.classList.toggle('placeholder', shouldShow);
   }
 
+  function clearRetryTimer(target: HTMLImageElement) {
+    const timerId = pendingRetryTimers.get(target);
+    if (timerId !== undefined) {
+      clearTimeout(timerId);
+      pendingRetryTimers.delete(target);
+    }
+  }
+
+  function computeRetryDelay(attempt: number) {
+    const delay = ICON_RETRY_BASE_DELAY * Math.pow(ICON_RETRY_BACKOFF, attempt);
+    return Math.min(ICON_RETRY_MAX_DELAY, Math.round(delay));
+  }
+
   function handleIconLoad(event: Event) {
     const target = event.currentTarget as HTMLImageElement | null;
     if (!target) return;
+    clearRetryTimer(target);
     delete target.dataset.retryCount;
     delete target.dataset.failed;
     markPlaceholder(target, false);
@@ -336,24 +351,29 @@
     if (!target) return;
     if (!iconUrl) {
       target.dataset.failed = '1';
+      clearRetryTimer(target);
       markPlaceholder(target, true);
       return;
     }
     const attempt = Number(target.dataset.retryCount ?? '0');
-    if (attempt >= ICON_RETRY_LIMIT) {
-      target.dataset.failed = '1';
-      markPlaceholder(target, true);
-      return;
-    }
     const nextAttempt = attempt + 1;
     target.dataset.retryCount = String(nextAttempt);
     target.dataset.failed = '';
-    markPlaceholder(target, false);
-    const delay = Math.round(ICON_RETRY_BASE_DELAY * Math.pow(ICON_RETRY_BACKOFF, attempt));
-    setTimeout(() => {
+    markPlaceholder(target, true);
+    clearRetryTimer(target);
+    const delay = computeRetryDelay(attempt);
+    const timerId = setTimeout(() => {
+      pendingRetryTimers.delete(target);
       if (!target.isConnected) return;
-      target.src = buildCacheBustedUrl(iconUrl, nextAttempt);
+      const nextSrc = buildCacheBustedUrl(iconUrl, nextAttempt);
+      if (target.src === nextSrc) {
+        target.src = '';
+        target.src = nextSrc;
+      } else {
+        target.src = nextSrc;
+      }
     }, delay);
+    pendingRetryTimers.set(target, timerId);
   }
 
   type IconSource = TexturePack | 'legacy';

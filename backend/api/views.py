@@ -477,6 +477,53 @@ def _render_site_preview_image() -> Image.Image:
     return canvas.convert('RGB')
 
 
+def _render_site_preview_image_v3() -> Image.Image:
+    width, height = 1200, 630
+    canvas = _draw_preview_background(width, height)
+
+    overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    overlay_draw.ellipse((-220, -260, 680, 540), fill=(75, 150, 255, 90))
+    overlay_draw.ellipse((520, -160, 1180, 500), fill=(92, 126, 255, 105))
+    overlay_draw.ellipse((260, 240, 1120, 940), fill=(35, 199, 214, 70))
+
+    ribbon = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    ribbon_draw = ImageDraw.Draw(ribbon)
+    for index in range(6):
+        offset = index * 24
+        ribbon_draw.rectangle(
+            (offset - 100, height * 0.55 + offset, width + 200, height * 0.55 + offset + 60),
+            fill=(8, 15, 30, 120 - index * 10),
+        )
+    canvas = Image.alpha_composite(canvas, overlay)
+    canvas = Image.alpha_composite(canvas, ribbon)
+
+    draw = ImageDraw.Draw(canvas)
+    hero_font = _load_font(260, 'semibold')
+
+    text = 'AltSky'
+    shadow_offsets = [(-6, -6), (6, 6)]
+    for dx, dy in shadow_offsets:
+        draw.text(
+            (140 + dx, 200 + dy),
+            text,
+            font=hero_font,
+            fill=(9, 14, 25),
+        )
+    draw.text((140, 200), text, font=hero_font, fill=(247, 249, 255))
+
+    return canvas.convert('RGB')
+
+
+def _build_png_response(image: Image.Image) -> HttpResponse:
+    buffer = BytesIO()
+    image.save(buffer, format='PNG', optimize=True)
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type='image/png')
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    return response
+
 
 @api_view(['GET'])
 def player_preview_image(request: Request, name: str) -> HttpResponse:
@@ -488,34 +535,19 @@ def player_preview_image(request: Request, name: str) -> HttpResponse:
         payload, _ = _get_player_lookup_result(name)
 
     image = _render_player_preview_image(payload, name)
-    buffer = BytesIO()
-    image.save(buffer, format='PNG', optimize=True)
-    buffer.seek(0)
-    response = HttpResponse(buffer.getvalue(), content_type='image/png')
-    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-    response['Pragma'] = 'no-cache'
-    return response
+    return _build_png_response(image)
 
 
 @api_view(['GET'])
 def site_preview_image(_: Request) -> HttpResponse:
-    image = _render_site_preview_image()
-    buffer = BytesIO()
-    image.save(buffer, format='PNG', optimize=True)
-    buffer.seek(0)
-    response = HttpResponse(buffer.getvalue(), content_type='image/png')
-    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-    response['Pragma'] = 'no-cache'
-    return response
+    return _build_png_response(_render_site_preview_image())
 
 
 @api_view(['GET'])
 def site_preview_image_v2(_: Request) -> HttpResponse:
-    image = _render_site_preview_image()
-    buffer = BytesIO()
-    image.save(buffer, format='PNG', optimize=True)
-    buffer.seek(0)
-    response = HttpResponse(buffer.getvalue(), content_type='image/png')
-    response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-    response['Pragma'] = 'no-cache'
-    return response
+    return _build_png_response(_render_site_preview_image())
+
+
+@api_view(['GET'])
+def site_preview_image_v3(_: Request) -> HttpResponse:
+    return _build_png_response(_render_site_preview_image_v3())
