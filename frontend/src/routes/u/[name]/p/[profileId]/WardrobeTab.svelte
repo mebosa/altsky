@@ -555,41 +555,37 @@
     </div>
   {:else}
     {#if equippedDisplayAvailable}
-      <div
-        class="equipped-summary"
+      <section
+        class="wardrobe-hero"
         style={`--rarity-accent:${equippedAccent ?? DEFAULT_ACCENT}`}
       >
-        <div class="equipped-heading">
-          <div class="heading-copy">
-            <span class="equipped-label">Currently Equipped</span>
-            <h3>{equippedSetLabel || 'Custom Mix'}</h3>
+        <header class="hero-headline">
+          <div>
+            <p class="hero-label">Currently Equipped</p>
+            <h2>{equippedSetLabel || 'Custom Mix'}</h2>
             {#if hasLiveEquippedItems}
-              <p class="equipped-note">Showing the armor currently worn in Hypixel.</p>
+              <span class="hero-note">Live data from Hypixel</span>
             {/if}
           </div>
-          <div class="equipped-meta">
+          <div class="hero-chips">
+            {#if hasLiveEquippedItems}
+              <span class="chip chip-live">Live Armor</span>
+            {/if}
+            {#if equippedSetIndex !== null}
+              <span class="chip chip-outline">Set {formatWardrobeSlot(equippedSetIndex)}</span>
+            {/if}
             {#if equippedRarityLabel}
-              <span class="rarity-chip">{equippedRarityLabel} Set</span>
-            {/if}
-            {#if hasLiveEquippedItems}
-              <span class="equipped-slot-pill live">Live Armor</span>
-              {#if equippedSetIndex !== null}
-                <span class="equipped-slot-pill subtle">
-                  Wardrobe Slot {formatWardrobeSlot(equippedSetIndex)}
-                </span>
-              {/if}
-            {:else if equippedSetIndex !== null}
-              <span class="equipped-slot-pill">Wardrobe Slot {formatWardrobeSlot(equippedSetIndex)}</span>
+              <span class="chip">{equippedRarityLabel}</span>
             {/if}
           </div>
-        </div>
-        <div class="equipped-body">
-          <div class="equipped-icons">
+        </header>
+        <div class="hero-grid">
+          <div class="hero-icons">
             {#each equippedGroupItems as item, index (index)}
               {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
               {@const iconSrc = resolveDisplayIcon(item ?? null, tintedIconVersion, $texturePackStore)}
               <div
-                class={`equipped-icon ${iconSrc ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
+                class={`hero-icon ${iconSrc ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
                 style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
               >
                 {#if iconSrc}
@@ -597,30 +593,34 @@
                     src={iconSrc}
                     alt={`${item?.name ?? 'Wardrobe item'} icon`}
                     loading="lazy"
-                    width="60"
-                    height="60"
+                    width="56"
+                    height="56"
                     on:load={handleIconLoad}
                     on:error={(event) => handleIconError(event, iconSrc)}
                   />
+                {:else}
+                  <span>{pieceLabelFromIndex(index).slice(0, 1)}</span>
                 {/if}
-                <span class="equipped-piece">{pieceLabelFromIndex(index)}</span>
+                <small>{pieceLabelFromIndex(index)}</small>
               </div>
             {/each}
           </div>
-          <div class="equipped-details">
+          <div class="hero-details">
             {#if equippedStats.length}
-              <ul class="equipped-stats">
+              <ul class="hero-stats">
                 {#each equippedStats as stat}
                   <li>
                     <span>{stat.label}</span>
-                    <span>{stat.display}</span>
+                    <strong>{stat.display}</strong>
                   </li>
                 {/each}
               </ul>
+            {:else}
+              <p class="hero-placeholder">Equip armor to view combined stats.</p>
             {/if}
             {#if equippedBonuses.length}
-              <div class="equipped-bonuses">
-                <p class="section-label">Full Set Bonus</p>
+              <div class="hero-bonus">
+                <p class="hero-label">Full Set Bonus</p>
                 {#each equippedBonuses as line}
                   <p>{line}</p>
                 {/each}
@@ -628,7 +628,7 @@
             {/if}
           </div>
         </div>
-      </div>
+      </section>
     {:else}
       <div class="card empty-card">
         <p>Equipped armor is not present in the wardrobe slots.</p>
@@ -640,17 +640,20 @@
         {@const groupRarityInfo = selectPrimaryRarity(column.items)}
         {@const groupAccent = groupRarityInfo ? rarityToBackground(groupRarityInfo.raw) : null}
         {@const groupRarityLabel = formatRarityLabel(groupRarityInfo?.raw)}
-        <div
+        <article
           class={`wardrobe-set ${equippedSetIndex === column.setIndex ? 'equipped' : ''} bank-${column.bankIndex}`}
           data-bank={column.bankIndex}
-          style={`--rarity-accent:${groupAccent ?? 'rgba(148, 163, 184, 0.18)'}`}
+          style={`--rarity-accent:${groupAccent ?? 'rgba(148, 163, 184, 0.12)'}`}
         >
-          <div class="set-header">
-            <span class="set-label">Set {formatWardrobeSlot(column.setIndex)}</span>
-            {#if groupRarityLabel}
-              <span class="rarity-chip subtle">{groupRarityLabel}</span>
+          <header class="set-header">
+            <div>
+              <p>Wardrobe Set {formatWardrobeSlot(column.setIndex)}</p>
+              <h4>{groupRarityLabel || 'Unclassified Set'}</h4>
+            </div>
+            {#if equippedSetIndex === column.setIndex}
+              <span class="chip chip-live">Equipped</span>
             {/if}
-          </div>
+          </header>
           <div class="set-slots">
             {#each column.items as item, index (index)}
               {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
@@ -733,7 +736,7 @@
               </button>
             {/each}
           </div>
-        </div>
+        </article>
       {/each}
     </div>
   {/if}
@@ -753,286 +756,209 @@
     color: var(--theme-text-soft);
   }
 
-  .equipped-summary {
-    position: relative;
+  .wardrobe-hero {
+    border-radius: 24px;
+    border: 1px solid var(--rarity-accent, rgba(99, 102, 241, 0.35));
+    padding: 26px 28px;
+    background: linear-gradient(135deg, rgba(12, 16, 30, 0.95), rgba(7, 9, 16, 0.92));
+    box-shadow: 0 18px 32px rgba(3, 6, 15, 0.6);
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    padding: 26px 28px;
-    border-radius: 24px;
-    border: 1px solid var(--rarity-accent, rgba(99, 102, 241, 0.4));
-    background: rgba(6, 11, 30, 0.92);
-    box-shadow: 0 18px 34px rgba(2, 6, 23, 0.55);
-    overflow: hidden;
+    gap: 24px;
   }
 
-  .equipped-summary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.06),
-        transparent 45%
-      ),
-      radial-gradient(
-        circle at 0% 0%,
-        var(--rarity-accent, rgba(99, 102, 241, 0.3)),
-        transparent 65%
-      );
-    opacity: 0.9;
-    pointer-events: none;
-  }
-
-  .equipped-heading {
+  .hero-headline {
     display: flex;
     justify-content: space-between;
-    gap: 24px;
+    gap: 20px;
     align-items: flex-start;
-    position: relative;
-    z-index: 1;
+    flex-wrap: wrap;
   }
 
-  .heading-copy {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .equipped-label {
+  .hero-label {
     text-transform: uppercase;
-    letter-spacing: 0.2em;
-    font-size: 0.75rem;
-    color: rgba(248, 250, 252, 0.7);
+    letter-spacing: 0.18em;
+    font-size: 0.72rem;
+    color: rgba(248, 250, 252, 0.65);
+    margin-bottom: 6px;
   }
 
-  .heading-copy h3 {
+  .hero-headline h2 {
     margin: 0;
-    font-size: 1.6rem;
+    font-size: 1.7rem;
     color: #fff;
   }
 
-  .equipped-meta {
+  .hero-note {
+    display: inline-block;
+    margin-top: 6px;
+    color: rgba(226, 232, 240, 0.8);
+    font-size: 0.85rem;
+  }
+
+  .hero-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    justify-content: flex-end;
   }
 
-  .rarity-chip {
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
+  .chip {
     border-radius: 999px;
     padding: 6px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
     font-size: 0.78rem;
     font-weight: 600;
-    letter-spacing: 0.05em;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
   }
 
-  .rarity-chip.subtle {
-    color: var(--theme-text);
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.08);
+  .chip-outline {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
   }
 
-  .equipped-slot-pill {
-    background: rgba(15, 23, 42, 0.4);
-    color: #e0e7ff;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  .chip-live {
+    border-color: rgba(94, 234, 212, 0.45);
+    background: rgba(94, 234, 212, 0.15);
+    color: #ccfbf1;
   }
 
-  .equipped-slot-pill.live {
-    background: rgba(59, 130, 246, 0.18);
-    border-color: rgba(59, 130, 246, 0.4);
-    color: #bfdbfe;
-  }
-
-  .equipped-slot-pill.subtle {
-    background: rgba(15, 23, 42, 0.25);
-    border-color: rgba(226, 232, 240, 0.18);
-    color: rgba(226, 232, 240, 0.85);
-  }
-
-  .equipped-note {
-    margin: 4px 0 0;
-    font-size: 0.8rem;
-    color: rgba(226, 232, 240, 0.78);
-  }
-
-  .equipped-body {
-    position: relative;
-    z-index: 1;
+  .hero-grid {
     display: grid;
-    grid-template-columns: minmax(240px, 0.9fr) minmax(240px, 1fr);
+    grid-template-columns: minmax(260px, 0.9fr) minmax(260px, 1fr);
     gap: 20px;
-    align-items: stretch;
   }
 
-  .equipped-icons {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    padding: 16px;
+  .hero-icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
+    background: rgba(6, 11, 24, 0.7);
     border-radius: 18px;
-    background: rgba(2, 6, 23, 0.45);
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    box-shadow: inset 0 0 24px rgba(15, 23, 42, 0.35);
-    justify-content: flex-start;
+    padding: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.14);
   }
 
-  .equipped-icon {
-    width: 72px;
-    height: 92px;
+  .hero-icon {
     border-radius: 16px;
-    background: rgba(15, 23, 42, 0.7);
     border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(12, 18, 30, 0.85);
+    padding: 16px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    text-align: center;
   }
 
-  .equipped-icon.placeholder {
-    background: rgba(15, 23, 42, 0.35);
+  .hero-icon.placeholder {
     border-style: dashed;
+    color: rgba(148, 163, 184, 0.7);
   }
 
-  .equipped-icon img {
-    width: 64px;
-    height: 64px;
+  .hero-icon img {
+    width: 56px;
+    height: 56px;
     image-rendering: pixelated;
   }
 
-  .equipped-piece {
-    font-size: 0.78rem;
-    text-transform: uppercase;
+  .hero-icon small {
+    font-size: 0.75rem;
     letter-spacing: 0.12em;
-    color: rgba(248, 250, 252, 0.88);
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.8);
   }
 
-  .equipped-details {
-    background: rgba(2, 6, 23, 0.45);
+  .hero-details {
     border-radius: 18px;
-    border: 1px solid rgba(148, 163, 184, 0.16);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    background: rgba(5, 9, 18, 0.75);
     padding: 18px 22px;
     display: flex;
     flex-direction: column;
     gap: 18px;
   }
 
-  .equipped-stats {
+  .hero-stats {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px 20px;
+    gap: 12px 18px;
   }
 
-  .equipped-stats li {
+  .hero-stats li {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
-    font-weight: 600;
-    color: #f8fafc;
+    gap: 12px;
+    color: rgba(226, 232, 240, 0.9);
   }
 
-  .equipped-stats li span:first-child {
+  .hero-stats strong {
+    font-size: 1rem;
+    color: #fff;
+  }
+
+  .hero-placeholder {
+    margin: 0;
     color: rgba(226, 232, 240, 0.7);
-    font-weight: 500;
   }
 
-  .section-label {
-    margin: 0 0 6px;
-    text-transform: uppercase;
-    font-size: 0.74rem;
-    letter-spacing: 0.18em;
-    color: rgba(226, 232, 240, 0.65);
-  }
-
-  .equipped-bonuses {
-    border-top: 1px solid rgba(148, 163, 184, 0.18);
+  .hero-bonus {
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
     padding-top: 12px;
     color: rgba(248, 250, 252, 0.9);
-  }
-
-  .equipped-bonuses p {
-    margin: 0 0 6px;
-    line-height: 1.45;
   }
 
   .wardrobe-grid {
     display: grid;
     gap: 20px;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
 
   .wardrobe-set {
-    position: relative;
     padding: 18px;
-    border-radius: 22px;
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    background: radial-gradient(
-        circle at 0% 0%,
-        var(--rarity-accent, rgba(99, 102, 241, 0.08)),
-        transparent 65%
-      ),
-      rgba(8, 12, 26, 0.88);
-    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.45);
-    overflow: visible;
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: rgba(10, 13, 22, 0.85);
     display: flex;
     flex-direction: column;
-    min-height: 240px;
-    backdrop-filter: blur(6px);
-  }
-
-  .wardrobe-set::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 35%);
-    opacity: 0.4;
-    pointer-events: none;
-    border-radius: inherit;
-  }
-
-  .wardrobe-set > * {
-    position: relative;
-    z-index: 1;
+    gap: 16px;
+    transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   }
 
   .wardrobe-set.equipped {
-    border-color: var(--rarity-accent, rgba(99, 102, 241, 0.5));
-    box-shadow: 0 28px 50px rgba(2, 6, 23, 0.65);
-    transform: translateY(-4px);
+    border-color: var(--rarity-accent, rgba(99, 102, 241, 0.45));
+    box-shadow: 0 18px 30px rgba(5, 8, 18, 0.6);
+    transform: translateY(-3px);
   }
 
   .set-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
     gap: 12px;
+    align-items: flex-start;
   }
 
-  .set-label {
-    font-weight: 600;
-    color: rgba(248, 250, 252, 0.92);
-    letter-spacing: 0.05em;
-    font-size: 0.9rem;
+  .set-header p {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.7rem;
+    color: rgba(226, 232, 240, 0.65);
+  }
+
+  .set-header h4 {
+    margin: 4px 0 0;
+    font-size: 1.05rem;
+    color: rgba(248, 250, 252, 0.95);
   }
 
   .set-slots {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
     flex: 1;
     min-height: 0;
     margin-top: 4px;
@@ -1041,7 +967,7 @@
   .slot-shell {
     background: none;
     border: none;
-    padding: 10px 12px;
+    padding: 12px 14px;
     width: 100%;
     text-align: left;
     position: relative;
@@ -1051,18 +977,17 @@
     gap: 12px;
     min-height: 0;
     border-radius: 18px;
-    background: rgba(15, 23, 42, 0.45);
-    border: 1px solid rgba(148, 163, 184, 0.14);
+    background: rgba(8, 11, 20, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.16);
     transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-    min-height: 96px;
+    min-height: 90px;
   }
 
   .slot-shell:hover,
   .slot-shell:focus-visible {
     border-color: rgba(226, 232, 240, 0.35);
-    background: rgba(15, 23, 42, 0.6);
-    transform: translateY(-1px);
+    background: rgba(12, 16, 27, 0.95);
+    transform: translateY(-2px);
   }
 
   .slot-icon {
@@ -1176,7 +1101,7 @@
     position: absolute;
     inset: auto auto calc(100% + 12px) 50%;
     transform: translateX(-50%) translateY(4px);
-    background: rgba(15, 23, 42, 0.96);
+    background: rgba(3, 6, 14, 0.96);
     border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 10px;
     padding: 10px 12px;
@@ -1272,47 +1197,24 @@
   }
 
   @media (max-width: 900px) {
-    .equipped-body {
+    .hero-grid {
       grid-template-columns: 1fr;
     }
 
-    .equipped-icons {
-      justify-content: flex-start;
+    .hero-headline {
+      flex-direction: column;
     }
   }
 
   @media (max-width: 640px) {
-    .set-slots {
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    .wardrobe-hero {
+      padding: 22px;
+    }
+
+    .set-header {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 </style>
-  function guessPieceIndex(item: WardrobeItem | null): number | null {
-    if (!item) return null;
-    const id = (item.id ?? '').toString().toLowerCase();
-    const name = (item.name ?? '').toLowerCase();
 
-    const helmetTokens = ['helmet', 'mask', 'helm', 'head', 'cap', 'hat', 'crown', 'visor'];
-    const chestTokens = ['chestplate', 'chest', 'shirt', 'mail', 'robe', 'tunic', 'jacket', 'top', 'harness'];
-    const legsTokens = ['leggings', 'legs', 'pants', 'trousers', 'skirt', 'greaves'];
-    const bootsTokens = ['boots', 'shoes', 'sandals', 'sabatons', 'feet', 'foot', 'striders'];
-
-    const tokenSets: [string[], number][] = [
-      [helmetTokens, 0],
-      [chestTokens, 1],
-      [legsTokens, 2],
-      [bootsTokens, 3]
-    ];
-
-    for (const [tokens, index] of tokenSets) {
-      if (tokens.some((token) => id.includes(token))) {
-        return index;
-      }
-    }
-    for (const [tokens, index] of tokenSets) {
-      if (tokens.some((token) => name.includes(token))) {
-        return index;
-      }
-    }
-    return null;
-  }

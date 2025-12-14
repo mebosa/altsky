@@ -469,89 +469,10 @@ def _render_site_preview_image() -> Image.Image:
     canvas = _draw_preview_background(width, height)
     draw = ImageDraw.Draw(canvas)
 
-    hero_font = _load_font(170, 'semibold')
-    sub_font = _load_font(60, 'semibold')
-    chip_font = _load_font(46, 'regular')
-    panel_title_font = _load_font(50, 'semibold')
-    panel_body_font = _load_font(40, 'regular')
+    hero_font = _load_font(200, 'semibold')
 
-    draw.text((80, 80), 'AltSky', font=hero_font, fill=(247, 249, 255))
-    draw.text(
-        (80, 230),
-        'Hypixel SkyBlock lookup',
-        font=sub_font,
-        fill=(218, 224, 240),
-    )
-
-    chip_text = 'Player preview · Wardrobe · Accessories'
-    bbox = draw.textbbox((0, 0), chip_text, font=chip_font)
-    draw.rounded_rectangle(
-        (80, 330, 80 + bbox[2] + 40, 330 + bbox[3] + 28),
-        radius=28,
-        fill=(32, 46, 86, 235),
-        outline=(120, 135, 255, 160),
-    )
-    draw.text((100, 340), chip_text, font=chip_font, fill=(224, 231, 255))
-
-    panel_left = width * 0.55
-    panel_top = 120
-    panel_right = width - 80
-    panel_bottom = height - 80
-    draw.rounded_rectangle(
-        (panel_left, panel_top, panel_right, panel_bottom),
-        radius=34,
-        fill=(15, 20, 42, 235),
-        outline=(90, 104, 196, 120),
-    )
-
-    feature_cards = [
-        {
-            'title': 'Player previews',
-            'lines': [
-                'Share /u/<name> links instantly',
-                'Shows live cache & UUID',
-            ],
-        },
-        {
-            'title': 'Wardrobe snapshot',
-            'lines': [
-                'Server-side FurfSky textures',
-                'Equipped armor highlighted',
-            ],
-        },
-        {
-            'title': 'Accessories & tuning',
-            'lines': [
-                'Magical power counted cleanly',
-                'Readable tuning breakdown',
-            ],
-        },
-    ]
-
-    card_height = (panel_bottom - panel_top - 60) / len(feature_cards)
-    for idx, feature in enumerate(feature_cards):
-        top = panel_top + 20 + idx * (card_height + 20)
-        draw.rounded_rectangle(
-            (panel_left + 26, top, panel_right - 26, top + card_height),
-            radius=26,
-            fill=(23, 28, 62, 255),
-            outline=(126, 140, 228, 90),
-        )
-        draw.text((panel_left + 50, top + 22), feature['title'], font=panel_title_font, fill=(247, 249, 255))
-        for line_idx, line in enumerate(feature['lines']):
-            draw.text(
-                (panel_left + 50, top + 80 + line_idx * 36),
-                f'• {line}',
-                font=panel_body_font,
-                fill=(196, 205, 230),
-            )
-
-    draw.text(
-        (80, height - 70),
-        'altsky.info · Calm Hypixel SkyBlock lookup',
-        font=panel_body_font,
-        fill=(176, 186, 214),
-    )
+    # Only render the brand name, no other text or panels
+    draw.text((80, 180), 'AltSky', font=hero_font, fill=(247, 249, 255))
 
     return canvas.convert('RGB')
 
