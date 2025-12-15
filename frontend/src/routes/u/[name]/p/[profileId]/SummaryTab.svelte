@@ -2,11 +2,19 @@
   import StatChip from '$lib/components/StatChip.svelte';
   import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
   import { formatNumber, formatPercent, formatLargeNumber } from '$lib/utils';
-  import type { ProfileSummaryResponse, Player } from './profileTypes';
+  import type { ProfileSummaryResponse, Player, WardrobeItem } from './profileTypes';
 
   export let summary: ProfileSummaryResponse;
-  export let statLabels: Record<string, string>;
   export let player: Player | null = null;
+
+  type ModelMode = 'naked' | 'armor';
+  let modelMode: ModelMode = 'armor';
+
+  $: equippedArmor = (summary?.wardrobe?.equipped_items ?? []) as (WardrobeItem | null)[];
+  $: helmet = equippedArmor?.[0] ?? null;
+  $: chestplate = equippedArmor?.[1] ?? null;
+  $: leggings = equippedArmor?.[2] ?? null;
+  $: boots = equippedArmor?.[3] ?? null;
 </script>
 
 <section id="summary" class="grid summary-grid">
@@ -73,16 +81,71 @@
   </div>
 
   <div class="card model-card">
-    <h3>Character</h3>
+    <div class="model-head">
+      <h3>Character</h3>
+      <div class="model-toggle" role="group" aria-label="Character view">
+        <button
+          type="button"
+          class:selected={modelMode === 'naked'}
+          on:click={() => (modelMode = 'naked')}
+        >
+          벗은 모습
+        </button>
+        <button
+          type="button"
+          class:selected={modelMode === 'armor'}
+          on:click={() => (modelMode = 'armor')}
+        >
+          갑옷
+        </button>
+      </div>
+    </div>
+
     {#if player}
-      <div class="model-container">
-        <img 
-          src={`https://visage.surgeplay.com/full/384/${player.uuid}`} 
-          alt={player.name} 
+      <div class="model-stage" data-mode={modelMode}>
+        <img
+          src={`https://visage.surgeplay.com/full/384/${player.uuid}`}
+          alt={player.name}
           class="player-model"
           loading="lazy"
         />
+
+        {#if modelMode === 'armor'}
+          {#if helmet?.icon_url}
+            <img class="armor armor-helmet" src={helmet.icon_url} alt="Helmet" loading="lazy" />
+          {/if}
+          {#if chestplate?.icon_url}
+            <img class="armor armor-chest" src={chestplate.icon_url} alt="Chestplate" loading="lazy" />
+          {/if}
+          {#if leggings?.icon_url}
+            <img class="armor armor-legs" src={leggings.icon_url} alt="Leggings" loading="lazy" />
+          {/if}
+          {#if boots?.icon_url}
+            <img class="armor armor-boots" src={boots.icon_url} alt="Boots" loading="lazy" />
+          {/if}
+        {/if}
       </div>
+
+      {#if modelMode === 'armor'}
+        {#if helmet || chestplate || leggings || boots}
+          <div class="armor-list" aria-label="Equipped armor">
+            {#each [helmet, chestplate, leggings, boots] as item}
+              {#if item}
+                <div class="armor-item">
+                  {#if item.icon_url}
+                    <img class="armor-icon" src={item.icon_url} alt={item.name} loading="lazy" />
+                  {/if}
+                  <span class="armor-name">{item.name}</span>
+                </div>
+              {/if}
+            {/each}
+          </div>
+        {:else}
+          <p class="model-hint">착용 중인 갑옷 정보를 찾지 못했어요.</p>
+        {/if}
+      {/if}
+    {:else}
+      <p class="model-hint">플레이어 정보를 불러오는 중…</p>
     {/if}
   </div>
 </section>
@@ -152,27 +215,121 @@
   .model-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
     overflow: hidden;
     min-height: 400px;
   }
 
-  .model-container {
-    flex: 1;
+  .model-head {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .model-toggle {
+    display: inline-flex;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--theme-form-border) 85%, transparent);
+    background: color-mix(in srgb, var(--theme-form-bg) 80%, transparent);
+    overflow: hidden;
+  }
+
+  .model-toggle button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--theme-text-soft);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .model-toggle button.selected {
+    background: color-mix(in srgb, var(--theme-accent) 22%, transparent);
+    color: var(--theme-text-primary);
+  }
+
+  .model-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
     width: 100%;
-    margin-top: -20px;
+    padding: 16px 0 8px;
+    margin-top: 6px;
   }
 
   .player-model {
     max-height: 360px;
-    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
-    transition: transform 0.3s ease;
+    width: auto;
   }
-  
-  .player-model:hover {
-    transform: scale(1.05) translateY(-5px);
+
+  .armor {
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--theme-form-bg) 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-form-border) 85%, transparent);
+    box-shadow: var(--neu-elevated);
+  }
+
+  .armor-helmet {
+    top: 34px;
+    left: 50%;
+    transform: translateX(-175px);
+  }
+
+  .armor-chest {
+    top: 150px;
+    left: 50%;
+    transform: translateX(-175px);
+  }
+
+  .armor-legs {
+    top: 238px;
+    left: 50%;
+    transform: translateX(-175px);
+  }
+
+  .armor-boots {
+    top: 320px;
+    left: 50%;
+    transform: translateX(-175px);
+  }
+
+  .armor-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .armor-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--theme-form-bg) 75%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-form-border) 85%, transparent);
+  }
+
+  .armor-icon {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+  }
+
+  .armor-name {
+    color: var(--theme-text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .model-hint {
+    margin-top: 10px;
+    color: var(--theme-text-soft);
+    font-size: 0.95rem;
   }
 </style>

@@ -207,7 +207,8 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
     if achievements:
         member["__achievements"] = achievements
     skills = extract_skills(member)
-    slayer = extract_slayer(member.get("slayer", {}))
+    slayer_data = member.get("slayer") or member.get("slayer_bosses") or {}
+    slayer = extract_slayer(slayer_data)
     dungeons = extract_dungeons(member)
     stats = simplify_stats(member)
     currency = summarize_currencies(member, profile)

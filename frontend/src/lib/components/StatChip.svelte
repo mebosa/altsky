@@ -1,9 +1,8 @@
 <script lang="ts">
-  import type { ComponentType } from 'svelte';
-
   export let label: string;
   export let value: string | number | undefined = '-';
-  export let icon: ComponentType | null = null;
+  // Svelte component constructor typing differs across Svelte versions; keep this permissive.
+  export let icon: any = null;
 </script>
 
 <span class="chip">

@@ -32,6 +32,8 @@
     { id: 'wardrobe', label: 'Wardrobe' }
   ] as const;
 
+  const tabsList: { id: string; label: string }[] = tabs.map((tab) => ({ ...tab }));
+
   type TabId = (typeof tabs)[number]['id'];
 
   let player: Player | null = data.player;
@@ -176,10 +178,10 @@
       <div class="bar"></div>
     </div>
   {:else if summary}
-    <Tabs bind:value={activeTab} {tabs} />
+    <Tabs bind:value={activeTab} tabs={tabsList} />
 
     {#if activeTab === 'summary'}
-      <SummaryTab {summary} {statLabels} {player} />
+      <SummaryTab {summary} {player} />
     {:else if activeTab === 'skills'}
       <SkillsTab {summary} {skillOrder} />
     {:else if activeTab === 'stats'}
