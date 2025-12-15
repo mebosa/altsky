@@ -68,6 +68,40 @@ def is_active_member(member: Dict[str, Any], *, now_ms: Optional[int] = None) ->
     return confirmed and has_data and recent
 
 
+def has_confirmed_membership(member: Dict[str, Any]) -> bool:
+    if not isinstance(member, dict):
+        return False
+
+    profile_data = member.get("profile") or {}
+    invitation = profile_data.get("coop_invitation")
+    confirmed = True
+    if isinstance(invitation, dict):
+        confirmed = bool(invitation.get("confirmed", True))
+    if not confirmed:
+        return False
+
+    first_join = _safe_int(profile_data.get("first_join") or member.get("first_join"))
+    last_save = _safe_int(profile_data.get("last_save") or member.get("last_save"))
+    return first_join > 0 or last_save > 0
+
+
+def count_coop_members(members: Dict[str, Any], *, now_ms: Optional[int] = None) -> int:
+    if not isinstance(members, dict) or not members:
+        return 0
+
+    current_ms = now_ms if now_ms is not None else int(datetime.now(timezone.utc).timestamp() * 1000)
+    confirmed_members = [
+        data for data in members.values() if has_confirmed_membership(data)
+    ]
+    if not confirmed_members:
+        return 0
+
+    active_members = sum(
+        1 for data in confirmed_members if is_active_member(data, now_ms=current_ms)
+    )
+    return max(active_members, len(confirmed_members))
+
+
 def compute_skyblock_level(member: Dict[str, Any]) -> SkyBlockLevel:
     leveling = member.get("leveling", {}) or {}
     experience = _safe_int(leveling.get("experience"))
@@ -157,11 +191,7 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dic
     if not member:
         return None
 
-    def _active_members_count() -> int:
-        now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
-        active = sum(1 for data in members.values() if is_active_member(data, now_ms=now_ms))
-        return active
-
+    now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
     cute_name = profile.get("cute_name")
     profile_id = profile.get("profile_id")
     game_mode = profile.get("game_mode") or profile.get("mode")
@@ -190,7 +220,7 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dic
             "profile_id": profile_id,
             "cute_name": cute_name,
             "game_mode": game_mode,
-            "member_count": _active_members_count(),
+            "member_count": count_coop_members(members, now_ms=now_ms),
             "last_save": last_save,
             "last_save_iso": last_save_iso,
         },

@@ -57,13 +57,73 @@ LEGACY_DYE_COLORS = [
 ]
 
 LEGACY_ID_ALIASES = {
+    1: "stone",
+    2: "grass_block",
+    3: "dirt",
+    4: "cobblestone",
+    5: "oak_planks",
+    7: "bedrock",
+    12: "sand",
+    13: "gravel",
+    14: "gold_ore",
+    15: "iron_ore",
+    16: "coal_ore",
+    17: "oak_log",
+    18: "oak_leaves",
+    19: "sponge",
+    20: "glass",
+    21: "lapis_ore",
+    22: "lapis_block",
+    23: "dispenser",
+    24: "sandstone",
+    25: "note_block",
     35: "wool",
+    41: "gold_block",
+    42: "iron_block",
+    45: "bricks",
+    46: "tnt",
+    47: "bookshelf",
+    48: "mossy_cobblestone",
+    49: "obsidian",
+    50: "torch",
+    52: "spawner",
+    54: "chest",
+    56: "diamond_ore",
+    57: "diamond_block",
+    58: "crafting_table",
+    61: "furnace",
+    73: "redstone_ore",
+    79: "ice",
+    80: "snow_block",
+    82: "clay",
+    84: "jukebox",
+    86: "pumpkin",
+    87: "netherrack",
+    88: "soul_sand",
+    89: "glowstone",
+    91: "jack_o_lantern",
     95: "stained_glass",
+    97: "infested_stone",
     98: "stone_bricks",
+    103: "melon",
+    121: "end_stone",
+    123: "redstone_lamp",
+    129: "emerald_ore",
+    133: "emerald_block",
+    137: "command_block",
+    152: "redstone_block",
+    155: "quartz_block",
+    158: "dropper",
     159: "stained_clay",
     160: "stained_glass_pane",
     162: "log2",
+    165: "slime_block",
+    166: "barrier",
+    170: "hay_block",
     171: "carpet",
+    172: "hardened_clay",
+    173: "coal_block",
+    174: "packed_ice",
     236: "concrete",
     237: "concrete_powder",
 }
@@ -448,13 +508,21 @@ def _build_material_candidates(name: str, durability: Optional[int] = None) -> I
         elif color_key.endswith("_shulker_box"):
             yield f"block/{color}_shulker_box.png"
 
+    # Try item texture first
     candidates = [f"item/{base}.png"]
+
+    # Try block textures with various suffixes
+    candidates.extend([
+        f"block/{base}.png",
+        f"block/{base}_side.png",
+        f"block/{base}_top.png",
+        f"block/{base}_front.png",
+    ])
 
     if base.endswith("_block"):
         trimmed = base[:-6]
         candidates.extend(
             [
-                f"block/{base}.png",
                 f"block/{trimmed}.png",
                 f"block/{trimmed}_side.png",
                 f"block/{trimmed}_top.png",
@@ -479,10 +547,16 @@ def _build_material_candidates(name: str, durability: Optional[int] = None) -> I
 
     if "_" in base:
         tail = base.split("_")[-1]
-        candidates.append(f"item/{tail}.png")
+        candidates.extend([
+            f"item/{tail}.png",
+            f"block/{tail}.png",
+        ])
 
-    # Generic fallback
-    candidates.append("item/diamond.png")
+    # Better generic fallbacks - try common block items
+    candidates.extend([
+        "block/stone.png",
+        "item/barrier.png",
+    ])
 
     seen = set()
     for candidate in candidates:

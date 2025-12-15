@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, Tuple, List, Optional
 
 # Default XP thresholds for most skills (levels 0-60). Last value is placeholder until official tables are published.
 DEFAULT_SKILL_XP_TABLE = [
@@ -67,32 +67,34 @@ DEFAULT_SKILL_XP_TABLE = [
 ]
 
 # RuneCrafting has its own curve and caps at 25.
+# Source: https://hypixel-skyblock.fandom.com/wiki/Runecrafting
 RUNECRAFTING_XP_TABLE = [
     0,
     50,
     150,
-    250,
-    500,
-    1000,
-    2000,
-    3500,
-    6000,
-    10000,
-    15000,
-    21500,
-    30000,
-    40000,
-    52000,
-    66000,
-    82000,
-    100000,
-    120000,
-    150000,
-    200000,
-    275000,
-    380000,
-    525000,
-    700000,
+    275,
+    435,
+    635,
+    885,
+    1200,
+    1600,
+    2100,
+    2725,
+    3510,
+    4510,
+    5760,
+    7325,
+    9325,
+    11825,
+    14950,
+    18950,
+    23950,
+    30200,
+    38050,
+    47850,
+    60100,
+    75400,
+    94400,
 ]
 
 SKILL_XP_TABLES: Dict[str, List[int]] = {
@@ -105,12 +107,22 @@ MAX_SKILL_LEVELS: Dict[str, int] = {
     "fishing": 50,
     "foraging": 50,
     "alchemy": 50,
-    "taming": 50,
+    "taming": 60,
     "carpentry": 50,
     "runecrafting": len(RUNECRAFTING_XP_TABLE) - 1,
     "social": len(RUNECRAFTING_XP_TABLE) - 1,
 }
 DEFAULT_MAX_SKILL_LEVEL = 60
+
+# Base caps and maximum additional cap upgrades available per skill.
+SKILL_LEVEL_CAP_BASES: Dict[str, int] = {
+    "farming": 50,
+    "taming": 50,
+}
+SKILL_LEVEL_CAP_MAX_EXTRA: Dict[str, int] = {
+    "farming": 10,
+    "taming": 10,
+}
 
 # Legacy key (v1) -> Modern key (v2) mapping
 SKILL_KEY_MAP: Dict[str, Tuple[str, str]] = {
@@ -135,30 +147,100 @@ class SkillStat:
     xp: int
     xp_current: int
     xp_for_next: int
+    overflow: int
 
 
-def xp_to_level(skill: str, xp: int) -> SkillStat:
+def xp_to_level(skill: str, xp: int, *, max_level_override: Optional[int] = None) -> SkillStat:
     table = SKILL_XP_TABLES.get(skill, DEFAULT_SKILL_XP_TABLE)
-    max_level = MAX_SKILL_LEVELS.get(skill, DEFAULT_MAX_SKILL_LEVEL)
+    default_max = MAX_SKILL_LEVELS.get(skill, DEFAULT_MAX_SKILL_LEVEL)
+    table_cap = len(table) - 1
+    cap_level = default_max if max_level_override is None else max_level_override
+    cap_level = max(1, min(cap_level, table_cap))
 
     if xp <= 0:
-        return SkillStat(0, 0.0, 0, 0, table[1] - table[0])
+        return SkillStat(0, 0.0, 0, 0, table[1] - table[0], 0)
 
     lvl = 0
-    for i in range(1, min(max_level, len(table) - 1) + 1):
+    for i in range(1, cap_level + 1):
         if xp >= table[i]:
             lvl = i
         else:
             break
 
-    if lvl >= max_level:
-        return SkillStat(max_level, 1.0, xp, xp - table[max_level], 0)
+    if xp >= table[cap_level]:
+        last_gap = table[cap_level] - table[cap_level - 1] if cap_level > 0 else 0
+        overflow = xp - table[cap_level]
+        return SkillStat(cap_level, 1.0, xp, last_gap, 0, overflow)
 
     base = table[lvl]
     need = table[lvl + 1] - base
     have = xp - base
     progress = max(0.0, min(1.0, have / need)) if need > 0 else 1.0
-    return SkillStat(lvl, progress, xp, have, need)
+    return SkillStat(lvl, progress, xp, have, need, 0)
+
+
+def _normalize_skill_key(value: str) -> str:
+    key = (value or "").strip().lower()
+    if key.startswith("skill_"):
+        key = key[6:]
+    for suffix in ("_level_cap", "_level_caps", "_cap", "_caps"):
+        if key.endswith(suffix):
+            key = key[: -len(suffix)]
+    return key
+
+
+def _coerce_cap_count(value: Any) -> int:
+    if isinstance(value, (int, float)):
+        return max(0, int(value))
+    if isinstance(value, str):
+        digits = "".join(ch for ch in value if ch.isdigit())
+        if digits:
+            return int(digits)
+        return 1 if value else 0
+    if isinstance(value, list):
+        return len(value)
+    return 0
+
+
+def _extract_skill_cap_counts(member: Dict[str, Any]) -> Dict[str, int]:
+    """
+    Skill cap upgrades can be stored in multiple places depending on future API changes.
+    Gather the best-known structure into a normalized mapping for downstream use.
+    """
+    caps: Dict[str, int] = {}
+    candidate_sources = []
+    player_data = member.get("player_data") or {}
+    for key in ("skill_level_caps", "skill_caps", "level_cap_upgrades"):
+        raw = player_data.get(key)
+        if isinstance(raw, dict):
+            candidate_sources.append(raw)
+    for key in ("skill_level_caps", "skill_caps"):
+        raw = member.get(key)
+        if isinstance(raw, dict):
+            candidate_sources.append(raw)
+
+    for source in candidate_sources:
+        for raw_key, raw_value in source.items():
+            normalized = _normalize_skill_key(str(raw_key))
+            if not normalized:
+                continue
+            count = _coerce_cap_count(raw_value)
+            if count <= 0:
+                continue
+            current = caps.get(normalized, 0)
+            caps[normalized] = max(current, count)
+    return caps
+
+
+def _resolve_skill_cap(skill: str, unlocked_caps: Dict[str, int]) -> int:
+    normalized = skill.lower()
+    theoretical_max = MAX_SKILL_LEVELS.get(normalized, DEFAULT_MAX_SKILL_LEVEL)
+    base_cap = SKILL_LEVEL_CAP_BASES.get(normalized)
+    if base_cap is None:
+        return theoretical_max
+    max_extra = SKILL_LEVEL_CAP_MAX_EXTRA.get(normalized, 0)
+    unlocked = min(unlocked_caps.get(normalized, 0), max_extra)
+    return min(base_cap + unlocked, theoretical_max)
 
 
 def _skill_xp_from_member(member: Dict[str, Any], legacy_key: str, modern_key: str) -> int:
@@ -186,17 +268,26 @@ def extract_skills(member: Dict[str, Any]) -> Dict[str, Any]:
     out: Dict[str, Any] = {}
     total_lvl = 0.0
     counted = 0
+    cap_counts = _extract_skill_cap_counts(member)
 
     for name, (legacy_key, modern_key) in SKILL_KEY_MAP.items():
         xp = _skill_xp_from_member(member, legacy_key, modern_key)
-        stat = xp_to_level(name, xp)
+        cap_override = _resolve_skill_cap(name, cap_counts)
+        stat = xp_to_level(name, xp, max_level_override=cap_override)
+        unlocked_caps = cap_counts.get(name, 0)
         out[name] = {
             "level": stat.level,
             "progress": stat.progress,
             "xp": stat.xp,
             "current": stat.xp_current,
             "to_next": stat.xp_for_next,
+            "overflow": stat.overflow,
         }
+        if name in SKILL_LEVEL_CAP_BASES:
+            out[name]["cap"] = cap_override
+            out[name]["caps_unlocked"] = min(
+                unlocked_caps, SKILL_LEVEL_CAP_MAX_EXTRA.get(name, unlocked_caps)
+            )
 
         if name not in ("runecrafting", "carpentry", "social"):
             total_lvl += stat.level + stat.progress

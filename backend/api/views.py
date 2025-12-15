@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from .decorators import rate_limit
 from .domain.item_textures import load_furfsky_texture
-from .domain.profile_summary import is_active_member, summarize_profile
+from .domain.profile_summary import count_coop_members, summarize_profile
 
 LOGGER = logging.getLogger(__name__)
 
@@ -224,11 +224,7 @@ def _get_player_lookup_result(name: str) -> Tuple[Dict[str, Any], int]:
         for raw in raw_profiles:
             members = raw.get('members') or {}
 
-            active_members = sum(
-                1 for data in members.values() if is_active_member(data, now_ms=now_ms)
-            )
-            # Count only active coop members to avoid inflating with historical entries
-            member_count = active_members
+            member_count = count_coop_members(members, now_ms=now_ms)
 
             profiles.append(
                 {
