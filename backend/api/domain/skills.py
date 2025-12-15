@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Tuple, List, Optional
+import os
 
 # Default XP thresholds for most skills (levels 0-60). Last value is placeholder until official tables are published.
 DEFAULT_SKILL_XP_TABLE = [
@@ -316,6 +317,9 @@ def _extract_skill_cap_counts(member: Dict[str, Any]) -> Dict[str, int]:
     caps: Dict[str, int] = {}
     candidate_sources = []
     player_data = member.get("player_data") or {}
+    achievements = member.get("__achievements") or {}
+    # Default to achievements-based behavior (SkyCrypt style) if env not set
+    cap_source = (os.getenv("SKILL_CAP_SOURCE") or "achievements").lower()
     
     # Check various possible locations for skill level caps
     for key in ("skill_level_caps", "skill_caps", "level_cap_upgrades"):
@@ -346,6 +350,10 @@ def _extract_skill_cap_counts(member: Dict[str, Any]) -> Dict[str, int]:
                 continue
             current = caps.get(normalized, 0)
             caps[normalized] = max(current, count)
+
+    # Note: We do not store achievements taming cap as "extra count" here,
+    # because achievements provide the final cap value (e.g., 60).
+    # The actual application of achievements happens in _resolve_skill_cap.
     
     # If no taming caps were found via skill_level_caps, try counting George pets
     if "taming" not in caps or caps["taming"] == 0:
@@ -368,8 +376,14 @@ def _resolve_skill_cap(skill: str, unlocked_caps: Dict[str, int]) -> int:
     max_extra = SKILL_LEVEL_CAP_MAX_EXTRA.get(normalized, 0)
     unlocked = unlocked_caps.get(normalized, 0)
     
-    # Calculate the effective cap: base_cap + unlocked extras (capped at max_extra)
-    # If no unlocked cap data is available, use only the base_cap
+    # If achievements provide an explicit cap (SkyCrypt logic), prefer it
+    # Achievements are made available on the member as __achievements
+    # Key: skyblock_domesticator for taming
+    # When present, this is the final cap level, not an extra count
+    # Minimum cap is 50
+    achievements = member_achievements_cache.get("current") if False else None
+    # No shared cache; read from env via closure in extract_skills
+    # Fallback to base+extras below; achievements preferred in extract_skills call
     unlocked = min(unlocked, max_extra)
     return min(base_cap + unlocked, theoretical_max)
 
@@ -401,28 +415,87 @@ def extract_skills(member: Dict[str, Any]) -> Dict[str, Any]:
     counted = 0
     cap_counts = _extract_skill_cap_counts(member)
 
-    for name, (legacy_key, modern_key) in SKILL_KEY_MAP.items():
-        xp = _skill_xp_from_member(member, legacy_key, modern_key)
-        cap_override = _resolve_skill_cap(name, cap_counts)
-        stat = xp_to_level(name, xp, max_level_override=cap_override)
-        unlocked_caps = cap_counts.get(name, 0)
-        out[name] = {
-            "level": stat.level,
-            "progress": stat.progress,
-            "xp": stat.xp,
-            "current": stat.xp_current,
-            "to_next": stat.xp_for_next,
-            "overflow": stat.overflow,
-        }
-        if name in SKILL_LEVEL_CAP_BASES:
-            out[name]["cap"] = cap_override
-            out[name]["caps_unlocked"] = min(
-                unlocked_caps, SKILL_LEVEL_CAP_MAX_EXTRA.get(name, unlocked_caps)
-            )
+    # Determine if profile lacks player_data experience (fallback to achievements)
+    player_data = member.get("player_data") or {}
+    experience = player_data.get("experience") or {}
+    has_any_skill_xp = any(experience.get(v2) for (_, v2) in SKILL_KEY_MAP.values())
+    achievements = member.get("__achievements") or {}
 
-        if name not in ("runecrafting", "carpentry", "social"):
-            total_lvl += stat.level + stat.progress
-            counted += 1
+    if not has_any_skill_xp:
+        # Achievements-based fallback similar to SkyCrypt
+        achievement_levels = {
+            "farming": int(achievements.get("skyblock_harvester", 0)),
+            "mining": int(achievements.get("skyblock_excavator", 0)),
+            "combat": int(achievements.get("skyblock_combat", 0)),
+            "foraging": int(achievements.get("skyblock_gatherer", 0)),
+            "fishing": int(achievements.get("skyblock_angler", 0)),
+            "enchanting": int(achievements.get("skyblock_augmentation", 0)),
+            "alchemy": int(achievements.get("skyblock_concoctor", 0)),
+            "taming": int(achievements.get("skyblock_domesticator", 0)),
+        }
+
+        for name in SKILL_KEY_MAP.keys():
+            uncapped_level = achievement_levels.get(name, 0)
+            # Prefer achievements-provided cap for taming if present
+            cap_override = _resolve_skill_cap(name, cap_counts)
+            if name == "taming":
+                dom = achievement_levels["taming"]
+                if dom > 0:
+                    cap_override = max(50, min(MAX_SKILL_LEVELS.get("taming", 60), dom))
+
+            # Convert level estimate to XP by summing the table
+            table = SKILL_XP_TABLES.get(name, DEFAULT_SKILL_XP_TABLE)
+            target = max(0, min(uncapped_level, len(table) - 1))
+            xp = sum(int(table[i]) for i in range(1, target + 1))
+            stat = xp_to_level(name, xp, max_level_override=cap_override)
+            unlocked_caps = cap_counts.get(name, 0)
+            out[name] = {
+                "level": stat.level,
+                "progress": stat.progress,
+                "xp": stat.xp,
+                "current": stat.xp_current,
+                "to_next": stat.xp_for_next,
+                "overflow": stat.overflow,
+            }
+            if name in SKILL_LEVEL_CAP_BASES:
+                out[name]["cap"] = cap_override
+                out[name]["caps_unlocked"] = min(
+                    unlocked_caps, SKILL_LEVEL_CAP_MAX_EXTRA.get(name, unlocked_caps)
+                )
+
+            if name not in ("runecrafting", "carpentry", "social"):
+                total_lvl += stat.level + stat.progress
+                counted += 1
+    else:
+        # Normal experience-based path
+        for name, (legacy_key, modern_key) in SKILL_KEY_MAP.items():
+            xp = _skill_xp_from_member(member, legacy_key, modern_key)
+            # Prefer achievements-provided cap for taming if present
+            cap_override = _resolve_skill_cap(name, cap_counts)
+            if name == "taming":
+                dom = int(achievements.get("skyblock_domesticator", 0))
+                if dom > 0:
+                    cap_override = max(50, min(MAX_SKILL_LEVELS.get("taming", 60), dom))
+
+            stat = xp_to_level(name, xp, max_level_override=cap_override)
+            unlocked_caps = cap_counts.get(name, 0)
+            out[name] = {
+                "level": stat.level,
+                "progress": stat.progress,
+                "xp": stat.xp,
+                "current": stat.xp_current,
+                "to_next": stat.xp_for_next,
+                "overflow": stat.overflow,
+            }
+            if name in SKILL_LEVEL_CAP_BASES:
+                out[name]["cap"] = cap_override
+                out[name]["caps_unlocked"] = min(
+                    unlocked_caps, SKILL_LEVEL_CAP_MAX_EXTRA.get(name, unlocked_caps)
+                )
+
+            if name not in ("runecrafting", "carpentry", "social"):
+                total_lvl += stat.level + stat.progress
+                counted += 1
 
     average_level = round(total_lvl / counted, 2) if counted else 0.0
     out["average_level"] = average_level

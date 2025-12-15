@@ -185,7 +185,7 @@ def summarize_currencies(member: Dict[str, Any], profile: Dict[str, Any]) -> Dic
     }
 
 
-def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     members = profile.get("members") or {}
     member = members.get(player_uuid)
     if not member:
@@ -203,6 +203,9 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any]) -> Optional[Dic
     )
 
     level = compute_skyblock_level(member)
+    # Attach achievements to member for downstream skill extraction
+    if achievements:
+        member["__achievements"] = achievements
     skills = extract_skills(member)
     slayer = extract_slayer(member.get("slayer", {}))
     dungeons = extract_dungeons(member)

@@ -303,7 +303,28 @@ def hypixel_profile_summary(_: Request, uuid: str, profile_id: str) -> Response:
     if not target:
         return Response({'error': 'profile_not_found'}, status=404)
 
-    summary = summarize_profile(uuid, target)
+    # Hypixel member keys are UUIDs without dashes; normalize for lookup
+    normalized_member_uuid = (uuid or "").replace("-", "")
+
+    # Fetch player achievements from Hypixel main player endpoint to align with SkyCrypt logic
+    achievements: Optional[Dict[str, Any]] = None
+    api_key = os.getenv('HYPIXEL_API_KEY')
+    try:
+        if api_key:
+            r = requests.get(
+                'https://api.hypixel.net/v2/player',
+                params={'uuid': uuid},
+                headers={'API-Key': api_key},
+                timeout=8,
+            )
+            if r.status_code == 200:
+                player_body = r.json() or {}
+                if player_body.get('success') and isinstance(player_body.get('player'), dict):
+                    achievements = player_body['player'].get('achievements') or {}
+    except requests.RequestException:
+        pass
+
+    summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
     if not summary:
         return Response({'error': 'member_not_in_profile'}, status=404)
 
