@@ -23,6 +23,31 @@ from .domain.profile_summary import count_coop_members, summarize_profile
 LOGGER = logging.getLogger(__name__)
 
 
+def _read_int_env(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        return max(0, int(raw))
+    except (TypeError, ValueError):
+        return default
+
+
+def _is_truthy(value: Optional[str]) -> bool:
+    if value is None:
+        return False
+    return value.strip().lower() in {'1', 'true', 'yes', 'y', 'on'}
+
+
+def _should_bypass_cache(query_params: Optional[Any]) -> bool:
+    if not query_params:
+        return False
+    raw = query_params.get('refresh')
+    if raw is None:
+        raw = query_params.get('force')
+    return _is_truthy(raw)
+
+
 def serve_with_logging(request, path, document_root=None, show_indexes=False):
     LOGGER.info(f"Serving static file: {path} from {document_root}")
     return serve(request, path, document_root=document_root, show_indexes=show_indexes)
@@ -96,9 +121,20 @@ def serve_vanilla_texture(request, path):
 
 
 HYPIXEL_PROFILES_URL = 'https://api.hypixel.net/v2/skyblock/profiles'
+HYPIXEL_PLAYER_URL = 'https://api.hypixel.net/v2/player'
+HYPIXEL_PROFILES_CACHE_SECONDS = _read_int_env('HYPIXEL_PROFILES_CACHE_SECONDS', 20)
+HYPIXEL_PLAYER_CACHE_SECONDS = _read_int_env('HYPIXEL_PLAYER_CACHE_SECONDS', 120)
 
 
-def _fetch_hypixel_profiles(uuid: str) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+def _fetch_hypixel_profiles(
+    uuid: str, *, force_refresh: bool = False
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    cache_key = f'hypixel_profiles:{uuid}'
+    if not force_refresh and HYPIXEL_PROFILES_CACHE_SECONDS > 0:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached, None
+
     api_key = os.getenv('HYPIXEL_API_KEY')
     if not api_key:
         return None, {'error': 'hypixel_api_key_missing', 'status': 503, 'fatal': False}
@@ -132,10 +168,49 @@ def _fetch_hypixel_profiles(uuid: str) -> Tuple[Optional[Dict[str, Any]], Option
     if not profiles:
         return None, {'error': 'no_profiles', 'status': 404, 'fatal': False}
 
+    if HYPIXEL_PROFILES_CACHE_SECONDS > 0:
+        cache.set(cache_key, body, HYPIXEL_PROFILES_CACHE_SECONDS)
+
     return body, None
 
 
-def _get_player_lookup_result(name: str) -> Tuple[Dict[str, Any], int]:
+def _fetch_player_achievements(uuid: str, *, force_refresh: bool = False) -> Optional[Dict[str, Any]]:
+    api_key = os.getenv('HYPIXEL_API_KEY')
+    if not api_key:
+        return None
+
+    cache_key = (
+        f'hypixel_player_achievements:{uuid}' if HYPIXEL_PLAYER_CACHE_SECONDS > 0 else None
+    )
+    if cache_key and not force_refresh:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+    try:
+        response = requests.get(
+            HYPIXEL_PLAYER_URL,
+            params={'uuid': uuid},
+            headers={'API-Key': api_key},
+            timeout=8,
+        )
+    except requests.RequestException:
+        return None
+
+    if response.status_code != 200:
+        return None
+
+    player_body = response.json() or {}
+    if not player_body.get('success') or not isinstance(player_body.get('player'), dict):
+        return None
+
+    achievements = player_body['player'].get('achievements') or {}
+    if cache_key:
+        cache.set(cache_key, achievements, HYPIXEL_PLAYER_CACHE_SECONDS)
+    return achievements
+
+
+def _get_player_lookup_result(name: str, *, force_refresh: bool = False) -> Tuple[Dict[str, Any], int]:
     trimmed = (name or '').strip()
     if not trimmed or len(trimmed) > 16:
         return ({'error': 'invalid_username', 'message': 'Invalid username length'}, 400)
@@ -200,7 +275,7 @@ def _get_player_lookup_result(name: str) -> Tuple[Dict[str, Any], int]:
                     502,
                 )
 
-        body, error = _fetch_hypixel_profiles(uuid)
+        body, error = _fetch_hypixel_profiles(uuid, force_refresh=force_refresh)
         if error:
             detail = error.get('detail')
             payload: Dict[str, Any] = {
@@ -262,17 +337,19 @@ def health(_: Request) -> Response:
 
 
 @api_view(['GET'])
-def player_lookup(_: Request, name: str) -> Response:
-    payload, status_code = _get_player_lookup_result(name)
+def player_lookup(request: Request, name: str) -> Response:
+    force_refresh = _should_bypass_cache(getattr(request, 'query_params', None))
+    payload, status_code = _get_player_lookup_result(name, force_refresh=force_refresh)
     return Response(payload, status=status_code)
 
 
 @api_view(['GET'])
-def hypixel_profile(_: Request, uuid: str) -> Response:
+def hypixel_profile(request: Request, uuid: str) -> Response:
     """
     Raw SkyBlock profile list from Hypixel for the given Minecraft UUID.
     """
-    body, error = _fetch_hypixel_profiles(uuid)
+    force_refresh = _should_bypass_cache(getattr(request, 'query_params', None))
+    body, error = _fetch_hypixel_profiles(uuid, force_refresh=force_refresh)
     if error:
         payload = {'error': error.get('error')}
         if 'detail' in error:
@@ -282,11 +359,12 @@ def hypixel_profile(_: Request, uuid: str) -> Response:
 
 
 @api_view(['GET'])
-def hypixel_profile_summary(_: Request, uuid: str, profile_id: str) -> Response:
+def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Response:
     """
     Enriched summary for a specific profile belonging to the given UUID.
     """
-    body, error = _fetch_hypixel_profiles(uuid)
+    force_refresh = _should_bypass_cache(getattr(request, 'query_params', None))
+    body, error = _fetch_hypixel_profiles(uuid, force_refresh=force_refresh)
     if error:
         payload = {'error': error.get('error')}
         if 'detail' in error:
@@ -307,22 +385,7 @@ def hypixel_profile_summary(_: Request, uuid: str, profile_id: str) -> Response:
     normalized_member_uuid = (uuid or "").replace("-", "")
 
     # Fetch player achievements from Hypixel main player endpoint to align with SkyCrypt logic
-    achievements: Optional[Dict[str, Any]] = None
-    api_key = os.getenv('HYPIXEL_API_KEY')
-    try:
-        if api_key:
-            r = requests.get(
-                'https://api.hypixel.net/v2/player',
-                params={'uuid': uuid},
-                headers={'API-Key': api_key},
-                timeout=8,
-            )
-            if r.status_code == 200:
-                player_body = r.json() or {}
-                if player_body.get('success') and isinstance(player_body.get('player'), dict):
-                    achievements = player_body['player'].get('achievements') or {}
-    except requests.RequestException:
-        pass
+    achievements = _fetch_player_achievements(uuid, force_refresh=force_refresh)
 
     summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
     if not summary:

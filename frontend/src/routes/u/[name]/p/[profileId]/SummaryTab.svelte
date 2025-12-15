@@ -1,5 +1,6 @@
 <script lang="ts">
   import StatChip from '$lib/components/StatChip.svelte';
+  import CharacterSkinViewer3D from '$lib/components/CharacterSkinViewer3D.svelte';
   import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
   import { formatNumber, formatPercent, formatLargeNumber } from '$lib/utils';
   import type { ProfileSummaryResponse, Player, WardrobeItem } from './profileTypes';
@@ -103,12 +104,9 @@
 
     {#if player}
       <div class="model-stage" data-mode={modelMode}>
-        <img
-          src={`https://visage.surgeplay.com/full/384/${player.uuid}`}
-          alt={player.name}
-          class="player-model"
-          loading="lazy"
-        />
+        <div class="player-model">
+          <CharacterSkinViewer3D uuid={player.uuid} />
+        </div>
 
         {#if modelMode === 'armor'}
           {#if helmet?.icon_url}
@@ -260,8 +258,9 @@
   }
 
   .player-model {
-    max-height: 360px;
-    width: auto;
+    width: min(360px, 100%);
+    height: 360px;
+    display: block;
   }
 
   .armor {

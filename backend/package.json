@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "skinview3d": "^3.4.1",
-    "three": "^0.182.0"
-  }
-}
