@@ -2,10 +2,11 @@
   import StatChip from '$lib/components/StatChip.svelte';
   import { StarIcon, DungeonIcon, SkullIcon } from '$lib/icons';
   import { formatNumber, formatPercent, formatLargeNumber } from '$lib/utils';
-  import type { ProfileSummaryResponse } from './profileTypes';
+  import type { ProfileSummaryResponse, Player } from './profileTypes';
 
   export let summary: ProfileSummaryResponse;
   export let statLabels: Record<string, string>;
+  export let player: Player | null = null;
 </script>
 
 <section id="summary" class="grid summary-grid">
@@ -71,15 +72,18 @@
     </div>
   </div>
 
-  <div class="card">
-    <h3>Core Stats</h3>
-    <div class="chips">
-      {#each Object.entries(summary.stats) as [key, value]}
-        {#if key in statLabels}
-          <StatChip label={statLabels[key]} value={formatNumber(value, 0)} />
-        {/if}
-      {/each}
-    </div>
+  <div class="card model-card">
+    <h3>Character</h3>
+    {#if player}
+      <div class="model-container">
+        <img 
+          src={`https://visage.surgeplay.com/full/384/${player.uuid}`} 
+          alt={player.name} 
+          class="player-model"
+          loading="lazy"
+        />
+      </div>
+    {/if}
   </div>
 </section>
 
@@ -143,5 +147,32 @@
 
   .stat-list .value.accent {
     color: var(--theme-accent);
+  }
+
+  .model-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    min-height: 400px;
+  }
+
+  .model-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: -20px;
+  }
+
+  .player-model {
+    max-height: 360px;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
+    transition: transform 0.3s ease;
+  }
+  
+  .player-model:hover {
+    transform: scale(1.05) translateY(-5px);
   }
 </style>

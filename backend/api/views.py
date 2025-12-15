@@ -555,38 +555,68 @@ def _render_site_preview_image() -> Image.Image:
 
 def _render_site_preview_image_v3() -> Image.Image:
     width, height = 1200, 630
-    canvas = _draw_preview_background(width, height)
 
-    overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
-    overlay_draw.ellipse((-220, -260, 680, 540), fill=(75, 150, 255, 90))
-    overlay_draw.ellipse((520, -160, 1180, 500), fill=(92, 126, 255, 105))
-    overlay_draw.ellipse((260, 240, 1120, 940), fill=(35, 199, 214, 70))
+    # Layer 1: base and soft glows for depth
+    base = Image.new('RGBA', (width, height), (8, 10, 22, 255))
+    glow = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    glow_draw.ellipse((-260, -200, 520, 460), fill=(102, 142, 255, 150))
+    glow_draw.ellipse((380, -140, 1100, 460), fill=(72, 214, 197, 120))
+    glow_draw.ellipse((80, 260, 1040, 980), fill=(255, 198, 109, 75))
+    canvas = Image.alpha_composite(base, glow)
 
-    ribbon = Image.new('RGBA', (width, height), (0, 0, 0, 0))
-    ribbon_draw = ImageDraw.Draw(ribbon)
-    for index in range(6):
-        offset = index * 24
-        ribbon_draw.rectangle(
-            (offset - 100, height * 0.55 + offset, width + 200, height * 0.55 + offset + 60),
-            fill=(8, 15, 30, 120 - index * 10),
-        )
-    canvas = Image.alpha_composite(canvas, overlay)
-    canvas = Image.alpha_composite(canvas, ribbon)
+    # Layer 2: subtle ribbons to break flatness
+    stripes = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    stripes_draw = ImageDraw.Draw(stripes)
+    for index in range(8):
+        y = 400 + index * 28
+        opacity = max(0, 110 - index * 12)
+        stripes_draw.rectangle((-80, y, width + 120, y + 22), fill=(6, 12, 28, opacity))
+    canvas = Image.alpha_composite(canvas, stripes)
 
+    # Layer 3: glass card on the right highlighting features
+    card_layer = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    card_draw = ImageDraw.Draw(card_layer)
+    card_draw.rounded_rectangle((760, 120, 1120, 480), fill=(255, 255, 255, 18), outline=(255, 255, 255, 45), width=2, radius=28)
+    card_draw.rectangle((780, 180, 1100, 182), fill=(255, 255, 255, 30))
+
+    spotlight_title = _load_font(38, 'semibold')
+    spotlight_body = _load_font(32, 'regular')
+    card_draw.text((800, 200), 'Spotlight', font=spotlight_title, fill=(228, 236, 255))
+    card_draw.text(
+        (800, 246),
+        'Clean OG previews\nFast profile loads\nNeat gear cards',
+        font=spotlight_body,
+        fill=(205, 213, 231),
+    )
+
+    chips = ('Profiles', 'Gear', 'Skills')
+    chip_font = _load_font(30, 'semibold')
+    chip_x = 800
+    chip_y = 360
+    for label in chips:
+        text_w, text_h = card_draw.textsize(label, font=chip_font)
+        padding = 16
+        rect = (chip_x, chip_y, chip_x + text_w + padding * 2, chip_y + text_h + 12)
+        card_draw.rounded_rectangle(rect, radius=14, fill=(255, 255, 255, 32), outline=(255, 255, 255, 60), width=1)
+        card_draw.text((chip_x + padding, chip_y + 6), label, font=chip_font, fill=(232, 239, 255))
+        chip_x += text_w + padding * 2 + 14
+
+    canvas = Image.alpha_composite(canvas, card_layer)
+
+    # Layer 4: hero lockup
     draw = ImageDraw.Draw(canvas)
-    hero_font = _load_font(260, 'semibold')
+    hero_font = _load_font(206, 'semibold')
+    sub_font = _load_font(52, 'regular')
+    body_font = _load_font(40, 'regular')
+    accent_font = _load_font(32, 'semibold')
 
-    text = 'AltSky'
-    shadow_offsets = [(-6, -6), (6, 6)]
-    for dx, dy in shadow_offsets:
-        draw.text(
-            (140 + dx, 200 + dy),
-            text,
-            font=hero_font,
-            fill=(9, 14, 25),
-        )
-    draw.text((140, 200), text, font=hero_font, fill=(247, 249, 255))
+    draw.line(((82, 128), (220, 128)), fill=(132, 198, 255), width=4)
+    draw.text((82, 140), 'Preview refresh', font=accent_font, fill=(183, 212, 255))
+    draw.text((80, 176), 'AltSky', font=hero_font, fill=(247, 249, 255))
+    draw.text((86, 340), 'Hypixel SkyBlock profiles,\ncalmer previews, faster lookups.', font=sub_font, fill=(222, 230, 247))
+    draw.text((88, 470), 'Fresh OG image · Cache-safe URL · Mobile friendly framing', font=body_font, fill=(199, 210, 232))
+    draw.text((88, 520), 'altsky.info', font=body_font, fill=(170, 199, 255))
 
     return canvas.convert('RGB')
 

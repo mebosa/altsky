@@ -200,6 +200,14 @@ SKILL_LEVEL_CAP_MAX_EXTRA: Dict[str, int] = {
     "foraging": 4,
 }
 
+# Additional unlock hooks for specific skills.
+FORAGING_COLLECTION_CAP_SOURCES: Dict[str, int] = {
+    # collection_id -> tier number that grants the +1 level cap
+    "MANGROVE_LOG": 9,
+    "FIG_LOG": 9,
+}
+FORAGING_AGATHA_MAX_EXTRA = 2
+
 # Legacy key (v1) -> Modern key (v2) mapping
 SKILL_KEY_MAP: Dict[str, Tuple[str, str]] = {
     "farming": ("experience_skill_farming", "SKILL_FARMING"),
@@ -351,6 +359,13 @@ def _extract_skill_cap_counts(member: Dict[str, Any]) -> Dict[str, int]:
             current = caps.get(normalized, 0)
             caps[normalized] = max(current, count)
 
+    # Custom logic: foraging level cap unlocks from specific activities.
+    foraging_extra = _resolve_foraging_cap_upgrades(member)
+    if foraging_extra > 0:
+        current = caps.get("foraging", 0)
+        max_allowed = SKILL_LEVEL_CAP_MAX_EXTRA.get("foraging", foraging_extra)
+        caps["foraging"] = max(current, min(foraging_extra, max_allowed))
+
     # Note: We do not store achievements taming cap as "extra count" here,
     # because achievements provide the final cap value (e.g., 60).
     # The actual application of achievements happens in _resolve_skill_cap.
@@ -362,6 +377,31 @@ def _extract_skill_cap_counts(member: Dict[str, Any]) -> Dict[str, int]:
             caps["taming"] = george_pets
     
     return caps
+
+
+def _resolve_foraging_cap_upgrades(member: Dict[str, Any]) -> int:
+    """
+    Foraging gains additional cap unlocks from:
+      * Completing the Mangrove and Fig collections (tier 9)
+      * Purchasing Agatha's power upgrades (up to 2 total)
+    """
+    player_data = member.get("player_data") or {}
+    unlocked_tiers = set(player_data.get("unlocked_coll_tiers") or [])
+
+    collection_extra = 0
+    for collection_id, tier in FORAGING_COLLECTION_CAP_SOURCES.items():
+        target = f"{collection_id}_{tier}"
+        if target in unlocked_tiers:
+            collection_extra += 1
+
+    perks = player_data.get("perks") or {}
+    try:
+        agatha_power = int(perks.get("agatha_power") or 0)
+    except (TypeError, ValueError):
+        agatha_power = 0
+    agatha_extra = max(0, min(agatha_power, FORAGING_AGATHA_MAX_EXTRA))
+
+    return collection_extra + agatha_extra
 
 
 def _resolve_skill_cap(skill: str, unlocked_caps: Dict[str, int]) -> int:

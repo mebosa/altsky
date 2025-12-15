@@ -179,7 +179,7 @@
     <Tabs bind:value={activeTab} {tabs} />
 
     {#if activeTab === 'summary'}
-      <SummaryTab {summary} {statLabels} />
+      <SummaryTab {summary} {statLabels} {player} />
     {:else if activeTab === 'skills'}
       <SkillsTab {summary} {skillOrder} />
     {:else if activeTab === 'stats'}
