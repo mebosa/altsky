@@ -403,7 +403,11 @@
 
   .swatches button.light {
     background: rgba(255, 255, 255, 0.78);
-    color: var(--theme-text-secondary);
+    color: #1e293b;
+  }
+
+  .swatches button.light .name {
+    color: #1e293b;
   }
 
   .swatches button.special {
