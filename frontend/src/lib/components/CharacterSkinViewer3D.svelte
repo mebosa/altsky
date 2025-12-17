@@ -14,10 +14,10 @@
 	let armorModel1: any = null;
 	let armorModel2: any = null;
 	// Separate models for each piece to handle mixed sets and visibility
-	let modelHelmet: any = null;
-	let modelChestplate: any = null;
-	let modelLeggings: any = null;
-	let modelBoots: any = null;
+	let modelHelmet: any[] = [];
+	let modelChestplate: any[] = [];
+	let modelLeggings: any[] = [];
+	let modelBoots: any[] = [];
 	
 	let resizeObserver: ResizeObserver | null = null;
 	let error: string | null = null;
@@ -77,16 +77,20 @@
 		console.log('updateArmor called. Pack:', $texturePackStore, 'Armor:', currentArmor);
 
 		// Clean up all existing armor models
-		const cleanup = (model: any) => {
-			if (model) {
-				viewer.playerObject.remove(model);
-				// Dispose geometry/material if possible to prevent leaks?
-				// skinview3d objects might not need explicit dispose if removed from scene, but good practice
+		const cleanup = (models: any | any[]) => {
+			if (Array.isArray(models)) {
+				models.forEach(model => {
+					if (model) viewer.playerObject.remove(model);
+				});
+				return [];
+			} else if (models) {
+				viewer.playerObject.remove(models);
+				return []; // Return empty array to be safe if assigning to array var
 			}
-			return null;
+			return [];
 		};
 
-		armorModel1 = cleanup(armorModel1);
+		armorModel1 = cleanup(armorModel1); // These are unused now but kept for safety
 		armorModel2 = cleanup(armorModel2);
 		modelHelmet = cleanup(modelHelmet);
 		modelChestplate = cleanup(modelChestplate);
@@ -119,16 +123,23 @@
 
 		// Helper to create an armor layer model
 		const createArmorLayer = async (itemId: string | undefined, color: string | undefined, skinUrl: string | undefined, layer: 1 | 2, scale: number, visibleParts: string[]) => {
-			if (!itemId) return null;
+			if (!itemId) return [];
 
-			let url = '';
+			let urls: { url: string, isOverlay: boolean, useColor: boolean }[] = [];
 			let isSkinUrl = false;
 
 			if ($texturePackStore === 'furfsky') {
-				url = `/api/texture/armor/${itemId}/${layer}`;
+				if (skinUrl) {
+					// If it's a skull (has skinUrl), prefer the skin texture.
+					// FurfSky armor textures are for armor models, not skulls.
+					urls.push({ url: skinUrl, isOverlay: false, useColor: false });
+					isSkinUrl = true;
+				} else {
+					urls.push({ url: `/api/texture/armor/${itemId}/${layer}`, isOverlay: false, useColor: false });
+				}
 			} else {
 				if (skinUrl) {
-					url = skinUrl;
+					urls.push({ url: skinUrl, isOverlay: false, useColor: false });
 					isSkinUrl = true;
 				} else {
 					// Vanilla mapping
@@ -141,91 +152,114 @@
 					};
 					const name = getVanillaName(itemId);
 					
-					// For leather armor, we need the overlay texture to apply color properly
-					// Standard leather_layer_1.png is the brown base.
-					// leather_layer_1_overlay.png is the white part that gets tinted.
-					let filename = `${name}_layer_${layer}`;
 					if (name === 'leather') {
-						filename = `${name}_layer_${layer}_overlay`;
+						// For leather, we need BOTH the base (brown) and the overlay (colored)
+						urls.push({ 
+							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}.png`,
+							isOverlay: false,
+							useColor: false // Base layer is NOT tinted
+						});
+						urls.push({ 
+							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}_overlay.png`,
+							isOverlay: true,
+							useColor: true // Overlay layer IS tinted
+						});
+					} else {
+						urls.push({ 
+							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}.png`,
+							isOverlay: false,
+							useColor: true // Non-leather vanilla armor can be tinted
+						});
+					}
+				}
+			}
+
+			const createdModels: any[] = [];
+
+			for (const texInfo of urls) {
+				try {
+					let model;
+					try {
+						model = new PlayerObject();
+					} catch (e) {
+						model = new PlayerObject({ model: 'default' });
+					}
+
+					model.scale.set(scale, scale, scale);
+					
+					// Slight scale offset for overlay to prevent z-fighting
+					if (texInfo.isOverlay) {
+						const overlayScale = scale + 0.002;
+						model.scale.set(overlayScale, overlayScale, overlayScale);
 					}
 					
-					// Use jsDelivr CDN for better reliability than raw.githubusercontent
-					url = `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${filename}.png`;
-				}
-			}
-
-			try {
-				let model;
-				try {
-					model = new PlayerObject();
-				} catch (e) {
-					model = new PlayerObject({ model: 'default' });
-				}
-
-				model.scale.set(scale, scale, scale);
-				
-				// Load texture
-				let success = false;
-				if ($texturePackStore === 'furfsky') {
-					// Use our API which returns processed images
-					const res = await fetch(url);
-					if (res.ok) {
-						success = await loadSkinToPlayerObject(model, url);
-					} else if (skinUrl) {
-						// Fallback to skinUrl if FurfSky missing
-						url = skinUrl;
-						isSkinUrl = true;
-						success = await loadSkinToPlayerObject(model, url);
-					}
-				} else {
-					// Load directly from URL for vanilla
-					success = await loadSkinToPlayerObject(model, url);
-				}
-
-				if (!success) {
-					console.warn(`Failed to load texture for ${itemId}, skipping model`);
-					return null;
-				}
-
-				// Fix transparency and apply color
-				model.traverse((child: any) => {
-					if (child.isMesh && child.material) {
-						child.material.transparent = true;
-						child.material.alphaTest = 0.001;
-						
-						// Apply color if present and not furfsky (furfsky textures are pre-colored)
-						// Also do not apply color if it's a skin texture (skull)
-						if ($texturePackStore !== 'furfsky' && color && !isSkinUrl) {
-							// color is likely "#RRGGBB" or "RRGGBB"
-							const hexColor = color.startsWith('#') ? color : '#' + color;
-							child.material.color.set(hexColor);
+					// Load texture
+					let success = false;
+					if ($texturePackStore === 'furfsky' && !isSkinUrl) {
+						// Use our API which returns processed images
+						const res = await fetch(texInfo.url);
+						if (res.ok) {
+							success = await loadSkinToPlayerObject(model, texInfo.url);
+						} else if (skinUrl) {
+							// Fallback to skinUrl if FurfSky missing
+							success = await loadSkinToPlayerObject(model, skinUrl);
+							// Disable color for skin fallback
+							texInfo.useColor = false;
 						}
-						
-						child.material.needsUpdate = true;
+					} else {
+						// Load directly from URL for vanilla
+						success = await loadSkinToPlayerObject(model, texInfo.url);
 					}
-				});
-				
-				model.renderOrder = layer === 1 ? 10 : 11;
 
-				// Hide irrelevant parts
-				// PlayerObject structure: .skin.head, .skin.body, .skin.rightArm, etc.
-				// But the wrapper exposes .head, .body, .rightArm, .leftArm, .rightLeg, .leftLeg
-				// Let's try to set visibility on the high-level parts
-				
-				const allParts = ['head', 'body', 'rightArm', 'leftArm', 'rightLeg', 'leftLeg'];
-				allParts.forEach(part => {
-					if (model.skin[part]) {
-						model.skin[part].visible = visibleParts.includes(part);
+					if (!success) {
+						console.warn(`Failed to load texture for ${itemId}, skipping model`);
+						continue;
 					}
-				});
 
-				viewer.playerObject.add(model);
-				return model;
+					// Fix transparency and apply color
+					model.traverse((child: any) => {
+						if (child.isMesh && child.material) {
+							child.material.transparent = true;
+							child.material.alphaTest = 0.001;
+							
+							// Apply color if needed
+							if (texInfo.useColor && color && !isSkinUrl) {
+								const hexColor = color.startsWith('#') ? color : '#' + color;
+								child.material.color.set(hexColor);
+							}
+							
+							child.material.needsUpdate = true;
+						}
+					});
+					
+					model.renderOrder = layer === 1 ? 10 : 11;
+					if (texInfo.isOverlay) model.renderOrder += 0.1;
 
-			} catch (e) {
-				console.warn(`Failed to load armor layer for ${itemId}`, e);
-				return null;
+					// Hide irrelevant parts
+					const allParts = ['head', 'body', 'rightArm', 'leftArm', 'rightLeg', 'leftLeg'];
+					allParts.forEach(part => {
+						const isVisible = visibleParts.includes(part);
+						if (model.skin[part]) {
+							model.skin[part].visible = isVisible;
+						}
+						// Handle overlay layers (e.g. headLayer, bodyLayer)
+						const layerName = part + 'Layer';
+						// @ts-ignore
+						if (model.skin[layerName]) {
+							// @ts-ignore
+							model.skin[layerName].visible = isVisible;
+						}
+					});
+
+					viewer.playerObject.add(model);
+					createdModels.push(model);
+
+				} catch (e) {
+					console.warn(`Failed to load armor layer for ${itemId}`, e);
+				}
 			}
+			
+			return createdModels;
 		};
 
 		const getArmorInfo = (partData: any) => {
@@ -239,14 +273,8 @@
 		// Helmet: Layer 1, Head only
 		const helmetInfo = getArmorInfo(currentArmor.helmet);
 		modelHelmet = await createArmorLayer(helmetInfo.id, helmetInfo.color, helmetInfo.skin_url, 1, 1.15, ['head']);
-		if (modelHelmet) {
-			// Adjust helmet position slightly down to fit better
-			// -0.6 was too much, trying -2.0 (pixels?) or -0.1?
-			// skinview3d units are roughly 1 unit = 1 pixel of texture?
-			// Player height is 32.
-			// Let's try a smaller adjustment.
-			modelHelmet.position.y = -0.2;
-		}
+		// Lower helmet position slightly to fit better (skinview3d units)
+		modelHelmet.forEach(m => m.position.y = -2.0); 
 		
 		// Chestplate: Layer 1, Body + Arms
 		const chestplateInfo = getArmorInfo(currentArmor.chestplate);
