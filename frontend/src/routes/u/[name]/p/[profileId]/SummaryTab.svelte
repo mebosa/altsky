@@ -105,27 +105,24 @@
     {#if player}
       <div class="model-stage" data-mode={modelMode}>
         <div class="player-model">
-          <CharacterSkinViewer3D uuid={player.uuid} />
+          <CharacterSkinViewer3D 
+            uuid={player.uuid} 
+            armor={modelMode === 'armor' ? {
+              helmet: helmet?.id,
+              chestplate: chestplate?.id,
+              leggings: leggings?.id,
+              boots: boots?.id,
+              helmetColor: helmet?.leather_color,
+              chestplateColor: chestplate?.leather_color,
+              leggingsColor: leggings?.leather_color,
+              bootsColor: boots?.leather_color
+            } : undefined}
+          />
         </div>
       </div>
 
-      {#if modelMode === 'armor'}
-        {#if helmet || chestplate || leggings || boots}
-          <div class="armor-list" aria-label="Equipped armor">
-            {#each [helmet, chestplate, leggings, boots] as item}
-              {#if item}
-                <div class="armor-item">
-                  {#if item.icon_url}
-                    <img class="armor-icon" src={item.icon_url} alt={item.name} loading="lazy" />
-                  {/if}
-                  <span class="armor-name">{item.name}</span>
-                </div>
-              {/if}
-            {/each}
-          </div>
-        {:else}
-          <p class="model-hint">No equipped armor found.</p>
-        {/if}
+      {#if modelMode === 'armor' && !(helmet || chestplate || leggings || boots)}
+        <p class="model-hint">No equipped armor found.</p>
       {/if}
     {:else}
       <p class="model-hint">Loading player info...</p>
@@ -246,34 +243,6 @@
     width: min(360px, 100%);
     height: 360px;
     display: block;
-  }
-
-  .armor-list {
-    display: grid;
-    gap: 10px;
-    margin-top: 6px;
-  }
-
-  .armor-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--theme-form-bg) 75%, transparent);
-    border: 1px solid color-mix(in srgb, var(--theme-form-border) 85%, transparent);
-  }
-
-  .armor-icon {
-    width: 34px;
-    height: 34px;
-    object-fit: contain;
-  }
-
-  .armor-name {
-    color: var(--theme-text-primary);
-    font-weight: 600;
-    font-size: 0.95rem;
   }
 
   .model-hint {

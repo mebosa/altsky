@@ -37,6 +37,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app/backend
+      - ./furfsky_temp:/app/furfsky_temp
     depends_on:
       - db
     networks:

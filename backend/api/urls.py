@@ -11,6 +11,7 @@ urlpatterns = [
     path("og/site-v2.png", views.site_preview_image_v2),
     path("og/site-v3.png", views.site_preview_image_v3),
     path("og/player/<str:name>.png", views.player_preview_image),
+    path("texture/armor/<str:item_id>/<str:layer>", views.get_armor_texture_view),
     re_path(r"^static/(?P<path>.*)$", views.serve_furfsky_texture),
     re_path(r"^vanilla/(?P<path>.*)$", views.serve_vanilla_texture),
 ]

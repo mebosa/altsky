@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from .decorators import rate_limit
 from .domain.item_textures import load_furfsky_texture
 from .domain.profile_summary import count_coop_members, summarize_profile
+from .domain.armor_textures import get_armor_textures
 
 LOGGER = logging.getLogger(__name__)
 
@@ -720,3 +721,33 @@ def site_preview_image_v2(_: Request) -> HttpResponse:
 @api_view(['GET'])
 def site_preview_image_v3(_: Request) -> HttpResponse:
     return _build_png_response(_render_site_preview_image_v3())
+
+
+@api_view(['GET'])
+def get_armor_texture_view(request: Request, item_id: str, layer: str) -> HttpResponse:
+    """
+    Serves the armor texture for a given item ID and layer (1 or 2).
+    """
+    LOGGER.info(f"Requesting armor texture for {item_id} layer {layer}")
+    layer_1_path, layer_2_path = get_armor_textures(item_id)
+    
+    file_path = None
+    if layer == '1':
+        file_path = layer_1_path
+    elif layer == '2':
+        file_path = layer_2_path
+        
+    if not file_path:
+        LOGGER.warning(f"Armor texture path not found for {item_id} layer {layer}")
+        return HttpResponse(status=404)
+        
+    if not os.path.exists(file_path):
+        LOGGER.warning(f"Armor texture file missing at {file_path}")
+        return HttpResponse(status=404)
+        
+    try:
+        with open(file_path, 'rb') as f:
+            return HttpResponse(f.read(), content_type="image/png")
+    except Exception as e:
+        LOGGER.error(f"Error serving armor texture {file_path}: {e}")
+        return HttpResponse(status=500)
