@@ -294,6 +294,41 @@ def _extract_skull_icon(tag: nbtlib.Compound) -> Optional[str]:
     return None
 
 
+def _extract_skin_url(tag: nbtlib.Compound) -> Optional[str]:
+    if not tag:
+        return None
+
+    skull_owner = tag.get("SkullOwner")
+    if not isinstance(skull_owner, nbtlib.Compound):
+        return None
+
+    properties = skull_owner.get("Properties")
+    if isinstance(properties, nbtlib.Compound):
+        textures = properties.get("textures")
+        if textures:
+            for entry in textures:
+                value = _tag_value(entry.get("Value") or entry.get("value"))
+                if isinstance(value, (bytes, bytearray)):
+                    try:
+                        value = value.decode("utf-8")
+                    except UnicodeDecodeError:
+                        continue
+                if isinstance(value, str):
+                    try:
+                        decoded = base64.b64decode(value)
+                        payload = json.loads(decoded.decode("utf-8"))
+                        textures_obj = payload.get("textures")
+                        if isinstance(textures_obj, dict):
+                            skin = textures_obj.get("SKIN")
+                            if isinstance(skin, dict):
+                                url = skin.get("url")
+                                if isinstance(url, str) and url:
+                                    return url.replace("http://", "https://")
+                    except Exception:
+                        pass
+    return None
+
+
 def _parse_inventory_items(data: Optional[Dict[str, Any]]) -> List[Optional[Dict[str, Any]]]:
     if not data:
         return []
@@ -375,6 +410,8 @@ def _parse_compound_item(
         None,
     )
 
+    skin_url = _extract_skin_url(tag)
+
     return {
         "slot": index,
         "id": extra_id or item_id,
@@ -387,6 +424,7 @@ def _parse_compound_item(
         "icon_url": icon_url,
         "icon_variants": {pack: url for pack, url in icon_variants.items() if url},
         "leather_color": leather_color,
+        "skin_url": skin_url,
     }
 
 

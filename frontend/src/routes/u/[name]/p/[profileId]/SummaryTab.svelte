@@ -108,14 +108,10 @@
           <CharacterSkinViewer3D 
             uuid={player.uuid} 
             armor={modelMode === 'armor' ? {
-              helmet: helmet?.id,
-              chestplate: chestplate?.id,
-              leggings: leggings?.id,
-              boots: boots?.id,
-              helmetColor: helmet?.leather_color,
-              chestplateColor: chestplate?.leather_color,
-              leggingsColor: leggings?.leather_color,
-              bootsColor: boots?.leather_color
+              helmet: helmet ? { id: helmet.id, color: helmet.leather_color, skin_url: helmet.skin_url } : null,
+              chestplate: chestplate ? { id: chestplate.id, color: chestplate.leather_color, skin_url: chestplate.skin_url } : null,
+              leggings: leggings ? { id: leggings.id, color: leggings.leather_color, skin_url: leggings.skin_url } : null,
+              boots: boots ? { id: boots.id, color: boots.leather_color, skin_url: boots.skin_url } : null
             } : undefined}
           />
         </div>
