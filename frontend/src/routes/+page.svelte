@@ -146,9 +146,22 @@
 
   .hero {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
+  }
+
+  .hero-main {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .logo {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
   }
 
   .eyebrow {

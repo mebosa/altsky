@@ -90,14 +90,14 @@
           class:selected={modelMode === 'naked'}
           on:click={() => (modelMode = 'naked')}
         >
-          벗은 모습
+          Skin
         </button>
         <button
           type="button"
           class:selected={modelMode === 'armor'}
           on:click={() => (modelMode = 'armor')}
         >
-          갑옷
+          Armor
         </button>
       </div>
     </div>
@@ -107,21 +107,6 @@
         <div class="player-model">
           <CharacterSkinViewer3D uuid={player.uuid} />
         </div>
-
-        {#if modelMode === 'armor'}
-          {#if helmet?.icon_url}
-            <img class="armor armor-helmet" src={helmet.icon_url} alt="Helmet" loading="lazy" />
-          {/if}
-          {#if chestplate?.icon_url}
-            <img class="armor armor-chest" src={chestplate.icon_url} alt="Chestplate" loading="lazy" />
-          {/if}
-          {#if leggings?.icon_url}
-            <img class="armor armor-legs" src={leggings.icon_url} alt="Leggings" loading="lazy" />
-          {/if}
-          {#if boots?.icon_url}
-            <img class="armor armor-boots" src={boots.icon_url} alt="Boots" loading="lazy" />
-          {/if}
-        {/if}
       </div>
 
       {#if modelMode === 'armor'}
@@ -139,11 +124,11 @@
             {/each}
           </div>
         {:else}
-          <p class="model-hint">착용 중인 갑옷 정보를 찾지 못했어요.</p>
+          <p class="model-hint">No equipped armor found.</p>
         {/if}
       {/if}
     {:else}
-      <p class="model-hint">플레이어 정보를 불러오는 중…</p>
+      <p class="model-hint">Loading player info...</p>
     {/if}
   </div>
 </section>
@@ -261,41 +246,6 @@
     width: min(360px, 100%);
     height: 360px;
     display: block;
-  }
-
-  .armor {
-    position: absolute;
-    width: 54px;
-    height: 54px;
-    object-fit: contain;
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--theme-form-bg) 78%, transparent);
-    border: 1px solid color-mix(in srgb, var(--theme-form-border) 85%, transparent);
-    box-shadow: var(--neu-elevated);
-  }
-
-  .armor-helmet {
-    top: 34px;
-    left: 50%;
-    transform: translateX(-175px);
-  }
-
-  .armor-chest {
-    top: 150px;
-    left: 50%;
-    transform: translateX(-175px);
-  }
-
-  .armor-legs {
-    top: 238px;
-    left: 50%;
-    transform: translateX(-175px);
-  }
-
-  .armor-boots {
-    top: 320px;
-    left: 50%;
-    transform: translateX(-175px);
   }
 
   .armor-list {
