@@ -301,8 +301,8 @@
 		const helmetInfo = getArmorInfo(currentArmor.helmet);
 		modelHelmet = await createArmorLayer(helmetInfo.id, helmetInfo.color, helmetInfo.skin_url, 1, 1.15, ['head']);
 		// Lower helmet position slightly to fit better (skinview3d units)
-		// User requested -1.0
-		modelHelmet.forEach(m => m.position.y = -1.0); 
+		// User requested -1.3
+		modelHelmet.forEach(m => m.position.y = -1.3); 
 		
 		// Chestplate: Layer 1, Body + Arms
 		const chestplateInfo = getArmorInfo(currentArmor.chestplate);
@@ -310,8 +310,8 @@
 		
 		// Leggings: Layer 2, Body + Legs (Inner layer, smaller scale)
 		const leggingsInfo = getArmorInfo(currentArmor.leggings);
-		// Increased scale to 1.1 as requested
-		modelLeggings = await createArmorLayer(leggingsInfo.id, leggingsInfo.color, leggingsInfo.skin_url, 2, 1.1, ['body', 'rightLeg', 'leftLeg']);
+		// Increased scale to 1.15 as requested
+		modelLeggings = await createArmorLayer(leggingsInfo.id, leggingsInfo.color, leggingsInfo.skin_url, 2, 1.15, ['body', 'rightLeg', 'leftLeg']);
 		
 		// Boots: Layer 1, Legs only
 		const bootsInfo = getArmorInfo(currentArmor.boots);

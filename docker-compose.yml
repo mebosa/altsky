@@ -33,6 +33,7 @@ services:
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-1}
       CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-1}
       DATABASE_URL: postgresql://altsky:${DB_PASSWORD:-change-me-in-production}@db:5432/altsky
+      STATSCALC_URL: http://statscalc:8082
     ports:
       - "8000:8000"
     volumes:
@@ -40,6 +41,7 @@ services:
       - ./furfsky_temp:/app/furfsky_temp
     depends_on:
       - db
+      - statscalc
     networks:
       - altsky-network
     dns:
@@ -51,6 +53,21 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # Statscalc Service (Go)
+  statscalc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: statscalc
+    container_name: altsky-statscalc
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./backend/statscalc:/app
+    networks:
+      - altsky-network
+    restart: unless-stopped
 
   # 프론트엔드 (SvelteKit preview 서버)
   frontend:

@@ -394,7 +394,9 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
         return Response({'error': 'member_not_in_profile'}, status=404)
 
     computed_stats = None
-    stats_payload = _build_statscalc_payload(summary, normalized_member_uuid, profile_id)
+    # 원본 member 데이터를 함께 전달
+    member_data = target.get('members', {}).get(normalized_member_uuid)
+    stats_payload = _build_statscalc_payload(summary, normalized_member_uuid, profile_id, member_data)
     if stats_payload:
         computed_stats = statscalc_client.calculate_stats(stats_payload)
 
@@ -506,7 +508,12 @@ def _format_last_updated(value: Optional[Any]) -> str:
     return 'Cache: n/a'
 
 
-def _build_statscalc_payload(summary: Dict[str, Any], uuid: str, profile_id: str) -> Optional[Dict[str, Any]]:
+def _build_statscalc_payload(
+    summary: Dict[str, Any], 
+    uuid: str, 
+    profile_id: str,
+    member_data: Optional[Dict[str, Any]] = None
+) -> Optional[Dict[str, Any]]:
     if not summary:
         return None
 
@@ -540,15 +547,97 @@ def _build_statscalc_payload(summary: Dict[str, Any], uuid: str, profile_id: str
                 payload_item['xp'] = int(xp)
             slayer_payload[key] = payload_item
 
-    if not skills_payload and not slayer_payload:
-        return None
-
-    return {
+    payload = {
         'uuid': uuid,
         'profile_id': profile_id,
         'skills': skills_payload,
         'slayer': slayer_payload,
     }
+    
+    # 확장: 장비, 악세서리, 펫, HOTM 데이터 추가
+    if member_data:
+        from .domain.nbt_parser import (
+            extract_equipment_from_profile,
+            extract_accessories_from_profile,
+            extract_pets_from_profile,
+            extract_hotm_from_profile,
+            extract_dungeons_from_profile,
+        )
+        
+        # 장비 (방어구)
+        equipment_data = extract_equipment_from_profile(member_data)
+        if any(equipment_data.values()):
+            equipment_payload = {}
+            for slot, item in equipment_data.items():
+                if item:
+                    equipment_payload[slot] = _serialize_item(item)
+            if equipment_payload:
+                payload['equipment'] = equipment_payload
+        
+        # 악세서리
+        accessories = extract_accessories_from_profile(member_data)
+        if accessories:
+            payload['accessories'] = [_serialize_accessory(acc) for acc in accessories]
+        
+        # 펫
+        pets = extract_pets_from_profile(member_data)
+        if pets:
+            payload['pets'] = pets
+        
+        # HOTM
+        hotm = extract_hotm_from_profile(member_data)
+        if hotm:
+            payload['hotm'] = hotm
+        
+        # Dungeons
+        dungeons = extract_dungeons_from_profile(member_data)
+        if dungeons:
+            payload['dungeons'] = dungeons
+    
+    return payload if (skills_payload or slayer_payload) else None
+
+
+def _serialize_item(item: Dict[str, Any]) -> Dict[str, Any]:
+    """아이템 데이터를 statscalc payload 형식으로 변환"""
+    extra = item.get('extra_attributes', {})
+    result: Dict[str, Any] = {
+        'id': extra.get('id') or item.get('id'),
+    }
+    
+    if item.get('count'):
+        result['count'] = item['count']
+    if item.get('rarity'):
+        result['rarity'] = item['rarity']
+    if extra.get('reforge'):
+        result['reforge'] = extra['reforge']
+    if extra.get('enchants'):
+        result['enchants'] = extra['enchants']
+    if extra.get('hot_potato_count'):
+        result['hot_potato_count'] = extra['hot_potato_count']
+    if extra.get('gems'):
+        # gems는 이제 {slot: {type, quality}} 형태
+        result['gems'] = extra['gems']
+    if extra.get('runes'):
+        result['runes'] = extra['runes']
+    if extra.get('stars'):
+        result['stars'] = extra['stars']
+    if extra.get('recombobulated'):
+        result['recombobulated'] = extra['recombobulated']
+    
+    return result
+
+
+def _serialize_accessory(item: Dict[str, Any]) -> Dict[str, Any]:
+    """악세서리 데이터를 statscalc payload 형식으로 변환"""
+    result = _serialize_item(item)
+    extra = item.get('extra_attributes', {})
+    
+    if extra.get('enrichment'):
+        result['enrichment'] = extra['enrichment']
+    if extra.get('tuning'):
+        result['tuning'] = extra['tuning']
+    
+    return result
 
 
 def _build_profile_cards(profiles: Optional[Any]) -> Tuple[Dict[str, str], ...]:

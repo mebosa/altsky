@@ -123,6 +123,16 @@
     : [];
   $: bagCapacity = accessories?.slots ?? sortedItems.length;
   $: uniqueCount = accessories?.unique_count ?? sortedItems.length;
+  $: missingAccessories = accessories?.missing ?? [];
+  $: missingTotal = accessories?.missing_total ?? missingAccessories.length + sortedItems.length;
+  const MISSING_PREVIEW_LIMIT = 24;
+  $: missingPreview = missingAccessories.slice(0, MISSING_PREVIEW_LIMIT);
+  $: missingByRarity =
+    missingAccessories.reduce<Map<string, number>>((acc, item) => {
+      const key = normalizeRarity(item.tier) || 'UNKNOWN';
+      acc.set(key, (acc.get(key) ?? 0) + 1);
+      return acc;
+    }, new Map()) ?? new Map();
 </script>
 
 <section id="accessories" class="accessories-section">
@@ -296,6 +306,50 @@
           </div>
         </div>
       {/each}
+    </div>
+
+    <div class="card missing-card">
+      <div class="missing-head">
+        <div>
+          <h3>Missing Accessories</h3>
+          <p class="muted">Pulled from the Hypixel catalog. Upgrade chains are not merged.</p>
+        </div>
+        <div class="pill">
+          {formatNumber(missingAccessories.length, 0)}
+          {#if missingTotal}
+            <span aria-hidden="true" class="divider">/</span>
+            {formatNumber(missingTotal, 0)}
+          {/if}
+          <span class="pill-label">missing</span>
+        </div>
+      </div>
+
+      {#if !missingAccessories.length}
+        <p class="muted">All tracked accessories are present. Nice work!</p>
+      {:else}
+        <div class="missing-meta">
+          {#each Array.from(missingByRarity.entries()) as [rarity, count]}
+            <span class="rarity-chip">
+              {rarityLabel(rarity) ?? rarity}
+              <span class="count">{formatNumber(count, 0)}</span>
+            </span>
+          {/each}
+        </div>
+
+        <div class="missing-grid">
+          {#each missingPreview as missingItem}
+            <div class="missing-chip">
+              <span class="name">{missingItem.name ?? missingItem.id}</span>
+              <span class="rarity">{rarityLabel(missingItem.tier) ?? 'Unknown'}</span>
+            </div>
+          {/each}
+        </div>
+        {#if missingAccessories.length > missingPreview.length}
+          <p class="muted more-note">
+            Showing first {missingPreview.length} of {missingAccessories.length} missing accessories.
+          </p>
+        {/if}
+      {/if}
     </div>
   {/if}
 </section>
@@ -582,5 +636,101 @@
       min-width: 200px;
       max-width: 240px;
     }
+  }
+
+  .missing-card {
+    gap: 14px;
+  }
+
+  .missing-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .missing-head h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  .missing-head .muted {
+    margin: 6px 0 0;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--theme-surface-border);
+    background: rgba(148, 163, 184, 0.12);
+    font-weight: 700;
+    color: var(--theme-text-primary);
+  }
+
+  .pill .divider {
+    opacity: 0.65;
+  }
+
+  .pill-label {
+    font-size: 0.82rem;
+    color: var(--theme-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .missing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .missing-chip {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--theme-surface-border);
+    background: rgba(148, 163, 184, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .missing-chip .name {
+    font-weight: 600;
+  }
+
+  .missing-chip .rarity {
+    color: var(--theme-text-soft);
+    font-size: 0.9rem;
+  }
+
+  .more-note {
+    margin: 4px 0 0;
+  }
+
+  .missing-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .rarity-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--theme-surface-border);
+    background: rgba(148, 163, 184, 0.12);
+    font-size: 0.9rem;
+  }
+
+  .rarity-chip .count {
+    color: var(--theme-text-soft);
+    font-weight: 600;
   }
 </style>

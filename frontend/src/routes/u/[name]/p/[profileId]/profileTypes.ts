@@ -45,6 +45,12 @@ export type AccessoryItem = {
   recombobulated?: boolean;
 };
 
+export type MissingAccessory = {
+  id: string;
+  name: string;
+  tier?: string | null;
+};
+
 export type ProfileSummaryResponse = {
   ok: boolean;
   last_updated?: string | number;
@@ -126,4 +132,7 @@ export type AccessorySummary = {
   tuning: Record<string, number>;
   unlocked_powers: string[];
   power_stones: Record<string, number>;
+  missing?: MissingAccessory[];
+  missing_total?: number;
+  missing_count?: number;
 };

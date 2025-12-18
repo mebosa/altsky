@@ -1,0 +1,133 @@
+{
+  "comment": "Heart of the Mountain (HOTM) 티어 및 퍽 레벨별 스탯 정의",
+  "hotm_tiers": {
+    "comment": "HOTM 티어별 기본 보너스",
+    "tiers": [
+      { "tier": 1, "stats": { "mining_speed": 5 } },
+      { "tier": 2, "stats": { "mining_speed": 5, "mining_fortune": 1 } },
+      { "tier": 3, "stats": { "mining_speed": 5, "mining_fortune": 1 } },
+      { "tier": 4, "stats": { "mining_speed": 5, "mining_fortune": 2 } },
+      { "tier": 5, "stats": { "mining_speed": 10, "mining_fortune": 2 } },
+      { "tier": 6, "stats": { "mining_speed": 10, "mining_fortune": 2 } },
+      { "tier": 7, "stats": { "mining_speed": 10, "mining_fortune": 3 } },
+      { "tier": 8, "stats": { "mining_speed": 15, "mining_fortune": 3 } },
+      { "tier": 9, "stats": { "mining_speed": 15, "mining_fortune": 4 } },
+      { "tier": 10, "stats": { "mining_speed": 20, "mining_fortune": 5 } }
+    ]
+  },
+  "perks": {
+    "mining_speed": {
+      "max_level": 50,
+      "per_level": {
+        "mining_speed": 4
+      }
+    },
+    "mining_fortune": {
+      "max_level": 50,
+      "per_level": {
+        "mining_fortune": 1
+      }
+    },
+    "powder_buff": {
+      "max_level": 50,
+      "per_level": {
+        "mining_speed": 1,
+        "mining_fortune": 1
+      }
+    },
+    "mining_madness": {
+      "max_level": 1,
+      "stats": {
+        "mining_speed": 50
+      }
+    },
+    "sky_mall": {
+      "max_level": 1,
+      "comment": "스탯 보너스는 없지만 쇼핑 할인"
+    },
+    "precision_mining": {
+      "max_level": 1,
+      "stats": {
+        "mining_speed": 30
+      }
+    },
+    "front_loaded": {
+      "max_level": 1,
+      "stats": {
+        "mining_speed": 100
+      }
+    },
+    "quick_forge": {
+      "max_level": 20,
+      "comment": "제련 시간 단축 (스탯 보너스 없음)"
+    },
+    "fortunate": {
+      "max_level": 1,
+      "stats": {
+        "mining_fortune": 20
+      }
+    },
+    "great_explorer": {
+      "max_level": 20,
+      "per_level": {
+        "speed": 1,
+        "mining_speed": 2
+      }
+    },
+    "maniac_miner": {
+      "max_level": 1,
+      "stats": {
+        "mining_speed": 100,
+        "mining_fortune": 50
+      }
+    },
+    "dead_mans_chest": {
+      "max_level": 1,
+      "comment": "사망 시 아이템 보호 (스탯 보너스 없음)"
+    },
+    "lonesome_miner": {
+      "max_level": 45,
+      "per_level": {
+        "strength": 1,
+        "defense": 1
+      }
+    },
+    "professional": {
+      "max_level": 140,
+      "per_level": {
+        "mining_speed": 5
+      }
+    },
+    "mole": {
+      "max_level": 190,
+      "per_level": {
+        "mining_speed": 5
+      }
+    },
+    "efficient_miner": {
+      "max_level": 100,
+      "per_level": {
+        "mining_speed": 2.5
+      }
+    },
+    "forge_time": {
+      "max_level": 1,
+      "comment": "제련 슬롯 추가 (스탯 보너스 없음)"
+    },
+    "crystallized": {
+      "max_level": 30,
+      "per_level": {
+        "mining_speed": 2,
+        "defense": 1
+      }
+    },
+    "mining_experience": {
+      "max_level": 100,
+      "comment": "광산 경험치 보너스 (스탯 보너스 없음)"
+    },
+    "daily_powder": {
+      "max_level": 100,
+      "comment": "일일 가루 (스탯 보너스 없음)"
+    }
+  }
+}

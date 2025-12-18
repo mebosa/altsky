@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -25,6 +24,22 @@ type Loader struct {
 type fileEnvelope struct {
 	BaseStats    map[string]float64      `json:"base_stats"`
 	LevelBonuses map[string][]LevelBonus `json:"level_bonuses"`
+	// 확장된 필드
+	ArmorStats        map[string]map[string]float64 `json:"armor_stats"`
+	ArmorSets         map[string]ArmorSet           `json:"armor_sets"`
+	Reforges          map[string]ReforgeData        `json:"reforges"`
+	Gems              map[string]GemData            `json:"gems"`
+	Enchants          map[string]EnchantData        `json:"enchants"`
+	Accessories       map[string]map[string]float64 `json:"accessories"`
+	Enrichments       map[string]map[string]float64 `json:"enrichments"`
+	Pets              map[string]map[string]PetTierData `json:"pets"`
+	PetItems          map[string]map[string]float64     `json:"pet_items"`
+	HOTMTiers    struct {
+		Tiers []HOTMTier `json:"tiers"`
+	} `json:"hotm_tiers"`
+	HOTMPerks         map[string]HOTMPerk           `json:"perks"`
+	CatacombsBonuses  []LevelBonus                  `json:"catacombs_bonuses"`
+	ClassBonuses      map[string][]LevelBonus       `json:"class_bonuses"`
 }
 
 // NewLoader는 지정된 디렉터리에서 초기 데이터를 불러옵니다.
@@ -150,15 +165,76 @@ func (l *Loader) loadFile(path string, cfg *Config) error {
 		return err
 	}
 
-	if len(env.BaseStats) == 0 && len(env.LevelBonuses) == 0 {
-		return errors.New("empty stats definition")
-	}
-
+	// 기존 필드
 	if len(env.BaseStats) > 0 {
 		cfg.mergeBaseStats(env.BaseStats)
 	}
 	if len(env.LevelBonuses) > 0 {
 		cfg.mergeLevelBonuses(env.LevelBonuses)
 	}
+	
+	// 확장 필드
+	if len(env.ArmorStats) > 0 {
+		for k, v := range env.ArmorStats {
+			cfg.ArmorStats[k] = v
+		}
+	}
+	if len(env.ArmorSets) > 0 {
+		for k, v := range env.ArmorSets {
+			cfg.ArmorSets[k] = v
+		}
+	}
+	if len(env.Reforges) > 0 {
+		for k, v := range env.Reforges {
+			cfg.Reforges[k] = v
+		}
+	}
+	if len(env.Gems) > 0 {
+		for k, v := range env.Gems {
+			cfg.Gems[k] = v
+		}
+	}
+	if len(env.Enchants) > 0 {
+		for k, v := range env.Enchants {
+			cfg.Enchants[k] = v
+		}
+	}
+	if len(env.Accessories) > 0 {
+		for k, v := range env.Accessories {
+			cfg.Accessories[k] = v
+		}
+	}
+	if len(env.Enrichments) > 0 {
+		for k, v := range env.Enrichments {
+			cfg.Enrichments[k] = v
+		}
+	}
+	if len(env.Pets) > 0 {
+		for k, v := range env.Pets {
+			cfg.Pets[k] = v
+		}
+	}
+	if len(env.PetItems) > 0 {
+		for k, v := range env.PetItems {
+			cfg.PetItems[k] = v
+		}
+	}
+	if len(env.HOTMTiers.Tiers) > 0 {
+		cfg.HOTMTiers = append(cfg.HOTMTiers, env.HOTMTiers.Tiers...)
+	}
+	if len(env.HOTMPerks) > 0 {
+		for k, v := range env.HOTMPerks {
+			cfg.HOTMPerks[k] = v
+		}
+	}
+	if len(env.CatacombsBonuses) > 0 {
+		cfg.CatacombsBonuses = append(cfg.CatacombsBonuses, env.CatacombsBonuses...)
+	}
+	if len(env.ClassBonuses) > 0 {
+		for k, v := range env.ClassBonuses {
+			cfg.ClassBonuses[k] = v
+		}
+	}
+	
 	return nil
 }

@@ -126,6 +126,28 @@
     const formatted = formatNumber(numericValue, fraction);
     return percentStats.has(key) ? `${formatted}%` : formatted;
   };
+
+  const getComputedValue = (key: string) => {
+    return computed?.[key];
+  };
+
+  const getDifference = (key: KnownStatKey) => {
+    const original = getStatValue(key);
+    const calculated = getComputedValue(key);
+    
+    if (original === undefined || calculated === undefined) {
+      return null;
+    }
+    
+    const diff = Number(calculated) - Number(original);
+    return Math.abs(diff) > 0.01 ? diff : null;
+  };
+
+  const getDiffClass = (diff: number | null) => {
+    if (diff === null) return '';
+    return diff > 0 ? 'positive' : 'negative';
+  };
+
 </script>
 
 <section id="stats" class="grid stats-grid">
@@ -141,11 +163,20 @@
     </div>
     <div class="stat-panel-body">
       {#each primaryStatOrder as key}
+        {@const diff = getDifference(key)}
         <div class="stat-row" data-stat={key}>
           <span class="stat-row-label">{getStatLabel(key)}</span>
           <span class="stat-row-value">{formatStatValue(key, getStatValue(key))}</span>
           {#if computed?.[key] !== undefined}
-            <span class="stat-row-computed">{formatStatValue(key, computed?.[key])}</span>
+            <span class="stat-row-computed">
+              <span class="computed-label">Calculated:</span>
+              <span class="computed-value">{formatStatValue(key, computed?.[key])}</span>
+              {#if diff !== null}
+                <span class="diff {getDiffClass(diff)}">
+                  ({diff > 0 ? '+' : ''}{formatStatValue(key, diff)})
+                </span>
+              {/if}
+            </span>
           {/if}
         </div>
       {/each}
@@ -158,11 +189,19 @@
     <p class="stat-note">Every SkyBlock stat beyond the highlights.</p>
     <div class="stat-list">
       {#each additionalStatOrder as key}
+        {@const diff = getDifference(key)}
         <div class="stat-chip" data-stat={key}>
           <span class="label">{getStatLabel(key)}</span>
           <span class="value">{formatStatValue(key, getStatValue(key))}</span>
           {#if computed?.[key] !== undefined}
-            <span class="computed">calc: {formatStatValue(key, computed?.[key])}</span>
+            <span class="computed">
+              calc: {formatStatValue(key, computed?.[key])}
+              {#if diff !== null}
+                <span class="diff-small {getDiffClass(diff)}">
+                  ({diff > 0 ? '+' : ''}{formatStatValue(key, diff)})
+                </span>
+              {/if}
+            </span>
           {/if}
         </div>
       {/each}
@@ -258,6 +297,35 @@
     border-radius: 10px;
     padding: 4px 8px;
     background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .computed-label {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .computed-value {
+    font-weight: 600;
+  }
+
+  .diff {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .diff.positive {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
+  }
+
+  .diff.negative {
+    color: #fb7185;
+    background: rgba(251, 113, 133, 0.1);
   }
 
   .stat-row[data-stat='speed']::before {
@@ -338,6 +406,22 @@
   .stat-chip .computed {
     font-size: 0.85rem;
     color: var(--theme-text-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .diff-small {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .diff-small.positive {
+    color: #4ade80;
+  }
+
+  .diff-small.negative {
+    color: #fb7185;
   }
 
   .stat-chip[data-stat='bonus_attack_speed'] .value {

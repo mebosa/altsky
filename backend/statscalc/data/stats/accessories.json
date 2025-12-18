@@ -1,0 +1,98 @@
+{
+  "comment": "악세서리 아이템별 스탯 정의 (Magical Power는 별도 계산)",
+  "accessories": {
+    "SPEED_RING": {
+      "speed": 1
+    },
+    "SPEED_ARTIFACT": {
+      "speed": 3
+    },
+    "PERSONAL_COMPACTOR_4000": {
+      "comment": "스탯 없는 유틸리티 악세서리"
+    },
+    "PIGGY_BANK": {
+      "defense": 5
+    },
+    "CAMPFIRE_BADGE": {
+      "health": 5,
+      "defense": 5,
+      "strength": 5,
+      "crit_chance": 5,
+      "intelligence": 5,
+      "speed": 5
+    },
+    "SCARF_THESIS": {
+      "intelligence": 10,
+      "crit_damage": 30
+    },
+    "HEGEMONY_ARTIFACT": {
+      "intelligence": 10,
+      "strength": 6
+    },
+    "CANDY_ARTIFACT": {
+      "intelligence": 5
+    }
+  },
+  "enrichments": {
+    "comment": "악세서리 강화별 추가 스탯",
+    "attack_speed": {
+      "attack_speed": 2
+    },
+    "critical_chance": {
+      "crit_chance": 8
+    },
+    "critical_damage": {
+      "crit_damage": 10
+    },
+    "defense": {
+      "defense": 20
+    },
+    "ferocity": {
+      "ferocity": 4
+    },
+    "health": {
+      "health": 40
+    },
+    "intelligence": {
+      "intelligence": 20
+    },
+    "magic_find": {
+      "magic_find": 5
+    },
+    "sea_creature_chance": {
+      "sea_creature_chance": 1
+    },
+    "speed": {
+      "speed": 2
+    },
+    "strength": {
+      "strength": 10
+    },
+    "walk_speed": {
+      "speed": 3
+    }
+  },
+  "magical_power_tiers": {
+    "comment": "Magical Power 단계별 스탯 (간략화된 버전)",
+    "tiers": [
+      { "power_required": 0, "stats": {} },
+      { "power_required": 50, "stats": { "crit_damage": 5, "strength": 2 } },
+      { "power_required": 100, "stats": { "crit_damage": 5, "strength": 2 } },
+      { "power_required": 200, "stats": { "crit_damage": 5, "strength": 2 } },
+      { "power_required": 300, "stats": { "crit_damage": 5, "strength": 3 } },
+      { "power_required": 500, "stats": { "crit_damage": 5, "strength": 3 } },
+      { "power_required": 750, "stats": { "crit_damage": 5, "strength": 3 } }
+    ]
+  },
+  "accessory_rarity_power": {
+    "comment": "악세서리 레어리티별 Magical Power 기여도",
+    "COMMON": 3,
+    "UNCOMMON": 5,
+    "RARE": 8,
+    "EPIC": 12,
+    "LEGENDARY": 16,
+    "MYTHIC": 22,
+    "SPECIAL": 3,
+    "VERY_SPECIAL": 5
+  }
+}

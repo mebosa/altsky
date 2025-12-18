@@ -1,0 +1,158 @@
+{
+  "comment": "펫 타입별 레벨당 스탯 정의",
+  "pets": {
+    "ENDERMAN": {
+      "COMMON": {
+        "per_level": {
+          "crit_damage": 0.25
+        },
+        "max_level_bonus": {
+          "crit_damage": 10
+        }
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "crit_damage": 0.25
+        },
+        "max_level_bonus": {
+          "crit_damage": 10
+        }
+      },
+      "RARE": {
+        "per_level": {
+          "crit_damage": 0.3
+        },
+        "max_level_bonus": {
+          "crit_damage": 15
+        }
+      },
+      "EPIC": {
+        "per_level": {
+          "crit_damage": 0.3
+        },
+        "max_level_bonus": {
+          "crit_damage": 15
+        }
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "crit_damage": 0.4
+        },
+        "max_level_bonus": {
+          "crit_damage": 20
+        }
+      }
+    },
+    "LION": {
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "ferocity": 0.2
+        },
+        "max_level_bonus": {
+          "strength": 25,
+          "ferocity": 10
+        }
+      }
+    },
+    "TIGER": {
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_damage": 0.25,
+          "ferocity": 0.15
+        },
+        "max_level_bonus": {
+          "strength": 5,
+          "crit_damage": 12.5,
+          "ferocity": 7.5
+        }
+      }
+    },
+    "ENDER_DRAGON": {
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1,
+          "crit_damage": 0.5
+        },
+        "max_level_bonus": {
+          "strength": 25,
+          "crit_chance": 5,
+          "crit_damage": 25
+        }
+      }
+    },
+    "GOLDEN_DRAGON": {
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "magic_find": 0.1
+        },
+        "max_level_bonus": {
+          "strength": 25,
+          "magic_find": 5
+        }
+      }
+    },
+    "BLUE_WHALE": {
+      "LEGENDARY": {
+        "per_level": {
+          "health": 2,
+          "defense": 0.1
+        },
+        "max_level_bonus": {
+          "health": 100,
+          "defense": 5
+        }
+      }
+    },
+    "MONKEY": {
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 0.5,
+          "speed": 0.2
+        },
+        "max_level_bonus": {
+          "intelligence": 25,
+          "speed": 10
+        }
+      }
+    },
+    "GDRAG": {
+      "comment": "GOLDEN_DRAGON의 별칭",
+      "alias": "GOLDEN_DRAGON"
+    },
+    "EDRAG": {
+      "comment": "ENDER_DRAGON의 별칭",
+      "alias": "ENDER_DRAGON"
+    }
+  },
+  "pet_items": {
+    "PET_ITEM_TIER_BOOST": {
+      "comment": "펫 티어 부스트 (레어리티 1단계 상승 효과)"
+    },
+    "PET_ITEM_COMBAT_SKILL_BOOST_COMMON": {
+      "comment": "펫 스킬 부스트 아이템들 (특정 보너스)"
+    },
+    "MINOS_RELIC": {
+      "strength": 5,
+      "crit_damage": 5
+    },
+    "TEXTBOOK": {
+      "intelligence": 10
+    },
+    "WASHED_UP_SOUVENIR": {
+      "fishing_speed": 15
+    }
+  },
+  "pet_levels": {
+    "comment": "펫 레벨 범위 (티어별)",
+    "COMMON": { "min": 1, "max": 100 },
+    "UNCOMMON": { "min": 1, "max": 100 },
+    "RARE": { "min": 1, "max": 100 },
+    "EPIC": { "min": 1, "max": 100 },
+    "LEGENDARY": { "min": 1, "max": 100 },
+    "MYTHIC": { "min": 1, "max": 100 }
+  }
+}

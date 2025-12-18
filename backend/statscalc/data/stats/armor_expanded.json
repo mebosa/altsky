@@ -1,0 +1,405 @@
+{
+  "comment": "주요 방어구 세트들의 실제 스탯 데이터",
+  "armor_stats": {
+    "SUPERIOR_DRAGON_HELMET": { "health": 90, "defense": 130, "strength": 10, "crit_chance": 2, "crit_damage": 10, "intelligence": 25, "speed": 3 },
+    "SUPERIOR_DRAGON_CHESTPLATE": { "health": 140, "defense": 200, "strength": 10, "crit_chance": 2, "crit_damage": 10, "intelligence": 25, "speed": 3 },
+    "SUPERIOR_DRAGON_LEGGINGS": { "health": 120, "defense": 160, "strength": 10, "crit_chance": 2, "crit_damage": 10, "intelligence": 25, "speed": 3 },
+    "SUPERIOR_DRAGON_BOOTS": { "health": 90, "defense": 130, "strength": 10, "crit_chance": 2, "crit_damage": 10, "intelligence": 25, "speed": 3 },
+    
+    "STRONG_DRAGON_HELMET": { "health": 70, "defense": 80, "strength": 25 },
+    "STRONG_DRAGON_CHESTPLATE": { "health": 120, "defense": 160, "strength": 25 },
+    "STRONG_DRAGON_LEGGINGS": { "health": 100, "defense": 120, "strength": 25 },
+    "STRONG_DRAGON_BOOTS": { "health": 70, "defense": 80, "strength": 25 },
+    
+    "YOUNG_DRAGON_HELMET": { "health": 70, "defense": 80, "speed": 20 },
+    "YOUNG_DRAGON_CHESTPLATE": { "health": 120, "defense": 160, "speed": 20 },
+    "YOUNG_DRAGON_LEGGINGS": { "health": 100, "defense": 120, "speed": 20 },
+    "YOUNG_DRAGON_BOOTS": { "health": 70, "defense": 80, "speed": 20 },
+    
+    "WISE_DRAGON_HELMET": { "health": 70, "defense": 80, "intelligence": 125 },
+    "WISE_DRAGON_CHESTPLATE": { "health": 120, "defense": 160, "intelligence": 125 },
+    "WISE_DRAGON_LEGGINGS": { "health": 100, "defense": 120, "intelligence": 125 },
+    "WISE_DRAGON_BOOTS": { "health": 70, "defense": 80, "intelligence": 125 },
+    
+    "UNSTABLE_DRAGON_HELMET": { "health": 70, "defense": 80, "crit_chance": 5, "crit_damage": 5 },
+    "UNSTABLE_DRAGON_CHESTPLATE": { "health": 120, "defense": 160, "crit_chance": 5, "crit_damage": 5 },
+    "UNSTABLE_DRAGON_LEGGINGS": { "health": 100, "defense": 120, "crit_chance": 5, "crit_damage": 5 },
+    "UNSTABLE_DRAGON_BOOTS": { "health": 70, "defense": 80, "crit_chance": 5, "crit_damage": 5 },
+    
+    "NECRON_HELMET": { "health": 145, "defense": 115, "strength": 40, "crit_chance": 30, "crit_damage": 30, "intelligence": 10, "attack_speed": 10 },
+    "NECRON_CHESTPLATE": { "health": 260, "defense": 180, "strength": 40, "crit_chance": 30, "crit_damage": 30, "intelligence": 10, "attack_speed": 10 },
+    "NECRON_LEGGINGS": { "health": 215, "defense": 145, "strength": 40, "crit_chance": 30, "crit_damage": 30, "intelligence": 10, "attack_speed": 10 },
+    "NECRON_BOOTS": { "health": 145, "defense": 115, "strength": 40, "crit_chance": 30, "crit_damage": 30, "intelligence": 10, "attack_speed": 10 },
+    
+    "GOLDOR_HELMET": { "health": 165, "defense": 165, "strength": 25 },
+    "GOLDOR_CHESTPLATE": { "health": 300, "defense": 300, "strength": 25 },
+    "GOLDOR_LEGGINGS": { "health": 245, "defense": 245, "strength": 25 },
+    "GOLDOR_BOOTS": { "health": 165, "defense": 165, "strength": 25 },
+    
+    "STORM_HELMET": { "health": 145, "defense": 115, "intelligence": 270 },
+    "STORM_CHESTPLATE": { "health": 260, "defense": 180, "intelligence": 270 },
+    "STORM_LEGGINGS": { "health": 215, "defense": 145, "intelligence": 270 },
+    "STORM_BOOTS": { "health": 145, "defense": 115, "intelligence": 270 },
+    
+    "FROZEN_BLAZE_HELMET": { "health": 75, "defense": 100, "strength": 40, "crit_damage": 20, "intelligence": 25 },
+    "FROZEN_BLAZE_CHESTPLATE": { "health": 120, "defense": 160, "strength": 40, "crit_damage": 20, "intelligence": 25 },
+    "FROZEN_BLAZE_LEGGINGS": { "health": 100, "defense": 130, "strength": 40, "crit_damage": 20, "intelligence": 25 },
+    "FROZEN_BLAZE_BOOTS": { "health": 75, "defense": 100, "strength": 40, "crit_damage": 20, "intelligence": 25 },
+    
+    "CRIMSON_HELMET": { "health": 90, "defense": 90, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5 },
+    "CRIMSON_CHESTPLATE": { "health": 160, "defense": 160, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5 },
+    "CRIMSON_LEGGINGS": { "health": 130, "defense": 130, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5 },
+    "CRIMSON_BOOTS": { "health": 90, "defense": 90, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5 },
+    
+    "TERROR_HELMET": { "health": 100, "defense": 100, "strength": 35, "crit_chance": 10, "crit_damage": 25, "ferocity": 5 },
+    "TERROR_CHESTPLATE": { "health": 180, "defense": 180, "strength": 35, "crit_chance": 10, "crit_damage": 25, "ferocity": 5 },
+    "TERROR_LEGGINGS": { "health": 145, "defense": 145, "strength": 35, "crit_chance": 10, "crit_damage": 25, "ferocity": 5 },
+    "TERROR_BOOTS": { "health": 100, "defense": 100, "strength": 35, "crit_chance": 10, "crit_damage": 25, "ferocity": 5 },
+    
+    "FERVOR_HELMET": { "health": 90, "defense": 90, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5, "health_regen": 5 },
+    "FERVOR_CHESTPLATE": { "health": 160, "defense": 160, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5, "health_regen": 5 },
+    "FERVOR_LEGGINGS": { "health": 130, "defense": 130, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5, "health_regen": 5 },
+    "FERVOR_BOOTS": { "health": 90, "defense": 90, "strength": 30, "crit_chance": 10, "crit_damage": 20, "ferocity": 5, "health_regen": 5 },
+    
+    "AURORA_HELMET": { "health": 230, "defense": 130, "intelligence": 20, "true_defense": 5 },
+    "AURORA_CHESTPLATE": { "health": 400, "defense": 240, "intelligence": 30, "true_defense": 10 },
+    "AURORA_LEGGINGS": { "health": 340, "defense": 200, "intelligence": 25, "true_defense": 8 },
+    "AURORA_BOOTS": { "health": 230, "defense": 130, "intelligence": 20, "true_defense": 5 },
+    
+    "GLACITE_HELMET": { "health": 140, "defense": 50, "intelligence": 30, "cold_resistance": 30 },
+    "GLACITE_CHESTPLATE": { "health": 240, "defense": 100, "intelligence": 30, "cold_resistance": 30 },
+    "GLACITE_LEGGINGS": { "health": 200, "defense": 75, "intelligence": 30, "cold_resistance": 30 },
+    "GLACITE_BOOTS": { "health": 140, "defense": 50, "intelligence": 30, "cold_resistance": 30 },
+    
+    "DIVAN_HELMET": { "health": 100, "defense": 70, "mining_speed": 100, "mining_fortune": 50 },
+    "DIVAN_CHESTPLATE": { "health": 180, "defense": 130, "mining_speed": 100, "mining_fortune": 50 },
+    "DIVAN_LEGGINGS": { "health": 145, "defense": 105, "mining_speed": 100, "mining_fortune": 50 },
+    "DIVAN_BOOTS": { "health": 100, "defense": 70, "mining_speed": 100, "mining_fortune": 50 },
+    
+    "SORROW_HELMET": { "health": 205, "defense": 55, "intelligence": 280 },
+    "SORROW_CHESTPLATE": { "health": 370, "defense": 110, "intelligence": 280 },
+    "SORROW_LEGGINGS": { "health": 305, "defense": 90, "intelligence": 280 },
+    "SORROW_BOOTS": { "health": 205, "defense": 55, "intelligence": 280 },
+    
+    "SHADOW_ASSASSIN_HELMET": { "health": 160, "defense": 75, "strength": 25, "crit_damage": 15, "speed": 7 },
+    "SHADOW_ASSASSIN_CHESTPLATE": { "health": 260, "defense": 120, "strength": 25, "crit_damage": 15, "speed": 7 },
+    "SHADOW_ASSASSIN_LEGGINGS": { "health": 230, "defense": 105, "strength": 25, "crit_damage": 15, "speed": 7 },
+    "SHADOW_ASSASSIN_BOOTS": { "health": 155, "defense": 70, "strength": 25, "crit_damage": 15, "speed": 7 },
+    
+    "TARANTULA_HELMET": { "health": 75, "defense": 65, "intelligence": 100 },
+    "TARANTULA_CHESTPLATE": { "health": 120, "defense": 100, "intelligence": 50 },
+    "TARANTULA_LEGGINGS": { "health": 95, "defense": 85, "intelligence": 50 },
+    "TARANTULA_BOOTS": { "health": 60, "defense": 50, "intelligence": 50, "speed": 5 },
+    
+    "MASTIFF_HELMET": { "health": 500, "defense": -1000000, "intelligence": 30 },
+    "MASTIFF_CHESTPLATE": { "health": 500, "defense": -1000000, "intelligence": 40 },
+    "MASTIFF_LEGGINGS": { "health": 500, "defense": -1000000, "intelligence": 40 },
+    "MASTIFF_BOOTS": { "health": 500, "defense": -1000000, "intelligence": 30 },
+    
+    "ADAPTIVE_HELMET": { "health": 110, "defense": 50 },
+    "ADAPTIVE_CHESTPLATE": { "health": 160, "defense": 80 },
+    "ADAPTIVE_LEGGINGS": { "health": 135, "defense": 70 },
+    "ADAPTIVE_BOOTS": { "health": 100, "defense": 45 },
+    
+    "ZOMBIE_KNIGHT_HELMET": { "defense": 117, "strength": 22, "speed": 8 },
+    "ZOMBIE_KNIGHT_CHESTPLATE": { "defense": 209, "strength": 43, "speed": 8 },
+    "ZOMBIE_KNIGHT_LEGGINGS": { "defense": 184, "strength": 33, "speed": 8 },
+    "ZOMBIE_KNIGHT_BOOTS": { "defense": 100, "strength": 22, "speed": 8 },
+    
+    "WARDEN_HELMET": { "health": 300, "defense": 100 },
+    "REAPER_MASK": { "health": 150, "defense": 100, "intelligence": 100 },
+    "RANCHERS_BOOTS": { "health": 100, "defense": 70, "speed": 50 }
+  },
+  "armor_sets": {
+    "SUPERIOR_DRAGON": {
+      "required_pieces": 4,
+      "set_bonus_multiplier": {
+        "health": 0.05,
+        "defense": 0.05,
+        "strength": 0.05,
+        "crit_chance": 0.05,
+        "crit_damage": 0.05,
+        "intelligence": 0.05,
+        "speed": 0.05,
+        "attack_speed": 0.05,
+        "ferocity": 0.05,
+        "magic_find": 0.05,
+        "pet_luck": 0.05,
+        "true_defense": 0.05
+      }
+    },
+    "STRONG_DRAGON": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "strength": 25,
+        "crit_damage": 20
+      }
+    },
+    "YOUNG_DRAGON": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "speed": 20
+      }
+    },
+    "WISE_DRAGON": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "intelligence": 125
+      }
+    },
+    "UNSTABLE_DRAGON": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "crit_chance": 5,
+        "crit_damage": 5
+      }
+    },
+    "NECRON": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "strength": 40,
+        "crit_chance": 30
+      }
+    },
+    "GOLDOR": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 100,
+        "defense": 100
+      }
+    },
+    "STORM": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "intelligence": 50,
+        "ability_damage": 25
+      }
+    },
+    "FROZEN_BLAZE": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "strength": 25,
+        "crit_damage": 15
+      }
+    },
+    "CRIMSON": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 60,
+        "defense": 60,
+        "strength": 20
+      }
+    },
+    "TERROR": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 60,
+        "defense": 60,
+        "strength": 25,
+        "intelligence": 10
+      }
+    },
+    "FERVOR": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 60,
+        "defense": 60,
+        "strength": 20,
+        "vitality": 30
+      }
+    },
+    "AURORA": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 50,
+        "intelligence": 50
+      }
+    },
+    "GLACITE": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "mining_speed": 50,
+        "cold_resistance": 100
+      }
+    },
+    "DIVAN": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "mining_fortune": 50,
+        "mining_speed": 50,
+        "pristine": 10
+      }
+    },
+    "SORROW": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "intelligence": 75,
+        "ability_damage": 15
+      }
+    },
+    "SHADOW_ASSASSIN": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "strength": 1
+      }
+    },
+    "TARANTULA": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "intelligence": 100
+      }
+    },
+    "MASTIFF": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 50
+      }
+    },
+    "ADAPTIVE": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 20,
+        "defense": 20
+      }
+    }
+  },
+  "reforges": {
+    "fierce": {
+      "COMMON": { "strength": 2, "crit_damage": 4, "crit_chance": 1 },
+      "UNCOMMON": { "strength": 3, "crit_damage": 6, "crit_chance": 1 },
+      "RARE": { "strength": 4, "crit_damage": 8, "crit_chance": 1 },
+      "EPIC": { "strength": 6, "crit_damage": 10, "crit_chance": 2 },
+      "LEGENDARY": { "strength": 8, "crit_damage": 14, "crit_chance": 2 },
+      "MYTHIC": { "strength": 10, "crit_damage": 18, "crit_chance": 3 }
+    },
+    "ancient": {
+      "COMMON": { "health": 3, "defense": 3, "strength": 2, "crit_damage": 2, "crit_chance": 1, "intelligence": 2, "speed": 1 },
+      "UNCOMMON": { "health": 5, "defense": 5, "strength": 3, "crit_damage": 3, "crit_chance": 1, "intelligence": 3, "speed": 1 },
+      "RARE": { "health": 7, "defense": 7, "strength": 4, "crit_damage": 4, "crit_chance": 1, "intelligence": 4, "speed": 1 },
+      "EPIC": { "health": 9, "defense": 9, "strength": 6, "crit_damage": 6, "crit_chance": 2, "intelligence": 6, "speed": 2 },
+      "LEGENDARY": { "health": 12, "defense": 12, "strength": 8, "crit_damage": 8, "crit_chance": 2, "intelligence": 8, "speed": 2 },
+      "MYTHIC": { "health": 15, "defense": 15, "strength": 10, "crit_damage": 10, "crit_chance": 3, "intelligence": 10, "speed": 3 }
+    },
+    "renowned": {
+      "COMMON": { "health": 6, "defense": 6, "strength": 3, "crit_damage": 3, "crit_chance": 1, "intelligence": 3, "attack_speed": 1 },
+      "UNCOMMON": { "health": 9, "defense": 9, "strength": 5, "crit_damage": 5, "crit_chance": 1, "intelligence": 5, "attack_speed": 1 },
+      "RARE": { "health": 12, "defense": 12, "strength": 6, "crit_damage": 6, "crit_chance": 1, "intelligence": 6, "attack_speed": 1 },
+      "EPIC": { "health": 15, "defense": 15, "strength": 8, "crit_damage": 8, "crit_chance": 2, "intelligence": 8, "attack_speed": 2 },
+      "LEGENDARY": { "health": 20, "defense": 20, "strength": 10, "crit_damage": 10, "crit_chance": 2, "intelligence": 10, "attack_speed": 2 },
+      "MYTHIC": { "health": 25, "defense": 25, "strength": 13, "crit_damage": 13, "crit_chance": 3, "intelligence": 13, "attack_speed": 3 }
+    },
+    "titanic": {
+      "COMMON": { "health": 8, "defense": 3 },
+      "UNCOMMON": { "health": 12, "defense": 5 },
+      "RARE": { "health": 15, "defense": 6 },
+      "EPIC": { "health": 20, "defense": 8 },
+      "LEGENDARY": { "health": 28, "defense": 12 },
+      "MYTHIC": { "health": 36, "defense": 16 }
+    },
+    "loving": {
+      "COMMON": { "health": 12 },
+      "UNCOMMON": { "health": 18 },
+      "RARE": { "health": 22 },
+      "EPIC": { "health": 30 },
+      "LEGENDARY": { "health": 42 },
+      "MYTHIC": { "health": 54 }
+    },
+    "pure": {
+      "COMMON": { "strength": 2, "crit_damage": 2, "intelligence": 3 },
+      "UNCOMMON": { "strength": 3, "crit_damage": 3, "intelligence": 5 },
+      "RARE": { "strength": 4, "crit_damage": 4, "intelligence": 6 },
+      "EPIC": { "strength": 6, "crit_damage": 6, "intelligence": 8 },
+      "LEGENDARY": { "strength": 8, "crit_damage": 8, "intelligence": 12 },
+      "MYTHIC": { "strength": 10, "crit_damage": 10, "intelligence": 16 }
+    },
+    "smart": {
+      "COMMON": { "intelligence": 12 },
+      "UNCOMMON": { "intelligence": 20 },
+      "RARE": { "intelligence": 25 },
+      "EPIC": { "intelligence": 35 },
+      "LEGENDARY": { "intelligence": 50 },
+      "MYTHIC": { "intelligence": 65 }
+    },
+    "necrotic": {
+      "COMMON": { "intelligence": 20 },
+      "UNCOMMON": { "intelligence": 30 },
+      "RARE": { "intelligence": 40 },
+      "EPIC": { "intelligence": 60 },
+      "LEGENDARY": { "intelligence": 80 },
+      "MYTHIC": { "intelligence": 100 }
+    },
+    "strengthened": {
+      "COMMON": { "health": 4, "defense": 4 },
+      "UNCOMMON": { "health": 6, "defense": 6 },
+      "RARE": { "health": 8, "defense": 8 },
+      "EPIC": { "health": 10, "defense": 10 },
+      "LEGENDARY": { "health": 14, "defense": 14 },
+      "MYTHIC": { "health": 18, "defense": 18 }
+    }
+  },
+  "gems": {
+    "RUBY": {
+      "ROUGH": { "health": 4 },
+      "FLAWED": { "health": 6 },
+      "FINE": { "health": 8 },
+      "FLAWLESS": { "health": 12 },
+      "PERFECT": { "health": 16 }
+    },
+    "AMETHYST": {
+      "ROUGH": { "defense": 3 },
+      "FLAWED": { "defense": 5 },
+      "FINE": { "defense": 6 },
+      "FLAWLESS": { "defense": 9 },
+      "PERFECT": { "defense": 12 }
+    },
+    "JASPER": {
+      "ROUGH": { "strength": 3 },
+      "FLAWED": { "strength": 5 },
+      "FINE": { "strength": 6 },
+      "FLAWLESS": { "strength": 9 },
+      "PERFECT": { "strength": 12 }
+    },
+    "SAPPHIRE": {
+      "ROUGH": { "intelligence": 3 },
+      "FLAWED": { "intelligence": 5 },
+      "FINE": { "intelligence": 6 },
+      "FLAWLESS": { "intelligence": 9 },
+      "PERFECT": { "intelligence": 12 }
+    },
+    "AMBER": {
+      "ROUGH": { "mining_speed": 5, "mining_fortune": 2 },
+      "FLAWED": { "mining_speed": 8, "mining_fortune": 4 },
+      "FINE": { "mining_speed": 10, "mining_fortune": 5 },
+      "FLAWLESS": { "mining_speed": 15, "mining_fortune": 8 },
+      "PERFECT": { "mining_speed": 20, "mining_fortune": 10 }
+    },
+    "TOPAZ": {
+      "ROUGH": { "ferocity": 3 },
+      "FLAWED": { "ferocity": 5 },
+      "FINE": { "ferocity": 6 },
+      "FLAWLESS": { "ferocity": 9 },
+      "PERFECT": { "ferocity": 12 }
+    },
+    "JADE": {
+      "ROUGH": { "farming_fortune": 5 },
+      "FLAWED": { "farming_fortune": 8 },
+      "FINE": { "farming_fortune": 10 },
+      "FLAWLESS": { "farming_fortune": 15 },
+      "PERFECT": { "farming_fortune": 20 }
+    },
+    "OPAL": {
+      "ROUGH": { "combat_wisdom": 2.5 },
+      "FLAWED": { "combat_wisdom": 4 },
+      "FINE": { "combat_wisdom": 5 },
+      "FLAWLESS": { "combat_wisdom": 7.5 },
+      "PERFECT": { "combat_wisdom": 10 }
+    }
+  },
+  "enchants": {
+    "protection": { "per_level": { "defense": 3 } },
+    "growth": { "per_level": { "health": 15 } },
+    "true_protection": { "per_level": { "defense": 5 } },
+    "sugar_rush": { "per_level": { "speed": 2 } },
+    "feather_falling": { "per_level": { "defense": 1 } }
+  }
+}

@@ -45,9 +45,25 @@ ENV DJANGO_SETTINGS_MODULE=config.settings
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120"]
 
-# Stage 3: Nginx에 정적 파일 포함
+# Stage 3: Statscalc (Go)
+FROM golang:1.21-alpine AS statscalc
+
+WORKDIR /app
+
+COPY backend/statscalc/go.mod ./
+# COPY backend/statscalc/go.sum ./ # go.sum이 있다면
+RUN go mod download
+
+COPY backend/statscalc/ ./
+
+RUN go build -o /statscalc ./cmd/statscalc
+
+EXPOSE 8082
+CMD ["/statscalc"]
+
+# Stage 4: Nginx에 정적 파일 포함
 FROM nginx:alpine AS frontend-nginx
-COPY --from=frontend-builder /app/frontend/build /usr/share/nginx/html
+COPY --from=frontend-server /app/frontend/build /usr/share/nginx/html
 # nginx.conf는 compose에서 마운트해 덮어씁니다.
 
 

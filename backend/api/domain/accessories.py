@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import io
+import logging
+import time
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import nbtlib
+import requests
 
 from .item_textures import (
     TEXTURE_PACKS,
@@ -21,7 +24,30 @@ from .wardrobe import (
     _tag_value,
 )
 
+LOGGER = logging.getLogger(__name__)
+
 Identifier = Optional[str]
+
+HYPIXEL_ITEM_URL = "https://api.hypixel.net/resources/skyblock/items"
+_ACCESSORY_CATALOG: List[Dict[str, Any]] = []
+_ACCESSORY_CATALOG_FETCHED_AT = 0.0
+_ACCESSORY_CATALOG_TTL_SECONDS = 60 * 60  # 1 hour
+
+RARITY_ORDER = (
+    "DIVINE",
+    "SUPREME",
+    "MYTHIC",
+    "LEGENDARY",
+    "VERY SPECIAL",
+    "EPIC",
+    "RARE",
+    "UNCOMMON",
+    "SPECIAL",
+    "COMMON",
+    "BASIC",
+    "ADMIN",
+)
+RARITY_PRIORITY = {value: index for index, value in enumerate(RARITY_ORDER)}
 
 MAGICAL_POWER_BY_RARITY = {
     # Source: Hypixel Wiki (Magical Power) — per-accessory MP by rarity
@@ -179,6 +205,79 @@ def _normalize_rarity(rarity: Optional[str]) -> Optional[str]:
     if not normalized:
         return None
     return " ".join(segment for segment in normalized.upper().split())
+
+
+def _load_accessory_catalog() -> List[Dict[str, Any]]:
+    """
+    Fetch and cache the Hypixel accessory catalog. Only minimal fields are kept to
+    reduce payload size.
+    """
+    global _ACCESSORY_CATALOG, _ACCESSORY_CATALOG_FETCHED_AT
+    now = time.time()
+    if _ACCESSORY_CATALOG and now - _ACCESSORY_CATALOG_FETCHED_AT < _ACCESSORY_CATALOG_TTL_SECONDS:
+        return _ACCESSORY_CATALOG
+
+    try:
+        response = requests.get(HYPIXEL_ITEM_URL, timeout=6)
+        response.raise_for_status()
+        body = response.json() or {}
+        items = body.get("items") or []
+    except requests.RequestException as exc:
+        LOGGER.warning("Failed to fetch Hypixel accessory catalog: %s", exc)
+        return _ACCESSORY_CATALOG
+    except ValueError:
+        LOGGER.warning("Failed to parse Hypixel accessory catalog response")
+        return _ACCESSORY_CATALOG
+
+    catalog: List[Dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict) or item.get("category") != "ACCESSORY":
+            continue
+        item_id = item.get("id")
+        if not item_id:
+            continue
+        name = item.get("name") or str(item_id).replace("_", " ").title()
+        tier = _normalize_rarity(item.get("tier"))
+        catalog.append(
+            {
+                "id": str(item_id).upper(),
+                "name": name,
+                "tier": tier,
+            }
+        )
+
+    if catalog:
+        _ACCESSORY_CATALOG = catalog
+        _ACCESSORY_CATALOG_FETCHED_AT = now
+
+    return _ACCESSORY_CATALOG
+
+
+def _compute_missing_accessories(accessories: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], int]:
+    """
+    Determine which accessories from the Hypixel catalog are not present in the
+    player's bag. Returns the missing list and the total catalog size.
+    """
+    catalog = _load_accessory_catalog()
+    if not catalog:
+        return [], 0
+
+    owned_ids: Set[str] = set()
+    for accessory in accessories:
+        for key in ("id", "mc_id"):
+            raw = accessory.get(key)
+            if raw:
+                owned_ids.add(str(raw).upper())
+
+    missing = [item for item in catalog if item["id"].upper() not in owned_ids]
+    missing.sort(
+        key=lambda item: (
+            RARITY_PRIORITY.get((item.get("tier") or "").upper(), len(RARITY_PRIORITY)),
+            item.get("name") or item.get("id"),
+        )
+    )
+
+    return missing, len(catalog)
 
 
 def _magical_power_for_item(item_id: Optional[str], rarity: Optional[str]) -> int:
@@ -389,6 +488,7 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
 
     tuning = _normalize_tuning(storage.get("tuning") if isinstance(storage, dict) else None)
     power_stones = _normalize_power_stones(storage.get("power_stones") if isinstance(storage, dict) else None)
+    missing, missing_total = _compute_missing_accessories(items)
 
     return {
         "items": items,
@@ -402,4 +502,7 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
         "tuning": tuning,
         "unlocked_powers": unlocked_powers,
         "power_stones": power_stones,
+        "missing": missing,
+        "missing_total": missing_total,
+        "missing_count": len(missing),
     }
