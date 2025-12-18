@@ -85,6 +85,7 @@ export type ProfileSummaryResponse = {
     >;
   };
   stats: Record<string, number>;
+  computed_stats?: Record<string, number>;
   currencies: {
     purse: number;
     bank: {

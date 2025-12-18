@@ -121,62 +121,23 @@
 			}
 		};
 
-		const tintImage = (url: string, color: string): Promise<string> => {
-			return new Promise((resolve, reject) => {
-				const img = new Image();
-				img.crossOrigin = "Anonymous";
-				img.onload = () => {
-					const canvas = document.createElement('canvas');
-					canvas.width = img.width;
-					canvas.height = img.height;
-					const ctx = canvas.getContext('2d');
-					if (!ctx) {
-						resolve(url);
-						return;
-					}
-
-					// Draw original image
-					ctx.drawImage(img, 0, 0);
-
-					// Multiply with color
-					ctx.globalCompositeOperation = 'multiply';
-					ctx.fillStyle = color;
-					ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-					// Restore alpha channel
-					ctx.globalCompositeOperation = 'destination-in';
-					ctx.drawImage(img, 0, 0);
-
-					resolve(canvas.toDataURL());
-				};
-				img.onerror = (e) => {
-                    console.warn("Failed to load image for tinting", e);
-                    resolve(url);
-                };
-				img.src = url;
-			});
-		};
-
 		// Helper to create an armor layer model
 		const createArmorLayer = async (itemId: string | undefined, color: string | undefined, skinUrl: string | undefined, layer: 1 | 2, scale: number, visibleParts: string[]) => {
 			if (!itemId) return [];
 
-			let urls: { url: string, isOverlay: boolean, useColor: boolean }[] = [];
-			let isSkinUrl = false;
+			let urls: { url: string, isOverlay: boolean }[] = [];
 
 			if ($texturePackStore === 'furfsky') {
 				if (skinUrl) {
 					// If it's a skull (has skinUrl), prefer the skin texture.
 					// FurfSky armor textures are for armor models, not skulls.
-					urls.push({ url: skinUrl, isOverlay: false, useColor: false });
-					isSkinUrl = true;
+					urls.push({ url: skinUrl, isOverlay: false });
 				} else {
-					urls.push({ url: `/api/texture/armor/${itemId}/${layer}`, isOverlay: false, useColor: false });
+					urls.push({ url: `/api/texture/armor/${itemId}/${layer}`, isOverlay: false });
 				}
 			} else {
 				if (skinUrl) {
-					urls.push({ url: skinUrl, isOverlay: false, useColor: false });
-					isSkinUrl = true;
+					urls.push({ url: skinUrl, isOverlay: false });
 				} else {
 					// Vanilla mapping
 					const getVanillaName = (id: string) => {
@@ -191,28 +152,37 @@
 					if (name === 'leather') {
 						// Default leather color if not dyed
 						if (!color) color = '#A06540';
-
+						const cleanColor = color.replace(/#/g, '');
+						
 						// For leather, we need BOTH the base (colored) and the overlay (static)
 						// In 1.8.9: layer_1 is the colored part, overlay is the static brown part
 						urls.push({ 
-							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}.png`,
+							// Request TINTED texture from backend
+							url: `/api/texture/vanilla-armor/${name}/${layer}?color=${cleanColor}&_t=${Date.now()}`,
 							isOverlay: false,
-							useColor: true // Base layer IS tinted
+							useColor: false // We rely on server-side tinting
 						});
 						urls.push({ 
 							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}_overlay.png`,
 							isOverlay: true,
-							useColor: false // Overlay layer is NOT tinted
+							useColor: false
 						});
 					} else {
 						// Non-leather vanilla armor (diamond, iron, etc.)
-						// These can be tinted (e.g. by mods or specific game mechanics), but usually aren't.
-						// However, if a color IS provided, we should apply it.
-						urls.push({ 
-							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}.png`,
-							isOverlay: false,
-							useColor: !!color // Only tint if a color is explicitly provided
-						});
+						if (color) {
+							const cleanColor = color.replace(/#/g, '');
+							urls.push({ 
+								url: `/api/texture/vanilla-armor/${name}/${layer}?color=${cleanColor}&_t=${Date.now()}`,
+								isOverlay: false,
+								useColor: false
+							});
+						} else {
+							urls.push({ 
+								url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}.png`,
+								isOverlay: false,
+								useColor: false
+							});
+						}
 					}
 				}
 			}
@@ -238,31 +208,26 @@
 					
 					// Load texture
 					let success = false;
-					let finalUrl = texInfo.url;
-
-					// Pre-tint texture if needed
-					if (texInfo.useColor && color && !isSkinUrl) {
-						try {
-							finalUrl = await tintImage(texInfo.url, color.startsWith('#') ? color : '#' + color);
-						} catch (e) {
-							console.warn("Failed to tint image", e);
-						}
-					}
-
-					if ($texturePackStore === 'furfsky' && !isSkinUrl) {
-						// Use our API which returns processed images
-						const res = await fetch(finalUrl);
-						if (res.ok) {
-							success = await loadSkinToPlayerObject(model, finalUrl);
-						} else if (skinUrl) {
-							// Fallback to skinUrl if FurfSky missing
-							success = await loadSkinToPlayerObject(model, skinUrl);
-							// Disable color for skin fallback
-							texInfo.useColor = false;
-						}
-					} else {
-						// Load directly from URL for vanilla
-						success = await loadSkinToPlayerObject(model, finalUrl);
+					
+					// Use our API or CDN directly
+					// success = await loadSkinToPlayerObject(model, texInfo.url);
+					
+					// Manual fetch to debug and ensure freshness
+					try {
+						console.log(`[Armor] Fetching ${texInfo.url}`);
+						const resp = await fetch(texInfo.url);
+						if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+						const blob = await resp.blob();
+						const blobUrl = URL.createObjectURL(blob);
+						
+						// Load the blob URL
+						success = await loadSkinToPlayerObject(model, blobUrl);
+						
+						// Clean up
+						URL.revokeObjectURL(blobUrl);
+					} catch (err) {
+						console.error(`[Armor] Failed to fetch ${texInfo.url}`, err);
+						success = false;
 					}
 
 					if (!success) {
@@ -278,6 +243,11 @@
 							materials.forEach((mat: any) => {
 								mat.transparent = true;
 								mat.alphaTest = 0.001;
+								mat.side = 2; // DoubleSide
+								
+								// Reset color to white to ensure texture color is used
+								if (mat.color) mat.color.set(0xffffff);
+								
 								mat.needsUpdate = true;
 							});
 						}
@@ -331,7 +301,8 @@
 		const helmetInfo = getArmorInfo(currentArmor.helmet);
 		modelHelmet = await createArmorLayer(helmetInfo.id, helmetInfo.color, helmetInfo.skin_url, 1, 1.15, ['head']);
 		// Lower helmet position slightly to fit better (skinview3d units)
-		modelHelmet.forEach(m => m.position.y = -2.0); 
+		// User requested -1.0
+		modelHelmet.forEach(m => m.position.y = -1.0); 
 		
 		// Chestplate: Layer 1, Body + Arms
 		const chestplateInfo = getArmorInfo(currentArmor.chestplate);
@@ -339,7 +310,8 @@
 		
 		// Leggings: Layer 2, Body + Legs (Inner layer, smaller scale)
 		const leggingsInfo = getArmorInfo(currentArmor.leggings);
-		modelLeggings = await createArmorLayer(leggingsInfo.id, leggingsInfo.color, leggingsInfo.skin_url, 2, 1.05, ['body', 'rightLeg', 'leftLeg']);
+		// Increased scale to 1.1 as requested
+		modelLeggings = await createArmorLayer(leggingsInfo.id, leggingsInfo.color, leggingsInfo.skin_url, 2, 1.1, ['body', 'rightLeg', 'leftLeg']);
 		
 		// Boots: Layer 1, Legs only
 		const bootsInfo = getArmorInfo(currentArmor.boots);

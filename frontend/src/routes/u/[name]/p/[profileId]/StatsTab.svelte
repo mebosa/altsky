@@ -3,6 +3,7 @@
   import type { ProfileSummaryResponse } from './profileTypes';
 
   export let summary: ProfileSummaryResponse;
+  $: computed = summary.computed_stats || null;
   export let statLabels: Record<string, string>;
 
   const primaryStatOrder = [
@@ -131,13 +132,21 @@
   <div class="card stat-panel">
     <div class="stat-panel-head">
       <p class="stat-panel-title">Your SkyBlock Profile</p>
-      <p class="stat-panel-sub">View your equipment, stats, and more!</p>
+      <p class="stat-panel-sub">
+        View your equipment, stats, and more!
+        {#if computed}
+          <span class="pill">Server-calculated</span>
+        {/if}
+      </p>
     </div>
     <div class="stat-panel-body">
       {#each primaryStatOrder as key}
         <div class="stat-row" data-stat={key}>
           <span class="stat-row-label">{getStatLabel(key)}</span>
           <span class="stat-row-value">{formatStatValue(key, getStatValue(key))}</span>
+          {#if computed?.[key] !== undefined}
+            <span class="stat-row-computed">{formatStatValue(key, computed?.[key])}</span>
+          {/if}
         </div>
       {/each}
       <p class="stat-panel-foot">Also accessible via /stats</p>
@@ -152,6 +161,9 @@
         <div class="stat-chip" data-stat={key}>
           <span class="label">{getStatLabel(key)}</span>
           <span class="value">{formatStatValue(key, getStatValue(key))}</span>
+          {#if computed?.[key] !== undefined}
+            <span class="computed">calc: {formatStatValue(key, computed?.[key])}</span>
+          {/if}
         </div>
       {/each}
     </div>
@@ -206,10 +218,10 @@
   }
 
   .stat-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
+    gap: 16px;
     padding: 10px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
@@ -237,6 +249,15 @@
     font-weight: 600;
     font-size: 1.15rem;
     color: #fff;
+  }
+
+  .stat-row-computed {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.04);
   }
 
   .stat-row[data-stat='speed']::before {
@@ -314,6 +335,11 @@
     color: var(--theme-text-primary);
   }
 
+  .stat-chip .computed {
+    font-size: 0.85rem;
+    color: var(--theme-text-soft);
+  }
+
   .stat-chip[data-stat='bonus_attack_speed'] .value {
     color: var(--theme-accent);
   }
@@ -332,6 +358,19 @@
 
   .stat-chip[data-stat='true_defense'] .value {
     color: #38bdf8;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
   }
 
   .essence-card {

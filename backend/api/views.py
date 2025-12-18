@@ -20,6 +20,7 @@ from .decorators import rate_limit
 from .domain.item_textures import load_furfsky_texture
 from .domain.profile_summary import count_coop_members, summarize_profile
 from .domain.armor_textures import get_armor_textures
+from . import statscalc_client
 
 LOGGER = logging.getLogger(__name__)
 
@@ -392,13 +393,20 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     if not summary:
         return Response({'error': 'member_not_in_profile'}, status=404)
 
-    return Response(
-        {
-            'ok': True,
-            'last_updated': body.get('last_updated') or body.get('lastUpdated'),
-            **summary,
-        }
-    )
+    computed_stats = None
+    stats_payload = _build_statscalc_payload(summary, normalized_member_uuid, profile_id)
+    if stats_payload:
+        computed_stats = statscalc_client.calculate_stats(stats_payload)
+
+    response_body = {
+        'ok': True,
+        'last_updated': body.get('last_updated') or body.get('lastUpdated'),
+        **summary,
+    }
+    if computed_stats:
+        response_body['computed_stats'] = computed_stats
+
+    return Response(response_body)
 
 
 FONT_CANDIDATES = {
@@ -496,6 +504,51 @@ def _format_last_updated(value: Optional[Any]) -> str:
             return f'Cache: {sample}'
 
     return 'Cache: n/a'
+
+
+def _build_statscalc_payload(summary: Dict[str, Any], uuid: str, profile_id: str) -> Optional[Dict[str, Any]]:
+    if not summary:
+        return None
+
+    skills_payload: Dict[str, Dict[str, int]] = {}
+    skills_block = summary.get('skills') or {}
+    if isinstance(skills_block, dict):
+        for key, data in skills_block.items():
+            if not isinstance(data, dict):
+                continue
+            level = data.get('level')
+            if not isinstance(level, (int, float)):
+                continue
+            payload_item = {'level': int(level)}
+            xp = data.get('xp')
+            if isinstance(xp, (int, float)):
+                payload_item['xp'] = int(xp)
+            skills_payload[key] = payload_item
+
+    slayer_payload: Dict[str, Dict[str, int]] = {}
+    slayer_block = summary.get('slayer') or {}
+    if isinstance(slayer_block, dict):
+        for key, data in slayer_block.items():
+            if key == 'total_xp' or not isinstance(data, dict):
+                continue
+            level = data.get('level')
+            if not isinstance(level, (int, float)):
+                continue
+            payload_item = {'level': int(level)}
+            xp = data.get('xp')
+            if isinstance(xp, (int, float)):
+                payload_item['xp'] = int(xp)
+            slayer_payload[key] = payload_item
+
+    if not skills_payload and not slayer_payload:
+        return None
+
+    return {
+        'uuid': uuid,
+        'profile_id': profile_id,
+        'skills': skills_payload,
+        'slayer': slayer_payload,
+    }
 
 
 def _build_profile_cards(profiles: Optional[Any]) -> Tuple[Dict[str, str], ...]:
@@ -751,3 +804,79 @@ def get_armor_texture_view(request: Request, item_id: str, layer: str) -> HttpRe
     except Exception as e:
         LOGGER.error(f"Error serving armor texture {file_path}: {e}")
         return HttpResponse(status=500)
+
+
+@api_view(["GET"])
+def get_vanilla_armor_texture_view(request: Request, name: str, layer: str) -> Response:
+    """
+    Returns a tinted vanilla armor texture.
+    Query params:
+    - color: Hex color code (e.g. c83200)
+    """
+    color_hex = request.query_params.get("color")
+    print(f"DEBUG: Vanilla armor request: name={name}, layer={layer}, color={color_hex}", flush=True)
+    
+    # Base URL for 1.8.9 assets
+    base_url = "https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor"
+    filename = f"{name}_layer_{layer}.png"
+    url = f"{base_url}/{filename}"
+    
+    # Cache key
+    cache_key = f"vanilla_armor_{name}_{layer}_{color_hex or 'none'}"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        print(f"DEBUG: Serving cached vanilla armor: {cache_key}", flush=True)
+        return HttpResponse(cached_data, content_type="image/png")
+
+    try:
+        # Fetch texture
+        print(f"DEBUG: Fetching upstream texture: {url}", flush=True)
+        res = requests.get(url, timeout=5)
+        if res.status_code != 200:
+            print(f"DEBUG: Upstream texture not found: {url} (status {res.status_code})", flush=True)
+            return Response({"error": "Texture not found upstream"}, status=404)
+            
+        img_data = BytesIO(res.content)
+        img = Image.open(img_data).convert("RGBA")
+        
+        # Apply tint if color provided
+        if color_hex:
+            try:
+                print(f"DEBUG: Applying tint: {color_hex}", flush=True)
+                # Parse hex color
+                color_hex = color_hex.lstrip("#")
+                r = int(color_hex[0:2], 16)
+                g = int(color_hex[2:4], 16)
+                b = int(color_hex[4:6], 16)
+                
+                # Split channels
+                r_chan, g_chan, b_chan, a_chan = img.split()
+                
+                # Multiply each channel
+                r_chan = r_chan.point(lambda i: (i * r) // 255)
+                g_chan = g_chan.point(lambda i: (i * g) // 255)
+                b_chan = b_chan.point(lambda i: (i * b) // 255)
+                
+                # Recombine
+                img = Image.merge("RGBA", (r_chan, g_chan, b_chan, a_chan))
+                print("DEBUG: Tint applied successfully", flush=True)
+                
+            except Exception as e:
+                print(f"DEBUG: Failed to tint image: {e}", flush=True)
+                # Continue with original image if tint fails
+        else:
+            print("DEBUG: No color provided, skipping tint", flush=True)
+        
+        # Save to buffer
+        output = BytesIO()
+        img.save(output, format="PNG")
+        data = output.getvalue()
+        
+        # Cache for 1 hour
+        cache.set(cache_key, data, 3600)
+        
+        return HttpResponse(data, content_type="image/png")
+        
+    except Exception as e:
+        print(f"DEBUG: Error serving vanilla armor: {e}", flush=True)
+        return Response({"error": str(e)}, status=500)

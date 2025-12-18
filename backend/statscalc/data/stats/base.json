@@ -1,0 +1,11 @@
+{
+  "base_stats": {
+    "speed": 100,
+    "strength": 0,
+    "defense": 0,
+    "crit_damage": 50,
+    "crit_chance": 30,
+    "health": 100,
+    "intelligence": 0
+  }
+}
