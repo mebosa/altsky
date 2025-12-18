@@ -3,6 +3,8 @@ import re
 import logging
 from typing import Dict, Optional, Tuple
 
+import json
+
 LOGGER = logging.getLogger(__name__)
 
 # Path to furfsky_temp (relative to this file)
@@ -15,6 +17,8 @@ ARMOR_BASE_PATH = os.path.join(
     FURF_SKY_TEMP_PATH, "assets", "minecraft", "mcpatcher", "cit", "equipment", "armor"
 )
 
+CACHE_FILE_PATH = os.path.join(os.path.dirname(__file__), "armor_cache.json")
+
 # Cache for item_id -> (layer_1_path, layer_2_path)
 _ARMOR_TEXTURE_CACHE: Dict[str, Tuple[Optional[str], Optional[str]]] = {}
 _CACHE_INITIALIZED = False
@@ -23,6 +27,23 @@ def initialize_armor_cache():
     global _CACHE_INITIALIZED
     if _CACHE_INITIALIZED:
         return
+
+    # Try loading from JSON cache first
+    if os.path.exists(CACHE_FILE_PATH):
+        try:
+            LOGGER.info(f"Loading armor cache from {CACHE_FILE_PATH}")
+            with open(CACHE_FILE_PATH, 'r') as f:
+                data = json.load(f)
+                for k, v in data.items():
+                    # Convert relative paths back to absolute
+                    l1 = os.path.join(FURF_SKY_TEMP_PATH, v[0]) if v[0] else None
+                    l2 = os.path.join(FURF_SKY_TEMP_PATH, v[1]) if v[1] else None
+                    _ARMOR_TEXTURE_CACHE[k] = (l1, l2)
+            LOGGER.info(f"Loaded {len(_ARMOR_TEXTURE_CACHE)} items from JSON cache")
+            _CACHE_INITIALIZED = True
+            return
+        except Exception as e:
+            LOGGER.error(f"Failed to load JSON cache: {e}")
 
     LOGGER.info(f"Initializing armor texture cache from {ARMOR_BASE_PATH}")
     

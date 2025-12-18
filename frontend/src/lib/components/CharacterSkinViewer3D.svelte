@@ -121,6 +121,42 @@
 			}
 		};
 
+		const tintImage = (url: string, color: string): Promise<string> => {
+			return new Promise((resolve, reject) => {
+				const img = new Image();
+				img.crossOrigin = "Anonymous";
+				img.onload = () => {
+					const canvas = document.createElement('canvas');
+					canvas.width = img.width;
+					canvas.height = img.height;
+					const ctx = canvas.getContext('2d');
+					if (!ctx) {
+						resolve(url);
+						return;
+					}
+
+					// Draw original image
+					ctx.drawImage(img, 0, 0);
+
+					// Multiply with color
+					ctx.globalCompositeOperation = 'multiply';
+					ctx.fillStyle = color;
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+					// Restore alpha channel
+					ctx.globalCompositeOperation = 'destination-in';
+					ctx.drawImage(img, 0, 0);
+
+					resolve(canvas.toDataURL());
+				};
+				img.onerror = (e) => {
+                    console.warn("Failed to load image for tinting", e);
+                    resolve(url);
+                };
+				img.src = url;
+			});
+		};
+
 		// Helper to create an armor layer model
 		const createArmorLayer = async (itemId: string | undefined, color: string | undefined, skinUrl: string | undefined, layer: 1 | 2, scale: number, visibleParts: string[]) => {
 			if (!itemId) return [];
@@ -153,22 +189,29 @@
 					const name = getVanillaName(itemId);
 					
 					if (name === 'leather') {
-						// For leather, we need BOTH the base (brown) and the overlay (colored)
+						// Default leather color if not dyed
+						if (!color) color = '#A06540';
+
+						// For leather, we need BOTH the base (colored) and the overlay (static)
+						// In 1.8.9: layer_1 is the colored part, overlay is the static brown part
 						urls.push({ 
 							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}.png`,
 							isOverlay: false,
-							useColor: false // Base layer is NOT tinted
+							useColor: true // Base layer IS tinted
 						});
 						urls.push({ 
 							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}_overlay.png`,
 							isOverlay: true,
-							useColor: true // Overlay layer IS tinted
+							useColor: false // Overlay layer is NOT tinted
 						});
 					} else {
+						// Non-leather vanilla armor (diamond, iron, etc.)
+						// These can be tinted (e.g. by mods or specific game mechanics), but usually aren't.
+						// However, if a color IS provided, we should apply it.
 						urls.push({ 
 							url: `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor/${name}_layer_${layer}.png`,
 							isOverlay: false,
-							useColor: true // Non-leather vanilla armor can be tinted
+							useColor: !!color // Only tint if a color is explicitly provided
 						});
 					}
 				}
@@ -195,11 +238,22 @@
 					
 					// Load texture
 					let success = false;
+					let finalUrl = texInfo.url;
+
+					// Pre-tint texture if needed
+					if (texInfo.useColor && color && !isSkinUrl) {
+						try {
+							finalUrl = await tintImage(texInfo.url, color.startsWith('#') ? color : '#' + color);
+						} catch (e) {
+							console.warn("Failed to tint image", e);
+						}
+					}
+
 					if ($texturePackStore === 'furfsky' && !isSkinUrl) {
 						// Use our API which returns processed images
-						const res = await fetch(texInfo.url);
+						const res = await fetch(finalUrl);
 						if (res.ok) {
-							success = await loadSkinToPlayerObject(model, texInfo.url);
+							success = await loadSkinToPlayerObject(model, finalUrl);
 						} else if (skinUrl) {
 							// Fallback to skinUrl if FurfSky missing
 							success = await loadSkinToPlayerObject(model, skinUrl);
@@ -208,7 +262,7 @@
 						}
 					} else {
 						// Load directly from URL for vanilla
-						success = await loadSkinToPlayerObject(model, texInfo.url);
+						success = await loadSkinToPlayerObject(model, finalUrl);
 					}
 
 					if (!success) {
@@ -216,23 +270,26 @@
 						continue;
 					}
 
-					// Fix transparency and apply color
+					// Fix transparency
 					model.traverse((child: any) => {
-						if (child.isMesh && child.material) {
-							child.material.transparent = true;
-							child.material.alphaTest = 0.001;
-							
-							// Apply color if needed
-							if (texInfo.useColor && color && !isSkinUrl) {
-								const hexColor = color.startsWith('#') ? color : '#' + color;
-								child.material.color.set(hexColor);
-							}
-							
-							child.material.needsUpdate = true;
+						if (child.isMesh) {
+							if (!child.material) return;
+							const materials = Array.isArray(child.material) ? child.material : [child.material];
+							materials.forEach((mat: any) => {
+								mat.transparent = true;
+								mat.alphaTest = 0.001;
+								mat.needsUpdate = true;
+							});
 						}
 					});
 					
-					model.renderOrder = layer === 1 ? 10 : 11;
+					// Render Order:
+					// Inner Layer (Layer 2) should be drawn BEFORE Outer Layer (Layer 1) for proper transparency
+					// Layer 2 Base: 10
+					// Layer 2 Overlay: 10.1
+					// Layer 1 Base: 11
+					// Layer 1 Overlay: 11.1
+					model.renderOrder = layer === 2 ? 10 : 11;
 					if (texInfo.isOverlay) model.renderOrder += 0.1;
 
 					// Hide irrelevant parts
@@ -280,9 +337,9 @@
 		const chestplateInfo = getArmorInfo(currentArmor.chestplate);
 		modelChestplate = await createArmorLayer(chestplateInfo.id, chestplateInfo.color, chestplateInfo.skin_url, 1, 1.15, ['body', 'rightArm', 'leftArm']);
 		
-		// Leggings: Layer 2, Body + Legs
+		// Leggings: Layer 2, Body + Legs (Inner layer, smaller scale)
 		const leggingsInfo = getArmorInfo(currentArmor.leggings);
-		modelLeggings = await createArmorLayer(leggingsInfo.id, leggingsInfo.color, leggingsInfo.skin_url, 2, 1.15, ['body', 'rightLeg', 'leftLeg']);
+		modelLeggings = await createArmorLayer(leggingsInfo.id, leggingsInfo.color, leggingsInfo.skin_url, 2, 1.05, ['body', 'rightLeg', 'leftLeg']);
 		
 		// Boots: Layer 1, Legs only
 		const bootsInfo = getArmorInfo(currentArmor.boots);

@@ -110,30 +110,77 @@ def compute_skyblock_level(member: Dict[str, Any]) -> SkyBlockLevel:
     return SkyBlockLevel(level=level, progress=progress, experience=experience)
 
 
+STAT_VALUE_SOURCES = {
+    "health": ("health",),
+    "defense": ("defense",),
+    "strength": ("strength",),
+    "speed": ("speed",),
+    "crit_chance": ("crit_chance",),
+    "crit_damage": ("crit_damage",),
+    "intelligence": ("intelligence",),
+    "bonus_attack_speed": ("bonus_attack_speed", "attack_speed"),
+    "ferocity": ("ferocity",),
+    "magic_find": ("magic_find",),
+    "pet_luck": ("pet_luck",),
+    "true_defense": ("true_defense",),
+    "sea_creature_chance": ("sea_creature_chance",),
+    "ability_damage": ("ability_damage",),
+    "mining_speed": ("mining_speed",),
+    "mining_fortune": ("mining_fortune",),
+    "farming_fortune": ("farming_fortune",),
+    "foraging_fortune": ("foraging_fortune",),
+    "pristine": ("pristine",),
+    "fishing_speed": ("fishing_speed",),
+    "health_regen": ("health_regen",),
+    "vitality": ("vitality",),
+    "mending": ("mending",),
+    "mana_regen": ("mana_regen",),
+    "alchemy_wisdom": ("alchemy_wisdom",),
+    "carpentry_wisdom": ("carpentry_wisdom",),
+    "combat_wisdom": ("combat_wisdom",),
+    "enchanting_wisdom": ("enchanting_wisdom",),
+    "farming_wisdom": ("farming_wisdom",),
+    "fishing_wisdom": ("fishing_wisdom",),
+    "foraging_wisdom": ("foraging_wisdom",),
+    "mining_wisdom": ("mining_wisdom",),
+    "runecrafting_wisdom": ("runecrafting_wisdom",),
+    "social_wisdom": ("social_wisdom",),
+    "taming_wisdom": ("taming_wisdom",),
+    "rift_time": ("rift_time",),
+}
+
+
 def simplify_stats(member: Dict[str, Any]) -> Dict[str, Any]:
     stats = member.get("player_stats", {}) or {}
+    player_data_stats = (
+        (member.get("player_data") or {}).get("stats") if isinstance(member.get("player_data"), dict) else None
+    ) or {}
 
-    keys = [
-        "health",
-        "defense",
-        "strength",
-        "crit_chance",
-        "crit_damage",
-        "attack_speed",
-        "intelligence",
-        "speed",
-        "ferocity",
-        "magic_find",
-        "pet_luck",
-        "true_defense",
-    ]
+    if not isinstance(stats, dict):
+        stats = {}
+    if not isinstance(player_data_stats, dict):
+        player_data_stats = {}
 
-    simplified = {}
-    for key in keys:
-        val = stats.get(key)
-        if val is None:
+    sources = [stats, player_data_stats]
+
+    simplified: Dict[str, float] = {}
+    for key, aliases in STAT_VALUE_SOURCES.items():
+        candidates = aliases if isinstance(aliases, (tuple, list)) else (aliases,)
+        value: Any = None
+        for alias in candidates:
+            for source in sources:
+                candidate = source.get(alias)
+                if candidate is not None:
+                    value = candidate
+                    break
+            if value is not None:
+                break
+
+        if value is None:
             continue
-        simplified[key] = _safe_float(val)
+
+        simplified[key] = _safe_float(value)
+
     return simplified
 
 

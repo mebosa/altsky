@@ -1,0 +1,1794 @@
+{
+  "(?:STARRED_)?ADAPTIVE_(CHESTPLATE|LEGGINGS|BOOTS)": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/adaptive_armor/model/tank/tank_adaptive_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/adaptive_armor/model/tank/tank_adaptive_layer_2.png"
+  ],
+  "ANGLER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_2.png"
+  ],
+  "ANGLER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_2.png"
+  ],
+  "ANGLER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_2.png"
+  ],
+  "ANGLER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/angler_armor/model/angler_layer_2.png"
+  ],
+  "ARACHNE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/arachne_armor/model/arachne_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/arachne_armor/model/arachne_layer_2.png"
+  ],
+  "ARACHNE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/arachne_armor/model/arachne_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/arachne_armor/model/arachne_layer_2.png"
+  ],
+  "ARACHNE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/arachne_armor/model/arachne_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/arachne_armor/model/arachne_layer_2.png"
+  ],
+  "DIVAN_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_2.png"
+  ],
+  "DIVAN_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_2.png"
+  ],
+  "DIVAN_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_2.png"
+  ],
+  "DIVAN_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_divan/model/divan_layer_2.png"
+  ],
+  "GROWTH_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_2.png"
+  ],
+  "GROWTH_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_2.png"
+  ],
+  "GROWTH_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_2.png"
+  ],
+  "GROWTH_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_growth/model/armor_of_growth_layer_2.png"
+  ],
+  "ARMOR_OF_MAGMA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_2.png"
+  ],
+  "ARMOR_OF_MAGMA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_2.png"
+  ],
+  "ARMOR_OF_MAGMA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_2.png"
+  ],
+  "ARMOR_OF_MAGMA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_magma/model/armor_of_magma_layer_2.png"
+  ],
+  "(HELMET|CHESTPLATE|LEGGINGS|BOOTS)_OF_THE_PACK": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_the_pack/model/red/red_armor_of_the_pack_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_the_pack/model/red/red_armor_of_the_pack_layer_2.png"
+  ],
+  "(?:GENERALS_)?ARMOR_OF_THE_RESISTANCE_(CHESTPLATE|LEGGINGS|BOOTS)": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_the_rising_sun/model/rising_sun_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_the_rising_sun/model/rising_sun_layer_2.png"
+  ],
+  "ARMOR_OF_YOG_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_2.png"
+  ],
+  "ARMOR_OF_YOG_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_2.png"
+  ],
+  "ARMOR_OF_YOG_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_2.png"
+  ],
+  "ARMOR_OF_YOG_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/armor_of_yog/model/yog_layer_2.png"
+  ],
+  "BURNING_AURORA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_2.png"
+  ],
+  "BURNING_AURORA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_2.png"
+  ],
+  "BURNING_AURORA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_2.png"
+  ],
+  "BURNING_AURORA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/burning/burning_aurora_layer_2.png"
+  ],
+  "FIERY_AURORA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_2.png"
+  ],
+  "FIERY_AURORA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_2.png"
+  ],
+  "FIERY_AURORA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_2.png"
+  ],
+  "FIERY_AURORA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/fiery/fiery_aurora_layer_2.png"
+  ],
+  "HOT_AURORA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_2.png"
+  ],
+  "HOT_AURORA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_2.png"
+  ],
+  "HOT_AURORA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_2.png"
+  ],
+  "HOT_AURORA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/hot/hot_aurora_layer_2.png"
+  ],
+  "INFERNAL_AURORA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_2.png"
+  ],
+  "INFERNAL_AURORA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_2.png"
+  ],
+  "INFERNAL_AURORA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_2.png"
+  ],
+  "INFERNAL_AURORA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/infernal/infernal_aurora_layer_2.png"
+  ],
+  "AURORA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_2.png"
+  ],
+  "AURORA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_2.png"
+  ],
+  "AURORA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_2.png"
+  ],
+  "AURORA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/aurora_armor/model/normal/aurora_layer_2.png"
+  ],
+  "BAT_PERSON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bat_person_armor/model/bat_person_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bat_person_armor/model/bat_person_layer_2.png"
+  ],
+  "BAT_PERSON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bat_person_armor/model/bat_person_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bat_person_armor/model/bat_person_layer_2.png"
+  ],
+  "BAT_PERSON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bat_person_armor/model/bat_person_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bat_person_armor/model/bat_person_layer_2.png"
+  ],
+  "BERSERKER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/berserker_armor/model/berserker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/berserker_armor/model/berserker_layer_2.png"
+  ],
+  "BERSERKER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/berserker_armor/model/berserker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/berserker_armor/model/berserker_layer_2.png"
+  ],
+  "BERSERKER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/berserker_armor/model/berserker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/berserker_armor/model/berserker_layer_2.png"
+  ],
+  "BLAZE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/blaze_armor/model/blaze_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/blaze_armor/model/blaze_layer_2.png"
+  ],
+  "BLAZE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/blaze_armor/model/blaze_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/blaze_armor/model/blaze_layer_2.png"
+  ],
+  "BLAZE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/blaze_armor/model/blaze_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/blaze_armor/model/blaze_layer_2.png"
+  ],
+  "BOUNCY_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_2.png"
+  ],
+  "BOUNCY_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_2.png"
+  ],
+  "BOUNCY_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_2.png"
+  ],
+  "BOUNCY_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/bouncy_armor/model/bouncy_layer_2.png"
+  ],
+  "CACTUS_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_2.png"
+  ],
+  "CACTUS_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_2.png"
+  ],
+  "CACTUS_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_2.png"
+  ],
+  "CACTUS_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cactus_armor/model/cactus_layer_2.png"
+  ],
+  "CELESTE_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_2.png"
+  ],
+  "CELESTE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_2.png"
+  ],
+  "CELESTE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_2.png"
+  ],
+  "CELESTE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/celeste_armor/model/celeste_layer_2.png"
+  ],
+  "CHEAP_TUXEDO_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cheap_tuxedo/model/cheap_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cheap_tuxedo/model/cheap_tuxedo_layer_2.png"
+  ],
+  "CHEAP_TUXEDO_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cheap_tuxedo/model/cheap_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cheap_tuxedo/model/cheap_tuxedo_layer_2.png"
+  ],
+  "CHEAP_TUXEDO_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cheap_tuxedo/model/cheap_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cheap_tuxedo/model/cheap_tuxedo_layer_2.png"
+  ],
+  "BURNING_CRIMSON_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_2.png"
+  ],
+  "BURNING_CRIMSON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_2.png"
+  ],
+  "BURNING_CRIMSON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_2.png"
+  ],
+  "BURNING_CRIMSON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/burning/burning_crimson_layer_2.png"
+  ],
+  "FIERY_CRIMSON_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_2.png"
+  ],
+  "FIERY_CRIMSON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_2.png"
+  ],
+  "FIERY_CRIMSON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_2.png"
+  ],
+  "FIERY_CRIMSON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/fiery/fiery_crimson_layer_2.png"
+  ],
+  "HOT_CRIMSON_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_2.png"
+  ],
+  "HOT_CRIMSON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_2.png"
+  ],
+  "HOT_CRIMSON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_2.png"
+  ],
+  "HOT_CRIMSON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/hot/hot_crimson_layer_2.png"
+  ],
+  "INFERNAL_CRIMSON_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_2.png"
+  ],
+  "INFERNAL_CRIMSON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_2.png"
+  ],
+  "INFERNAL_CRIMSON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_2.png"
+  ],
+  "INFERNAL_CRIMSON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/infernal/infernal_crimson_layer_2.png"
+  ],
+  "CRIMSON_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_2.png"
+  ],
+  "CRIMSON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_2.png"
+  ],
+  "CRIMSON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_2.png"
+  ],
+  "CRIMSON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crimson_armor/model/normal/crimson_layer_2.png"
+  ],
+  "CROPIE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cropie_armor/model/cropie_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cropie_armor/model/cropie_layer_2.png"
+  ],
+  "CROPIE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cropie_armor/model/cropie_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cropie_armor/model/cropie_layer_2.png"
+  ],
+  "CROPIE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cropie_armor/model/cropie_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/cropie_armor/model/cropie_layer_2.png"
+  ],
+  "CROWN_OF_GREED": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crown_of_greed/model/crown_of_greed.png",
+    null
+  ],
+  "CRYSTAL_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_2.png"
+  ],
+  "CRYSTAL_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_2.png"
+  ],
+  "CRYSTAL_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_2.png"
+  ],
+  "CRYSTAL_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/crystal_armor/model/crystal_layer_2.png"
+  ],
+  "DIVER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/diver_armor/model/diver_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/diver_armor/model/diver_armor_layer_2.png"
+  ],
+  "DIVER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/diver_armor/model/diver_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/diver_armor/model/diver_armor_layer_2.png"
+  ],
+  "DIVER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/diver_armor/model/diver_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/diver_armor/model/diver_armor_layer_2.png"
+  ],
+  "ELEGANT_TUXEDO_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/elegant_tuxedo/model/elegant_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/elegant_tuxedo/model/elegant_tuxedo_layer_2.png"
+  ],
+  "ELEGANT_TUXEDO_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/elegant_tuxedo/model/elegant_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/elegant_tuxedo/model/elegant_tuxedo_layer_2.png"
+  ],
+  "ELEGANT_TUXEDO_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/elegant_tuxedo/model/elegant_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/elegant_tuxedo/model/elegant_tuxedo_layer_2.png"
+  ],
+  "EMBER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_armor/model/ember_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_armor/model/ember_layer_2.png"
+  ],
+  "EMBER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_armor/model/ember_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_armor/model/ember_layer_2.png"
+  ],
+  "EMBER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_armor/model/ember_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_armor/model/ember_layer_2.png"
+  ],
+  "FLAMEBREAKER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_2.png"
+  ],
+  "FLAMEBREAKER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_2.png"
+  ],
+  "FLAMEBREAKER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_2.png"
+  ],
+  "FLAMEBREAKER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ember_ash_armor/model/emberash_layer_2.png"
+  ],
+  "EMERALD_ARMOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_2.png"
+  ],
+  "EMERALD_ARMOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_2.png"
+  ],
+  "EMERALD_ARMOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_2.png"
+  ],
+  "EMERALD_ARMOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/emerald_armor/model/emerald_layer_2.png"
+  ],
+  "END_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ender_armor/model/ender_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ender_armor/model/ender_layer_2.png"
+  ],
+  "END_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ender_armor/model/ender_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ender_armor/model/ender_layer_2.png"
+  ],
+  "END_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ender_armor/model/ender_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ender_armor/model/ender_layer_2.png"
+  ],
+  "FANCY_TUXEDO_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fancy_tuxedo/model/fancy_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fancy_tuxedo/model/fancy_tuxedo_layer_2.png"
+  ],
+  "FANCY_TUXEDO_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fancy_tuxedo/model/fancy_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fancy_tuxedo/model/fancy_tuxedo_layer_2.png"
+  ],
+  "FANCY_TUXEDO_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fancy_tuxedo/model/fancy_tuxedo_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fancy_tuxedo/model/fancy_tuxedo_layer_2.png"
+  ],
+  "FARMER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farmer_boots/model/farmer_boots.png",
+    null
+  ],
+  "FARM_ARMOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_2.png"
+  ],
+  "FARM_ARMOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_2.png"
+  ],
+  "FARM_ARMOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_2.png"
+  ],
+  "FARM_ARMOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_armor/model/farm_armor_layer_2.png"
+  ],
+  "FARM_SUIT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_2.png"
+  ],
+  "FARM_SUIT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_2.png"
+  ],
+  "FARM_SUIT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_2.png"
+  ],
+  "FARM_SUIT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/farm_suit/model/farm_suit_layer_2.png"
+  ],
+  "FERMENTO_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_2.png"
+  ],
+  "FERMENTO_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_2.png"
+  ],
+  "FERMENTO_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_2.png"
+  ],
+  "FERMENTO_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fermento_armor/model/fermento_layer_2.png"
+  ],
+  "BURNING_FERVOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_2.png"
+  ],
+  "BURNING_FERVOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_2.png"
+  ],
+  "BURNING_FERVOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_2.png"
+  ],
+  "BURNING_FERVOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/burning/burning_fervor_layer_2.png"
+  ],
+  "FIERY_FERVOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_2.png"
+  ],
+  "FIERY_FERVOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_2.png"
+  ],
+  "FIERY_FERVOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_2.png"
+  ],
+  "FIERY_FERVOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/fiery/fiery_fervor_layer_2.png"
+  ],
+  "HOT_FERVOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_2.png"
+  ],
+  "HOT_FERVOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_2.png"
+  ],
+  "HOT_FERVOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_2.png"
+  ],
+  "HOT_FERVOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/hot/hot_fervor_layer_2.png"
+  ],
+  "INFERNAL_FERVOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_2.png"
+  ],
+  "INFERNAL_FERVOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_2.png"
+  ],
+  "INFERNAL_FERVOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_2.png"
+  ],
+  "INFERNAL_FERVOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/infernal/infernal_fervor_layer_2.png"
+  ],
+  "FERVOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_2.png"
+  ],
+  "FERVOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_2.png"
+  ],
+  "FERVOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_2.png"
+  ],
+  "FERVOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/fervor_armor/model/normal/fervor_layer_2.png"
+  ],
+  "FINAL_DESTINATION_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/final_destination_armor/model/final_destination_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/final_destination_armor/model/final_destination_layer_2.png"
+  ],
+  "FINAL_DESTINATION_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/final_destination_armor/model/final_destination_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/final_destination_armor/model/final_destination_layer_2.png"
+  ],
+  "FINAL_DESTINATION_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/final_destination_armor/model/final_destination_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/final_destination_armor/model/final_destination_layer_2.png"
+  ],
+  "FLAME_BREAKER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_2.png"
+  ],
+  "FLAME_BREAKER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_2.png"
+  ],
+  "FLAME_BREAKER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_2.png"
+  ],
+  "FLAME_BREAKER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/flamebreaker_armor/model/flamebreaker_layer_2.png"
+  ],
+  "FROZEN_BLAZE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/frozen_blaze_armor/model/frozen_blaze_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/frozen_blaze_armor/model/frozen_blaze_layer_2.png"
+  ],
+  "FROZEN_BLAZE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/frozen_blaze_armor/model/frozen_blaze_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/frozen_blaze_armor/model/frozen_blaze_layer_2.png"
+  ],
+  "FROZEN_BLAZE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/frozen_blaze_armor/model/frozen_blaze_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/frozen_blaze_armor/model/frozen_blaze_layer_2.png"
+  ],
+  "GHOST_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/ghostly_boots/model/ghostly_boots_layer_1.png",
+    null
+  ],
+  "GLACITE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/glacite_armor/model/glacite_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/glacite_armor/model/glacite_layer_2.png"
+  ],
+  "GLACITE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/glacite_armor/model/glacite_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/glacite_armor/model/glacite_layer_2.png"
+  ],
+  "GLACITE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/glacite_armor/model/glacite_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/glacite_armor/model/glacite_layer_2.png"
+  ],
+  "GOBLIN_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goblin_armor/model/goblin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goblin_armor/model/goblin_layer_2.png"
+  ],
+  "GOBLIN_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goblin_armor/model/goblin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goblin_armor/model/goblin_layer_2.png"
+  ],
+  "GOBLIN_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goblin_armor/model/goblin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goblin_armor/model/goblin_layer_2.png"
+  ],
+  "TANK_WITHER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goldor_armor/model/goldor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goldor_armor/model/goldor_layer_2.png"
+  ],
+  "TANK_WITHER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goldor_armor/model/goldor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goldor_armor/model/goldor_layer_2.png"
+  ],
+  "TANK_WITHER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goldor_armor/model/goldor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/goldor_armor/model/goldor_layer_2.png"
+  ],
+  "GOLEM_ARMOR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_2.png"
+  ],
+  "GOLEM_ARMOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_2.png"
+  ],
+  "GOLEM_ARMOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_2.png"
+  ],
+  "GOLEM_ARMOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/golem_armor/model/golem_layer_2.png"
+  ],
+  "GREAT_SPOOK_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_2.png"
+  ],
+  "GREAT_SPOOK_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_2.png"
+  ],
+  "GREAT_SPOOK_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_2.png"
+  ],
+  "GREAT_SPOOK_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/great_spook_armor/model/great_spook_layer_2.png"
+  ],
+  "HARDENED_DIAMOND_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_2.png"
+  ],
+  "HARDENED_DIAMOND_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_2.png"
+  ],
+  "HARDENED_DIAMOND_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_2.png"
+  ],
+  "HARDENED_DIAMOND_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hardened_diamond_armor/model/hardened_diamond_layer_2.png"
+  ],
+  "HEAT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_2.png"
+  ],
+  "HEAT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_2.png"
+  ],
+  "HEAT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_2.png"
+  ],
+  "HEAT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heat_armor/model/heat_armor_layer_2.png"
+  ],
+  "HEAVY_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_2.png"
+  ],
+  "HEAVY_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_2.png"
+  ],
+  "HEAVY_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_2.png"
+  ],
+  "HEAVY_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/heavy_armor/model/heavy_layer_2.png"
+  ],
+  "HOLY_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/holy_dragon_armor/model/holy_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/holy_dragon_armor/model/holy_dragon_layer_2.png"
+  ],
+  "HOLY_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/holy_dragon_armor/model/holy_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/holy_dragon_armor/model/holy_dragon_layer_2.png"
+  ],
+  "HOLY_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/holy_dragon_armor/model/holy_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/holy_dragon_armor/model/holy_dragon_layer_2.png"
+  ],
+  "BRONZE_HUNTER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_2.png"
+  ],
+  "BRONZE_HUNTER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_2.png"
+  ],
+  "BRONZE_HUNTER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_2.png"
+  ],
+  "BRONZE_HUNTER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/bronze/bronze_hunter_layer_2.png"
+  ],
+  "DIAMOND_HUNTER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_2.png"
+  ],
+  "DIAMOND_HUNTER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_2.png"
+  ],
+  "DIAMOND_HUNTER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_2.png"
+  ],
+  "DIAMOND_HUNTER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/diamond/diamond_hunter_layer_2.png"
+  ],
+  "GOLD_HUNTER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_2.png"
+  ],
+  "GOLD_HUNTER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_2.png"
+  ],
+  "GOLD_HUNTER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_2.png"
+  ],
+  "GOLD_HUNTER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/gold/gold_hunter_layer_2.png"
+  ],
+  "SILVER_HUNTER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_2.png"
+  ],
+  "SILVER_HUNTER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_2.png"
+  ],
+  "SILVER_HUNTER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_2.png"
+  ],
+  "SILVER_HUNTER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/hunter_armor/models/silver/silver_hunter_layer_2.png"
+  ],
+  "LAPIS_ARMOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lapis_armor/model/lapis_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lapis_armor/model/lapis_layer_2.png"
+  ],
+  "LAPIS_ARMOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lapis_armor/model/lapis_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lapis_armor/model/lapis_layer_2.png"
+  ],
+  "LAPIS_ARMOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lapis_armor/model/lapis_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lapis_armor/model/lapis_layer_2.png"
+  ],
+  "FLAMING_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lava_sea_creature_armor/model/flaming_chestplate.png",
+    null
+  ],
+  "MOOGMA_LEGGINGS": [
+    null,
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lava_sea_creature_armor/model/moogma_leggings.png"
+  ],
+  "SLUG_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/lava_sea_creature_armor/model/slug_boots.png",
+    null
+  ],
+  "LEAFLET_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/leaflet_armor/model/leaflet_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/leaflet_armor/model/leaflet_layer_2.png"
+  ],
+  "LEAFLET_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/leaflet_armor/model/leaflet_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/leaflet_armor/model/leaflet_layer_2.png"
+  ],
+  "LEAFLET_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/leaflet_armor/model/leaflet_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/leaflet_armor/model/leaflet_layer_2.png"
+  ],
+  "MAGMA_LORD_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/magma_lord_armor/model/magma_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/magma_lord_armor/model/magma_lord_layer_2.png"
+  ],
+  "MAGMA_LORD_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/magma_lord_armor/model/magma_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/magma_lord_armor/model/magma_lord_layer_2.png"
+  ],
+  "MAGMA_LORD_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/magma_lord_armor/model/magma_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/magma_lord_armor/model/magma_lord_layer_2.png"
+  ],
+  "MASTIFF_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mastiff_armor/model/mastiff_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mastiff_armor/model/mastiff_layer_2.png"
+  ],
+  "MASTIFF_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mastiff_armor/model/mastiff_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mastiff_armor/model/mastiff_layer_2.png"
+  ],
+  "MASTIFF_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mastiff_armor/model/mastiff_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mastiff_armor/model/mastiff_layer_2.png"
+  ],
+  "SPEED_WITHER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/maxor_armor/model/maxor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/maxor_armor/model/maxor_layer_2.png"
+  ],
+  "SPEED_WITHER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/maxor_armor/model/maxor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/maxor_armor/model/maxor_layer_2.png"
+  ],
+  "SPEED_WITHER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/maxor_armor/model/maxor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/maxor_armor/model/maxor_layer_2.png"
+  ],
+  "MELON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/melon_armor/model/melon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/melon_armor/model/melon_layer_2.png"
+  ],
+  "MELON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/melon_armor/model/melon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/melon_armor/model/melon_layer_2.png"
+  ],
+  "MELON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/melon_armor/model/melon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/melon_armor/model/melon_layer_2.png"
+  ],
+  "MERCENARY_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_2.png"
+  ],
+  "MERCENARY_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_2.png"
+  ],
+  "MERCENARY_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_2.png"
+  ],
+  "MERCENARY_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mercenary_armor/model/mercenary_layer_2.png"
+  ],
+  "METAL_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/metal_chestplate/model/metal_chestplate.png",
+    null
+  ],
+  "MINERAL_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mineral_armor/model/mineral_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mineral_armor/model/mineral_layer_2.png"
+  ],
+  "MINERAL_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mineral_armor/model/mineral_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mineral_armor/model/mineral_layer_2.png"
+  ],
+  "MINERAL_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mineral_armor/model/mineral_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mineral_armor/model/mineral_layer_2.png"
+  ],
+  "TANK_MINER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_2.png"
+  ],
+  "TANK_MINER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_2.png"
+  ],
+  "TANK_MINER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_2.png"
+  ],
+  "TANK_MINER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_armor/model/miner_layer_2.png"
+  ],
+  "MINER_OUTFIT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_2.png"
+  ],
+  "MINER_OUTFIT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_2.png"
+  ],
+  "MINER_OUTFIT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_2.png"
+  ],
+  "MINER_OUTFIT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/miner_outfit/model/miner_outfit_layer_2.png"
+  ],
+  "MITHRIL_COAT": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mithril_coat/model/mithril_coat.png",
+    null
+  ],
+  "(SKELETON_HELMET|GUARDIAN_CHESTPLATE|CREEPER_LEGGINGS|SPIDER_BOOTS)": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/monster_hunter_armor/model/monster_hunter_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/monster_hunter_armor/model/monster_hunter_layer_2.png"
+  ],
+  "MUSHROOM_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_2.png"
+  ],
+  "MUSHROOM_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_2.png"
+  ],
+  "MUSHROOM_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_2.png"
+  ],
+  "MUSHROOM_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/mushroom_armor/model/mushroom_layer_2.png"
+  ],
+  "NECROMANCER_LORD_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necromancer_lord_armor/model/necromancer_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necromancer_lord_armor/model/necromancer_lord_layer_2.png"
+  ],
+  "NECROMANCER_LORD_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necromancer_lord_armor/model/necromancer_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necromancer_lord_armor/model/necromancer_lord_layer_2.png"
+  ],
+  "NECROMANCER_LORD_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necromancer_lord_armor/model/necromancer_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necromancer_lord_armor/model/necromancer_lord_layer_2.png"
+  ],
+  "POWER_WITHER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necron_armor/model/necron_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necron_armor/model/necron_layer_2.png"
+  ],
+  "POWER_WITHER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necron_armor/model/necron_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necron_armor/model/necron_layer_2.png"
+  ],
+  "POWER_WITHER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necron_armor/model/necron_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/necron_armor/model/necron_layer_2.png"
+  ],
+  "NUTCRACKER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/nutcracker_armor/model/nutcracker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/nutcracker_armor/model/nutcracker_layer_2.png"
+  ],
+  "NUTCRACKER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/nutcracker_armor/model/nutcracker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/nutcracker_armor/model/nutcracker_layer_2.png"
+  ],
+  "NUTCRACKER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/nutcracker_armor/model/nutcracker_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/nutcracker_armor/model/nutcracker_layer_2.png"
+  ],
+  "OBSIDIAN_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/obsidian_chestplate/model/obsidian_chestplate.png",
+    null
+  ],
+  "OLD_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/old_dragon_armor/model/old_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/old_dragon_armor/model/old_dragon_layer_2.png"
+  ],
+  "OLD_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/old_dragon_armor/model/old_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/old_dragon_armor/model/old_dragon_layer_2.png"
+  ],
+  "OLD_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/old_dragon_armor/model/old_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/old_dragon_armor/model/old_dragon_layer_2.png"
+  ],
+  "PERFECT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_2.png"
+  ],
+  "PERFECT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_2.png"
+  ],
+  "PERFECT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_2.png"
+  ],
+  "PERFECT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/perfect_armor/model/perfect_9/perfect_9_layer_2.png"
+  ],
+  "PROTECTOR_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/protector_dragon_armor/model/protector_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/protector_dragon_armor/model/protector_dragon_layer_2.png"
+  ],
+  "PROTECTOR_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/protector_dragon_armor/model/protector_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/protector_dragon_armor/model/protector_dragon_layer_2.png"
+  ],
+  "PROTECTOR_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/protector_dragon_armor/model/protector_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/protector_dragon_armor/model/protector_dragon_layer_2.png"
+  ],
+  "PUMPKIN_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_2.png"
+  ],
+  "PUMPKIN_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_2.png"
+  ],
+  "PUMPKIN_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_2.png"
+  ],
+  "PUMPKIN_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/pumpkin_armor/model/pumpkin_layer_2.png"
+  ],
+  "RABBIT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_2.png"
+  ],
+  "RABBIT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_2.png"
+  ],
+  "RABBIT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_2.png"
+  ],
+  "RABBIT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rabbit_armor/model/rabbit_layer_2.png"
+  ],
+  "RAMPART_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rampart_armor/model/rampart_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rampart_armor/model/rampart_layer_2.png"
+  ],
+  "RAMPART_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rampart_armor/model/rampart_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rampart_armor/model/rampart_layer_2.png"
+  ],
+  "RAMPART_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rampart_armor/model/rampart_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rampart_armor/model/rampart_layer_2.png"
+  ],
+  "RANCHERS_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rancher_boots/model/rancher_boots.png",
+    null
+  ],
+  "REAPER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/reaper_armor/model/normal/reaper_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/reaper_armor/model/normal/reaper_layer_2.png"
+  ],
+  "REAPER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/reaper_armor/model/normal/reaper_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/reaper_armor/model/normal/reaper_layer_2.png"
+  ],
+  "REAPER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/reaper_armor/model/normal/reaper_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/reaper_armor/model/normal/reaper_layer_2.png"
+  ],
+  "REKINDLED_EMBER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rekindled_ember_armor/model/rekindled_ember_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rekindled_ember_armor/model/rekindled_ember_layer_2.png"
+  ],
+  "REKINDLED_EMBER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rekindled_ember_armor/model/rekindled_ember_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rekindled_ember_armor/model/rekindled_ember_layer_2.png"
+  ],
+  "REKINDLED_EMBER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rekindled_ember_armor/model/rekindled_ember_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rekindled_ember_armor/model/rekindled_ember_layer_2.png"
+  ],
+  "REVENANT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/revenant_armor/model/revenant_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/revenant_armor/model/revenant_layer_2.png"
+  ],
+  "REVENANT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/revenant_armor/model/revenant_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/revenant_armor/model/revenant_layer_2.png"
+  ],
+  "REVENANT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/revenant_armor/model/revenant_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/revenant_armor/model/revenant_layer_2.png"
+  ],
+  "ROSETTA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_2.png"
+  ],
+  "ROSETTA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_2.png"
+  ],
+  "ROSETTA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_2.png"
+  ],
+  "ROSETTA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rosetta_armor/model/rosetta_layer_2.png"
+  ],
+  "ROTTEN_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_2.png"
+  ],
+  "ROTTEN_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_2.png"
+  ],
+  "ROTTEN_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_2.png"
+  ],
+  "ROTTEN_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/rotten_armor/model/rotten_layer_2.png"
+  ],
+  "SALMON_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_2.png"
+  ],
+  "SALMON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_2.png"
+  ],
+  "SALMON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_2.png"
+  ],
+  "SALMON_BOOTS)(?:_NEW": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/salmon_armor/model/salmon_layer_2.png"
+  ],
+  "STARRED_SHADOW_ASSASSIN_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/fragged_shadow_assassin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/fragged_shadow_assassin_layer_2.png"
+  ],
+  "STARRED_SHADOW_ASSASSIN_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/fragged_shadow_assassin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/fragged_shadow_assassin_layer_2.png"
+  ],
+  "STARRED_SHADOW_ASSASSIN_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/fragged_shadow_assassin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/fragged_shadow_assassin_layer_2.png"
+  ],
+  "SHADOW_ASSASSIN_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/shadow_assassin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/shadow_assassin_layer_2.png"
+  ],
+  "SHADOW_ASSASSIN_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/shadow_assassin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/shadow_assassin_layer_2.png"
+  ],
+  "SHADOW_ASSASSIN_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/shadow_assassin_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shadow_assassin_armor/model/shadow_assassin_layer_2.png"
+  ],
+  "SHARK_SCALE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shark_scale_armor/model/shark_scale_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shark_scale_armor/model/shark_scale_layer_2.png"
+  ],
+  "SHARK_SCALE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shark_scale_armor/model/shark_scale_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shark_scale_armor/model/shark_scale_layer_2.png"
+  ],
+  "SHARK_SCALE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shark_scale_armor/model/shark_scale_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shark_scale_armor/model/shark_scale_layer_2.png"
+  ],
+  "SHIMMERING_LIGHT_TUNIC": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shimmering_light_armor/model/shimmering_light_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shimmering_light_armor/model/shimmering_light_layer_2.png"
+  ],
+  "SHIMMERING_LIGHT_TROUSERS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shimmering_light_armor/model/shimmering_light_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shimmering_light_armor/model/shimmering_light_layer_2.png"
+  ],
+  "SHIMMERING_LIGHT_SLIPPERS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shimmering_light_armor/model/shimmering_light_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/shimmering_light_armor/model/shimmering_light_layer_2.png"
+  ],
+  "SKELETON_GRUNT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_2.png"
+  ],
+  "SKELETON_GRUNT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_2.png"
+  ],
+  "SKELETON_GRUNT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_2.png"
+  ],
+  "SKELETON_GRUNT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_grunt_armor/model/skeleton_grunt_layer_2.png"
+  ],
+  "SKELETON_LORD_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_2.png"
+  ],
+  "SKELETON_LORD_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_2.png"
+  ],
+  "SKELETON_LORD_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_2.png"
+  ],
+  "SKELETON_LORD_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_lord_armor/model/skeleton_lord_layer_2.png"
+  ],
+  "SKELETON_MASTER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_2.png"
+  ],
+  "SKELETON_MASTER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_2.png"
+  ],
+  "SKELETON_MASTER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_2.png"
+  ],
+  "SKELETON_MASTER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_master_armor/model/skeleton_master_layer_2.png"
+  ],
+  "SKELETON_SOLDIER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_2.png"
+  ],
+  "SKELETON_SOLDIER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_2.png"
+  ],
+  "SKELETON_SOLDIER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_2.png"
+  ],
+  "SKELETON_SOLDIER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeleton_soldier_armor/model/skeleton_soldier_layer_2.png"
+  ],
+  "SKELETOR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeletor_armor/model/skeletor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeletor_armor/model/skeletor_layer_2.png"
+  ],
+  "SKELETOR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeletor_armor/model/skeletor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeletor_armor/model/skeletor_layer_2.png"
+  ],
+  "SKELETOR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeletor_armor/model/skeletor_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/skeletor_armor/model/skeletor_layer_2.png"
+  ],
+  "SNOW_SUIT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/snow_suit_armor/model/snow_suit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/snow_suit_armor/model/snow_suit_layer_2.png"
+  ],
+  "SNOW_SUIT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/snow_suit_armor/model/snow_suit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/snow_suit_armor/model/snow_suit_layer_2.png"
+  ],
+  "SNOW_SUIT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/snow_suit_armor/model/snow_suit_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/snow_suit_armor/model/snow_suit_layer_2.png"
+  ],
+  "SORROW_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_2.png"
+  ],
+  "SORROW_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_2.png"
+  ],
+  "SORROW_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_2.png"
+  ],
+  "SORROW_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/sorrow_armor/model/sorrow_layer_2.png"
+  ],
+  "SPEEDSTER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_2.png"
+  ],
+  "SPEEDSTER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_2.png"
+  ],
+  "SPEEDSTER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_2.png"
+  ],
+  "SPEEDSTER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/speedster_armor/model/speedster_layer_2.png"
+  ],
+  "THORNS_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spirit_boots/model/spirit_boots.png",
+    null
+  ],
+  "STARRED_THORNS_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spirit_boots/model/spirit_boots_fragged.png",
+    null
+  ],
+  "SPOOKY_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spooky_armor/model/spooky_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spooky_armor/model/spooky_layer_2.png"
+  ],
+  "SPOOKY_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spooky_armor/model/spooky_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spooky_armor/model/spooky_layer_2.png"
+  ],
+  "SPOOKY_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spooky_armor/model/spooky_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/spooky_armor/model/spooky_layer_2.png"
+  ],
+  "SQUASH_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squash_armor/model/squash_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squash_armor/model/squash_layer_2.png"
+  ],
+  "SQUASH_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squash_armor/model/squash_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squash_armor/model/squash_layer_2.png"
+  ],
+  "SQUASH_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squash_armor/model/squash_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squash_armor/model/squash_layer_2.png"
+  ],
+  "SQUID_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squid_boots/model/squid_boots.png",
+    null
+  ],
+  "SQUIRE_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_2.png"
+  ],
+  "SQUIRE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_2.png"
+  ],
+  "SQUIRE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_2.png"
+  ],
+  "SQUIRE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/squire_armor/model/squire_layer_2.png"
+  ],
+  "STARLIGHT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_2.png"
+  ],
+  "STARLIGHT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_2.png"
+  ],
+  "STARLIGHT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_2.png"
+  ],
+  "STARLIGHT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/starlight_armor/model/starlight_layer_2.png"
+  ],
+  "STEEL_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/steel_chestplate/model/steel_chestplate.png",
+    null
+  ],
+  "MUSIC_PANTS": [
+    null,
+    "assets/minecraft/mcpatcher/cit/equipment/armor/stereo_pants/model/stereo_pants.png"
+  ],
+  "STONE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/stone_chestplate/model/stone_chestplate.png",
+    null
+  ],
+  "WISE_WITHER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/storm_armor/model/storm_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/storm_armor/model/storm_layer_2.png"
+  ],
+  "WISE_WITHER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/storm_armor/model/storm_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/storm_armor/model/storm_layer_2.png"
+  ],
+  "WISE_WITHER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/storm_armor/model/storm_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/storm_armor/model/storm_layer_2.png"
+  ],
+  "STRONG_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/strong_dragon_armor/model/strong_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/strong_dragon_armor/model/strong_dragon_layer_2.png"
+  ],
+  "STRONG_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/strong_dragon_armor/model/strong_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/strong_dragon_armor/model/strong_dragon_layer_2.png"
+  ],
+  "STRONG_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/strong_dragon_armor/model/strong_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/strong_dragon_armor/model/strong_dragon_layer_2.png"
+  ],
+  "SUPERIOR_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/superior_dragon_armor/model/superior_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/superior_dragon_armor/model/superior_dragon_layer_2.png"
+  ],
+  "SUPERIOR_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/superior_dragon_armor/model/superior_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/superior_dragon_armor/model/superior_dragon_layer_2.png"
+  ],
+  "SUPERIOR_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/superior_dragon_armor/model/superior_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/superior_dragon_armor/model/superior_dragon_layer_2.png"
+  ],
+  "SUPER_HEAVY_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_2.png"
+  ],
+  "SUPER_HEAVY_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_2.png"
+  ],
+  "SUPER_HEAVY_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_2.png"
+  ],
+  "SUPER_HEAVY_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/super_heavy_armor/model/super_heavy_layer_2.png"
+  ],
+  "TARANTULA_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_2.png"
+  ],
+  "TARANTULA_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_2.png"
+  ],
+  "TARANTULA_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_2.png"
+  ],
+  "TARANTULA_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/tarantula_armor/model/tarantula_layer_2.png"
+  ],
+  "BURNING_TERROR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_2.png"
+  ],
+  "BURNING_TERROR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_2.png"
+  ],
+  "BURNING_TERROR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_2.png"
+  ],
+  "BURNING_TERROR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/burning/burning_terror_layer_2.png"
+  ],
+  "FIERY_TERROR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_2.png"
+  ],
+  "FIERY_TERROR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_2.png"
+  ],
+  "FIERY_TERROR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_2.png"
+  ],
+  "FIERY_TERROR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/fiery/fiery_terror_layer_2.png"
+  ],
+  "HOT_TERROR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_2.png"
+  ],
+  "HOT_TERROR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_2.png"
+  ],
+  "HOT_TERROR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_2.png"
+  ],
+  "HOT_TERROR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/hot/hot_terror_layer_2.png"
+  ],
+  "INFERNAL_TERROR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_2.png"
+  ],
+  "INFERNAL_TERROR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_2.png"
+  ],
+  "INFERNAL_TERROR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_2.png"
+  ],
+  "INFERNAL_TERROR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/infernal/infernal_terror_layer_2.png"
+  ],
+  "TERROR_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_2.png"
+  ],
+  "TERROR_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_2.png"
+  ],
+  "TERROR_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_2.png"
+  ],
+  "TERROR_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/terror_armor/model/normal/terror_layer_2.png"
+  ],
+  "THUNDER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/thunder_armor/model/thunder_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/thunder_armor/model/thunder_layer_2.png"
+  ],
+  "THUNDER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/thunder_armor/model/thunder_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/thunder_armor/model/thunder_layer_2.png"
+  ],
+  "THUNDER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/thunder_armor/model/thunder_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/thunder_armor/model/thunder_layer_2.png"
+  ],
+  "UNSTABLE_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/unstable_dragon_armor/model/unstable_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/unstable_dragon_armor/model/unstable_dragon_layer_2.png"
+  ],
+  "UNSTABLE_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/unstable_dragon_armor/model/unstable_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/unstable_dragon_armor/model/unstable_dragon_layer_2.png"
+  ],
+  "UNSTABLE_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/unstable_dragon_armor/model/unstable_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/unstable_dragon_armor/model/unstable_dragon_layer_2.png"
+  ],
+  "WEREWOLF_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/werewolf_armor/model/werewolf_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/werewolf_armor/model/werewolf_layer_2.png"
+  ],
+  "WEREWOLF_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/werewolf_armor/model/werewolf_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/werewolf_armor/model/werewolf_layer_2.png"
+  ],
+  "WEREWOLF_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/werewolf_armor/model/werewolf_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/werewolf_armor/model/werewolf_layer_2.png"
+  ],
+  "WISE_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wise_dragon_armor/model/wise_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wise_dragon_armor/model/wise_dragon_layer_2.png"
+  ],
+  "WISE_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wise_dragon_armor/model/wise_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wise_dragon_armor/model/wise_dragon_layer_2.png"
+  ],
+  "WISE_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wise_dragon_armor/model/wise_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wise_dragon_armor/model/wise_dragon_layer_2.png"
+  ],
+  "WITHER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wither_armor/model/wither_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wither_armor/model/wither_layer_2.png"
+  ],
+  "WITHER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wither_armor/model/wither_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wither_armor/model/wither_layer_2.png"
+  ],
+  "WITHER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wither_armor/model/wither_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wither_armor/model/wither_layer_2.png"
+  ],
+  "WYLD_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wyld_armor/model/wyld_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wyld_armor/model/wyld_layer_2.png"
+  ],
+  "WYLD_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wyld_armor/model/wyld_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wyld_armor/model/wyld_layer_2.png"
+  ],
+  "WYLD_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wyld_armor/model/wyld_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/wyld_armor/model/wyld_layer_2.png"
+  ],
+  "YOUNG_DRAGON_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/young_dragon_armor/model/young_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/young_dragon_armor/model/young_dragon_layer_2.png"
+  ],
+  "YOUNG_DRAGON_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/young_dragon_armor/model/young_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/young_dragon_armor/model/young_dragon_layer_2.png"
+  ],
+  "YOUNG_DRAGON_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/young_dragon_armor/model/young_dragon_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/young_dragon_armor/model/young_dragon_layer_2.png"
+  ],
+  "ZOMBIE_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_armor/model/zombie_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_armor/model/zombie_layer_2.png"
+  ],
+  "ZOMBIE_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_armor/model/zombie_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_armor/model/zombie_layer_2.png"
+  ],
+  "ZOMBIE_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_armor/model/zombie_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_armor/model/zombie_layer_2.png"
+  ],
+  "ZOMBIE_COMMANDER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_2.png"
+  ],
+  "ZOMBIE_COMMANDER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_2.png"
+  ],
+  "ZOMBIE_COMMANDER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_2.png"
+  ],
+  "ZOMBIE_COMMANDER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_commander_armor/model/zombie_commander_layer_2.png"
+  ],
+  "ZOMBIE_KNIGHT_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_2.png"
+  ],
+  "ZOMBIE_KNIGHT_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_2.png"
+  ],
+  "ZOMBIE_KNIGHT_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_2.png"
+  ],
+  "ZOMBIE_KNIGHT_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_knight_armor/model/zombie_knight_layer_2.png"
+  ],
+  "ZOMBIE_LORD_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_2.png"
+  ],
+  "ZOMBIE_LORD_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_2.png"
+  ],
+  "ZOMBIE_LORD_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_2.png"
+  ],
+  "ZOMBIE_LORD_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_lord_armor/model/zombie_lord_layer_2.png"
+  ],
+  "ZOMBIE_SOLDIER_HELMET": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_2.png"
+  ],
+  "ZOMBIE_SOLDIER_CHESTPLATE": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_2.png"
+  ],
+  "ZOMBIE_SOLDIER_LEGGINGS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_2.png"
+  ],
+  "ZOMBIE_SOLDIER_BOOTS": [
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_1.png",
+    "assets/minecraft/mcpatcher/cit/equipment/armor/zombie_soldier_armor/model/zombie_soldier_layer_2.png"
+  ]
+}

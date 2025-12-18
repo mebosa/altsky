@@ -15,18 +15,47 @@
     'intelligence'
   ] as const;
 
-  const secondaryStatOrder = [
-    'attack_speed',
+  const additionalStatOrder = [
+    'bonus_attack_speed',
     'ferocity',
     'magic_find',
     'pet_luck',
-    'true_defense'
+    'true_defense',
+    'sea_creature_chance',
+    'ability_damage',
+    'mining_speed',
+    'mining_fortune',
+    'farming_fortune',
+    'foraging_fortune',
+    'pristine',
+    'fishing_speed',
+    'health_regen',
+    'vitality',
+    'mending',
+    'mana_regen',
+    'alchemy_wisdom',
+    'carpentry_wisdom',
+    'combat_wisdom',
+    'enchanting_wisdom',
+    'farming_wisdom',
+    'fishing_wisdom',
+    'foraging_wisdom',
+    'mining_wisdom',
+    'runecrafting_wisdom',
+    'social_wisdom',
+    'taming_wisdom',
+    'rift_time'
   ] as const;
 
-  const orderedStatKeys = [...primaryStatOrder, ...secondaryStatOrder] as const;
-  type KnownStatKey = (typeof orderedStatKeys)[number];
+  type KnownStatKey = (typeof primaryStatOrder)[number] | (typeof additionalStatOrder)[number];
 
-  const percentStats = new Set<KnownStatKey>(['crit_damage', 'crit_chance', 'attack_speed']);
+  const percentStats = new Set<KnownStatKey>([
+    'crit_damage',
+    'crit_chance',
+    'bonus_attack_speed',
+    'sea_creature_chance',
+    'ability_damage'
+  ]);
   const precisionMap: Partial<Record<KnownStatKey, number>> = {
     speed: 2,
     strength: 2,
@@ -35,20 +64,65 @@
     crit_chance: 2,
     health: 2,
     intelligence: 2,
-    attack_speed: 2,
+    bonus_attack_speed: 2,
     ferocity: 2,
     magic_find: 2,
     pet_luck: 2,
-    true_defense: 2
+    true_defense: 2,
+    sea_creature_chance: 2,
+    ability_damage: 2,
+    mining_speed: 2,
+    mining_fortune: 2,
+    farming_fortune: 2,
+    foraging_fortune: 2,
+    pristine: 2,
+    fishing_speed: 2,
+    health_regen: 2,
+    vitality: 2,
+    mending: 2,
+    mana_regen: 2,
+    alchemy_wisdom: 2,
+    carpentry_wisdom: 2,
+    combat_wisdom: 2,
+    enchanting_wisdom: 2,
+    farming_wisdom: 2,
+    fishing_wisdom: 2,
+    foraging_wisdom: 2,
+    mining_wisdom: 2,
+    runecrafting_wisdom: 2,
+    social_wisdom: 2,
+    taming_wisdom: 2,
+    rift_time: 2
   };
 
-  const formatStatValue = (key: KnownStatKey, rawValue?: number) => {
-    if (typeof rawValue !== 'number' || !Number.isFinite(rawValue)) {
+  const prettifyKey = (value: string) =>
+    value
+      .split('_')
+      .map((segment) => (segment ? segment[0].toUpperCase() + segment.slice(1) : segment))
+      .join(' ')
+      .trim();
+
+  const getStatLabel = (key: KnownStatKey) => statLabels[key] ?? prettifyKey(key);
+
+  const getStatValue = (key: KnownStatKey) => {
+    if (key === 'bonus_attack_speed') {
+      return summary.stats?.bonus_attack_speed ?? summary.stats?.attack_speed;
+    }
+    return summary.stats?.[key];
+  };
+
+  const formatStatValue = (key: KnownStatKey, rawValue?: number | string | null) => {
+    if (rawValue === null || rawValue === undefined) {
       return '-';
     }
 
-    const fraction = precisionMap[key] ?? (Number.isInteger(rawValue) ? 0 : 2);
-    const formatted = formatNumber(rawValue, fraction);
+    const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue);
+    if (!Number.isFinite(numericValue)) {
+      return '-';
+    }
+
+    const fraction = precisionMap[key] ?? (Number.isInteger(numericValue) ? 0 : 2);
+    const formatted = formatNumber(numericValue, fraction);
     return percentStats.has(key) ? `${formatted}%` : formatted;
   };
 </script>
@@ -62,8 +136,8 @@
     <div class="stat-panel-body">
       {#each primaryStatOrder as key}
         <div class="stat-row" data-stat={key}>
-          <span class="stat-row-label">{statLabels[key] ?? key}</span>
-          <span class="stat-row-value">{formatStatValue(key, summary.stats?.[key])}</span>
+          <span class="stat-row-label">{getStatLabel(key)}</span>
+          <span class="stat-row-value">{formatStatValue(key, getStatValue(key))}</span>
         </div>
       {/each}
       <p class="stat-panel-foot">Also accessible via /stats</p>
@@ -72,11 +146,12 @@
 
   <div class="card extra-stats">
     <h3>Additional Stats</h3>
+    <p class="stat-note">Every SkyBlock stat beyond the highlights.</p>
     <div class="stat-list">
-      {#each secondaryStatOrder as key}
+      {#each additionalStatOrder as key}
         <div class="stat-chip" data-stat={key}>
-          <span class="label">{statLabels[key] ?? key}</span>
-          <span class="value">{formatStatValue(key, summary.stats?.[key])}</span>
+          <span class="label">{getStatLabel(key)}</span>
+          <span class="value">{formatStatValue(key, getStatValue(key))}</span>
         </div>
       {/each}
     </div>
@@ -204,10 +279,16 @@
     color: var(--theme-text-primary);
   }
 
+  .stat-note {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    color: var(--theme-text-soft);
+  }
+
   .extra-stats .stat-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
   }
 
   .stat-chip {
@@ -233,7 +314,7 @@
     color: var(--theme-text-primary);
   }
 
-  .stat-chip[data-stat='attack_speed'] .value {
+  .stat-chip[data-stat='bonus_attack_speed'] .value {
     color: var(--theme-accent);
   }
 
