@@ -108,7 +108,132 @@
     
     "WARDEN_HELMET": { "health": 300, "defense": 100 },
     "REAPER_MASK": { "health": 150, "defense": 100, "intelligence": 100 },
-    "RANCHERS_BOOTS": { "health": 100, "defense": 70, "speed": 50 }
+    "RANCHERS_BOOTS": { "health": 100, "defense": 70, "speed": 50 },
+    
+    "MINER_OUTFIT_HELMET": { "defense": 20, "mining_speed": 15 },
+    "MINER_OUTFIT_CHESTPLATE": { "defense": 35, "mining_speed": 15 },
+    "MINER_OUTFIT_LEGGINGS": { "defense": 25, "mining_speed": 15 },
+    "MINER_OUTFIT_BOOTS": { "defense": 20, "mining_speed": 15 },
+    
+    "LAPIS_ARMOR_HELMET": { "defense": 25, "mining_speed": 20, "mining_fortune": 2 },
+    "LAPIS_ARMOR_CHESTPLATE": { "defense": 40, "mining_speed": 20, "mining_fortune": 2 },
+    "LAPIS_ARMOR_LEGGINGS": { "defense": 35, "mining_speed": 20, "mining_fortune": 2 },
+    "LAPIS_ARMOR_BOOTS": { "defense": 20, "mining_speed": 20, "mining_fortune": 2 },
+    
+    "GOLEM_ARMOR_HELMET": { "health": 40, "defense": 45 },
+    "GOLEM_ARMOR_CHESTPLATE": { "health": 75, "defense": 95 },
+    "GOLEM_ARMOR_LEGGINGS": { "health": 55, "defense": 75 },
+    "GOLEM_ARMOR_BOOTS": { "health": 35, "defense": 35 },
+    
+    "EMERALD_ARMOR_HELMET": { "defense": 50 },
+    "EMERALD_ARMOR_CHESTPLATE": { "defense": 90 },
+    "EMERALD_ARMOR_LEGGINGS": { "defense": 80 },
+    "EMERALD_ARMOR_BOOTS": { "defense": 50 },
+    
+    "MAGMA_ARMOR_HELMET": { "health": 45, "defense": 15, "intelligence": 10 },
+    "MAGMA_ARMOR_CHESTPLATE": { "health": 100, "defense": 30, "intelligence": 10 },
+    "MAGMA_ARMOR_LEGGINGS": { "health": 80, "defense": 25, "intelligence": 10 },
+    "MAGMA_ARMOR_BOOTS": { "health": 45, "defense": 15, "intelligence": 10 },
+    
+    "CRYSTAL_ARMOR_HELMET": { "defense": 20, "intelligence": 50 },
+    "CRYSTAL_ARMOR_CHESTPLATE": { "defense": 40, "intelligence": 125 },
+    "CRYSTAL_ARMOR_LEGGINGS": { "defense": 30, "intelligence": 100 },
+    "CRYSTAL_ARMOR_BOOTS": { "defense": 10, "intelligence": 70 },
+    
+    "SPONGE_ARMOR_HELMET": { "defense": 85, "sea_creature_chance": 1.5 },
+    "SPONGE_ARMOR_CHESTPLATE": { "defense": 145, "sea_creature_chance": 2.5 },
+    "SPONGE_ARMOR_LEGGINGS": { "defense": 125, "sea_creature_chance": 2.5 },
+    "SPONGE_ARMOR_BOOTS": { "defense": 95, "sea_creature_chance": 1.5 },
+    
+    "SHARK_SCALE_HELMET": { "health": 125, "defense": 105, "sea_creature_chance": 2 },
+    "SHARK_SCALE_CHESTPLATE": { "health": 215, "defense": 185, "sea_creature_chance": 3 },
+    "SHARK_SCALE_LEGGINGS": { "health": 185, "defense": 155, "sea_creature_chance": 3 },
+    "SHARK_SCALE_BOOTS": { "health": 125, "defense": 105, "sea_creature_chance": 2 },
+
+    "ANGLER_HELMET": { "defense": 15, "sea_creature_chance": 1 },
+    "ANGLER_CHESTPLATE": { "defense": 40, "sea_creature_chance": 1 },
+    "ANGLER_LEGGINGS": { "defense": 30, "sea_creature_chance": 1 },
+    "ANGLER_BOOTS": { "defense": 20, "sea_creature_chance": 1 },
+
+    "DIVERS_HELMET": { "health": 100, "defense": 45, "sea_creature_chance": 2, "respiration": 3, "pressure_resistance": 15 },
+    "DIVERS_CHESTPLATE": { "health": 260, "defense": 110, "sea_creature_chance": 2, "respiration": 3, "pressure_resistance": 15 },
+    "DIVERS_LEGGINGS": { "health": 190, "defense": 85, "sea_creature_chance": 2, "respiration": 3, "pressure_resistance": 15 },
+    "DIVERS_BOOTS": { "health": 100, "defense": 40, "sea_creature_chance": 2, "respiration": 3, "pressure_resistance": 15 },
+
+    "SPEEDSTER_HELMET": { "defense": 70, "speed": 15 },
+    "SPEEDSTER_CHESTPLATE": { "defense": 120, "speed": 15 },
+    "SPEEDSTER_LEGGINGS": { "defense": 95, "speed": 15 },
+    "SPEEDSTER_BOOTS": { "defense": 65, "speed": 15 },
+
+    "SPOOKY_HELMET": { "defense": 25, "candy_chance": 5 },
+    "SPOOKY_CHESTPLATE": { "defense": 50, "candy_chance": 5 },
+    "SPOOKY_LEGGINGS": { "defense": 40, "candy_chance": 5 },
+    "SPOOKY_BOOTS": { "defense": 20, "candy_chance": 5 },
+
+    "SNOW_SUIT_HELMET": { "health": 50, "defense": 20 },
+    "SNOW_SUIT_CHESTPLATE": { "health": 120, "defense": 50 },
+    "SNOW_SUIT_LEGGINGS": { "health": 90, "defense": 35 },
+    "SNOW_SUIT_BOOTS": { "health": 50, "defense": 20 },
+
+    "FARM_SUIT_HELMET": { "defense": 15, "farming_fortune": 5 },
+    "FARM_SUIT_CHESTPLATE": { "defense": 40, "farming_fortune": 5 },
+    "FARM_SUIT_LEGGINGS": { "defense": 30, "farming_fortune": 5 },
+    "FARM_SUIT_BOOTS": { "defense": 15, "farming_fortune": 5 },
+
+    "FARM_ARMOR_HELMET": { "health": 15, "defense": 30, "farming_fortune": 10 },
+    "FARM_ARMOR_CHESTPLATE": { "health": 30, "defense": 80, "farming_fortune": 10 },
+    "FARM_ARMOR_LEGGINGS": { "health": 20, "defense": 60, "farming_fortune": 10 },
+    "FARM_ARMOR_BOOTS": { "health": 15, "defense": 30, "farming_fortune": 10 },
+
+    "PUMPKIN_HELMET": { "health": 5, "defense": 5 },
+    "PUMPKIN_CHESTPLATE": { "health": 15, "defense": 15 },
+    "PUMPKIN_LEGGINGS": { "health": 12, "defense": 12 },
+    "PUMPKIN_BOOTS": { "health": 8, "defense": 8 },
+
+    "CACTUS_HELMET": { "health": 5, "defense": 10 },
+    "CACTUS_CHESTPLATE": { "health": 15, "defense": 25 },
+    "CACTUS_LEGGINGS": { "health": 10, "defense": 20 },
+    "CACTUS_BOOTS": { "health": 5, "defense": 10 },
+
+    "LEAFLET_HELMET": { "health": 70, "foraging_fortune": 3 },
+    "LEAFLET_CHESTPLATE": { "health": 80, "foraging_fortune": 3 },
+    "LEAFLET_LEGGINGS": { "health": 20, "foraging_fortune": 3 },
+    "LEAFLET_BOOTS": { "health": 25, "foraging_fortune": 3 },
+
+    "FAIRY_HELMET": { "health": 1, "defense": 1, "speed": 10, "intelligence": -1 },
+    "FAIRY_CHESTPLATE": { "health": 1, "defense": 1, "speed": 10, "intelligence": -1 },
+    "FAIRY_LEGGINGS": { "health": 1, "defense": 1, "speed": 10, "intelligence": -1 },
+    "FAIRY_BOOTS": { "health": 1, "defense": 1, "speed": 10, "intelligence": -1 },
+
+    "EMBER_HELMET": { "health": 30, "defense": 30, "intelligence": 5 },
+    "EMBER_CHESTPLATE": { "health": 80, "defense": 70, "intelligence": 10 },
+    "EMBER_LEGGINGS": { "health": 60, "defense": 50, "intelligence": 5 },
+    "EMBER_BOOTS": { "health": 30, "defense": 30, "intelligence": 5 },
+
+    "REVENANT_HELMET": { "health": 100, "defense": 40 },
+    "REVENANT_CHESTPLATE": { "health": 120, "defense": 50 },
+    "REVENANT_LEGGINGS": { "health": 110, "defense": 45 },
+    "REVENANT_BOOTS": { "health": 70, "defense": 15 },
+
+    "REAPER_HELMET": { "health": 100, "defense": 40, "strength": 20, "intelligence": 200 },
+    "REAPER_CHESTPLATE": { "health": 120, "defense": 50, "strength": 25, "intelligence": 250 },
+    "REAPER_LEGGINGS": { "health": 110, "defense": 45, "strength": 20, "intelligence": 200 },
+    "REAPER_BOOTS": { "health": 70, "defense": 15, "strength": 10, "intelligence": 100 },
+
+    "FINAL_DESTINATION_HELMET": { "health": 125, "defense": 75, "intelligence": 75 },
+    "FINAL_DESTINATION_CHESTPLATE": { "health": 200, "defense": 125, "intelligence": 125 },
+    "FINAL_DESTINATION_LEGGINGS": { "health": 175, "defense": 125, "intelligence": 125 },
+    "FINAL_DESTINATION_BOOTS": { "health": 100, "defense": 75, "intelligence": 75 },
+
+    "BAT_PERSON_HELMET": { "defense": 15 },
+    "BAT_PERSON_CHESTPLATE": { "defense": 30 },
+    "BAT_PERSON_LEGGINGS": { "defense": 25 },
+    "BAT_PERSON_BOOTS": { "defense": 15 },
+
+    "WEREWOLF_HELMET": { "defense": 150, "intelligence": 50, "ferocity": 10 },
+    "WEREWOLF_CHESTPLATE": { "defense": 220, "intelligence": 50, "ferocity": 10 },
+    "WEREWOLF_LEGGINGS": { "defense": 190, "intelligence": 50, "ferocity": 10 },
+    "WEREWOLF_BOOTS": { "defense": 140, "intelligence": 50, "ferocity": 10 }
   },
   "armor_sets": {
     "SUPERIOR_DRAGON": {
@@ -261,6 +386,149 @@
         "health": 20,
         "defense": 20
       }
+    },
+    "MINER_OUTFIT": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "mining_speed": 40
+      }
+    },
+    "GOLEM_ARMOR": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 0
+      }
+    },
+    "EMERALD_ARMOR": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 350,
+        "defense": 350
+      }
+    },
+    "MAGMA_ARMOR": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 200,
+        "intelligence": 200
+      }
+    },
+    "SPONGE_ARMOR": {
+      "required_pieces": 4,
+      "set_bonus_multiplier": {
+        "defense": 1.0
+      }
+    },
+    "SHARK_SCALE": {
+      "required_pieces": 4,
+      "set_bonus_multiplier": {
+        "defense": 1.0
+      }
+    },
+    "ANGLER": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "sea_creature_chance": 0
+      }
+    },
+    "DIVERS": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "sea_creature_chance": 0
+      }
+    },
+    "SPEEDSTER": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "speed": 20
+      }
+    },
+    "SPOOKY": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "candy_chance": 0
+      }
+    },
+    "SNOW_SUIT": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 0
+      }
+    },
+    "FARM_SUIT": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "speed": 20
+      }
+    },
+    "FARM_ARMOR": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "speed": 25
+      }
+    },
+    "PUMPKIN": {
+      "required_pieces": 4,
+      "set_bonus_multiplier": {
+        "damage": 0.1,
+        "damage_taken": -0.1
+      }
+    },
+    "CACTUS": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "thorns": 0.33
+      }
+    },
+    "LEAFLET": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 0
+      }
+    },
+    "FAIRY": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 0
+      }
+    },
+    "EMBER": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "health": 0
+      }
+    },
+    "REVENANT": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "defense_vs_undead": 100
+      }
+    },
+    "REAPER": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "defense_vs_undead": 100
+      }
+    },
+    "FINAL_DESTINATION": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "strength": 30,
+        "attack_speed": 20,
+        "speed": 10
+      }
+    },
+    "BAT_PERSON": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "intelligence": 0
+      }
+    },
+    "WEREWOLF": {
+      "required_pieces": 4,
+      "set_bonus": {
+        "ferocity": 0
+      }
     }
   },
   "reforges": {
@@ -335,6 +603,46 @@
       "EPIC": { "health": 10, "defense": 10 },
       "LEGENDARY": { "health": 14, "defense": 14 },
       "MYTHIC": { "health": 18, "defense": 18 }
+    },
+    "spicy": {
+      "COMMON": { "strength": 2, "crit_chance": 1, "crit_damage": 1, "attack_speed": 1 },
+      "UNCOMMON": { "strength": 3, "crit_chance": 1, "crit_damage": 2, "attack_speed": 2 },
+      "RARE": { "strength": 4, "crit_chance": 1, "crit_damage": 5, "attack_speed": 4 },
+      "EPIC": { "strength": 7, "crit_chance": 1, "crit_damage": 10, "attack_speed": 7 },
+      "LEGENDARY": { "strength": 10, "crit_chance": 1, "crit_damage": 20, "attack_speed": 10 },
+      "MYTHIC": { "strength": 12, "crit_chance": 1, "crit_damage": 25, "attack_speed": 15 }
+    },
+    "sharp": {
+      "COMMON": { "crit_chance": 10, "crit_damage": 20 },
+      "UNCOMMON": { "crit_chance": 12, "crit_damage": 30 },
+      "RARE": { "crit_chance": 14, "crit_damage": 40 },
+      "EPIC": { "crit_chance": 16, "crit_damage": 55 },
+      "LEGENDARY": { "crit_chance": 18, "crit_damage": 75 },
+      "MYTHIC": { "crit_chance": 20, "crit_damage": 90 }
+    },
+    "fabled": {
+      "COMMON": { "strength": 30, "crit_damage": 15 },
+      "UNCOMMON": { "strength": 35, "crit_damage": 20 },
+      "RARE": { "strength": 40, "crit_damage": 25 },
+      "EPIC": { "strength": 50, "crit_damage": 32 },
+      "LEGENDARY": { "strength": 60, "crit_damage": 40 },
+      "MYTHIC": { "strength": 75, "crit_damage": 50 }
+    },
+    "withered": {
+      "COMMON": { "strength": 60 },
+      "UNCOMMON": { "strength": 80 },
+      "RARE": { "strength": 100 },
+      "EPIC": { "strength": 135 },
+      "LEGENDARY": { "strength": 170 },
+      "MYTHIC": { "strength": 210 }
+    },
+    "heroic": {
+      "COMMON": { "intelligence": 40, "attack_speed": 1 },
+      "UNCOMMON": { "intelligence": 50, "attack_speed": 2 },
+      "RARE": { "intelligence": 65, "attack_speed": 3 },
+      "EPIC": { "intelligence": 80, "attack_speed": 5 },
+      "LEGENDARY": { "intelligence": 100, "attack_speed": 7 },
+      "MYTHIC": { "intelligence": 125, "attack_speed": 10 }
     }
   },
   "gems": {

@@ -1,0 +1,268 @@
+{
+  "gems": {
+    "JADE": {
+    "ROUGH": {
+      "stat": "mining_fortune",
+      "values": { "COMMON": 2, "UNCOMMON": 4, "RARE": 6, "EPIC": 8, "LEGENDARY": 10, "MYTHIC": 12, "DIVINE": 14 }
+    },
+    "FLAWED": {
+      "stat": "mining_fortune",
+      "values": { "COMMON": 3, "UNCOMMON": 5, "RARE": 7, "EPIC": 10, "LEGENDARY": 14, "MYTHIC": 18, "DIVINE": 22 }
+    },
+    "FINE": {
+      "stat": "mining_fortune",
+      "values": { "COMMON": 5, "UNCOMMON": 7, "RARE": 10, "EPIC": 15, "LEGENDARY": 20, "MYTHIC": 25, "DIVINE": 30 }
+    },
+    "FLAWLESS": {
+      "stat": "mining_fortune",
+      "values": { "COMMON": 7, "UNCOMMON": 10, "RARE": 15, "EPIC": 20, "LEGENDARY": 27, "MYTHIC": 35, "DIVINE": 44 }
+    },
+    "PERFECT": {
+      "stat": "mining_fortune",
+      "values": { "COMMON": 10, "UNCOMMON": 14, "RARE": 20, "EPIC": 30, "LEGENDARY": 40, "MYTHIC": 50, "DIVINE": 60 }
+    }
+  },
+  "AMBER": {
+    "ROUGH": {
+      "stat": "mining_speed",
+      "values": { "COMMON": 4, "UNCOMMON": 8, "RARE": 12, "EPIC": 16, "LEGENDARY": 20, "MYTHIC": 24, "DIVINE": 28 }
+    },
+    "FLAWED": {
+      "stat": "mining_speed",
+      "values": { "COMMON": 6, "UNCOMMON": 10, "RARE": 14, "EPIC": 18, "LEGENDARY": 24, "MYTHIC": 30, "DIVINE": 36 }
+    },
+    "FINE": {
+      "stat": "mining_speed",
+      "values": { "COMMON": 10, "UNCOMMON": 14, "RARE": 20, "EPIC": 28, "LEGENDARY": 36, "MYTHIC": 45, "DIVINE": 54 }
+    },
+    "FLAWLESS": {
+      "stat": "mining_speed",
+      "values": { "COMMON": 14, "UNCOMMON": 20, "RARE": 30, "EPIC": 44, "LEGENDARY": 58, "MYTHIC": 75, "DIVINE": 92 }
+    },
+    "PERFECT": {
+      "stat": "mining_speed",
+      "values": { "COMMON": 20, "UNCOMMON": 28, "RARE": 40, "EPIC": 60, "LEGENDARY": 80, "MYTHIC": 100, "DIVINE": 120 }
+    }
+  },
+  "TOPAZ": {
+    "ROUGH": {
+      "stat": "pristine",
+      "values": { "COMMON": 0.4, "UNCOMMON": 0.4, "RARE": 0.4, "EPIC": 0.4, "LEGENDARY": 0.4, "MYTHIC": 0.4, "DIVINE": 0.5 }
+    },
+    "FLAWED": {
+      "stat": "pristine",
+      "values": { "COMMON": 0.8, "UNCOMMON": 0.8, "RARE": 0.8, "EPIC": 0.8, "LEGENDARY": 0.8, "MYTHIC": 0.8, "DIVINE": 0.9 }
+    },
+    "FINE": {
+      "stat": "pristine",
+      "values": { "COMMON": 1.2, "UNCOMMON": 1.2, "RARE": 1.2, "EPIC": 1.2, "LEGENDARY": 1.2, "MYTHIC": 1.2, "DIVINE": 1.3 }
+    },
+    "FLAWLESS": {
+      "stat": "pristine",
+      "values": { "COMMON": 1.6, "UNCOMMON": 1.6, "RARE": 1.6, "EPIC": 1.6, "LEGENDARY": 1.6, "MYTHIC": 1.6, "DIVINE": 1.8 }
+    },
+    "PERFECT": {
+      "stat": "pristine",
+      "values": { "COMMON": 2, "UNCOMMON": 2, "RARE": 2, "EPIC": 2, "LEGENDARY": 2, "MYTHIC": 2, "DIVINE": 2.2 }
+    }
+  },
+  "SAPPHIRE": {
+    "ROUGH": {
+      "stat": "intelligence",
+      "values": { "COMMON": 2, "UNCOMMON": 3, "RARE": 4, "EPIC": 5, "LEGENDARY": 6, "MYTHIC": 7, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "intelligence",
+      "values": { "COMMON": 5, "UNCOMMON": 5, "RARE": 6, "EPIC": 7, "LEGENDARY": 8, "MYTHIC": 10, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "intelligence",
+      "values": { "COMMON": 7, "UNCOMMON": 8, "RARE": 9, "EPIC": 10, "LEGENDARY": 11, "MYTHIC": 12, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "intelligence",
+      "values": { "COMMON": 10, "UNCOMMON": 11, "RARE": 12, "EPIC": 14, "LEGENDARY": 17, "MYTHIC": 20, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "intelligence",
+      "values": { "COMMON": 12, "UNCOMMON": 14, "RARE": 17, "EPIC": 20, "LEGENDARY": 24, "MYTHIC": 30, "DIVINE": 0 }
+    }
+  },
+  "AMETHYST": {
+    "ROUGH": {
+      "stat": "defense",
+      "values": { "COMMON": 1, "UNCOMMON": 2, "RARE": 3, "EPIC": 4, "LEGENDARY": 5, "MYTHIC": 7, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "defense",
+      "values": { "COMMON": 3, "UNCOMMON": 4, "RARE": 5, "EPIC": 6, "LEGENDARY": 8, "MYTHIC": 10, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "defense",
+      "values": { "COMMON": 4, "UNCOMMON": 5, "RARE": 6, "EPIC": 8, "LEGENDARY": 10, "MYTHIC": 14, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "defense",
+      "values": { "COMMON": 5, "UNCOMMON": 7, "RARE": 10, "EPIC": 14, "LEGENDARY": 18, "MYTHIC": 22, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "defense",
+      "values": { "COMMON": 6, "UNCOMMON": 9, "RARE": 13, "EPIC": 18, "LEGENDARY": 24, "MYTHIC": 30, "DIVINE": 0 }
+    }
+  },
+  "JASPER": {
+    "ROUGH": {
+      "stat": "strength",
+      "values": { "COMMON": 1, "UNCOMMON": 1, "RARE": 1, "EPIC": 2, "LEGENDARY": 3, "MYTHIC": 4, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "strength",
+      "values": { "COMMON": 2, "UNCOMMON": 2, "RARE": 3, "EPIC": 4, "LEGENDARY": 4, "MYTHIC": 5, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "strength",
+      "values": { "COMMON": 3, "UNCOMMON": 3, "RARE": 4, "EPIC": 5, "LEGENDARY": 6, "MYTHIC": 7, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "strength",
+      "values": { "COMMON": 5, "UNCOMMON": 6, "RARE": 7, "EPIC": 8, "LEGENDARY": 10, "MYTHIC": 12, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "strength",
+      "values": { "COMMON": 6, "UNCOMMON": 7, "RARE": 9, "EPIC": 11, "LEGENDARY": 13, "MYTHIC": 16, "DIVINE": 0 }
+    }
+  },
+  "RUBY": {
+    "ROUGH": {
+      "stat": "health",
+      "values": { "COMMON": 1, "UNCOMMON": 2, "RARE": 3, "EPIC": 4, "LEGENDARY": 5, "MYTHIC": 7, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "health",
+      "values": { "COMMON": 3, "UNCOMMON": 4, "RARE": 5, "EPIC": 6, "LEGENDARY": 8, "MYTHIC": 10, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "health",
+      "values": { "COMMON": 4, "UNCOMMON": 5, "RARE": 6, "EPIC": 8, "LEGENDARY": 10, "MYTHIC": 14, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "health",
+      "values": { "COMMON": 5, "UNCOMMON": 7, "RARE": 10, "EPIC": 14, "LEGENDARY": 18, "MYTHIC": 22, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "health",
+      "values": { "COMMON": 6, "UNCOMMON": 9, "RARE": 13, "EPIC": 18, "LEGENDARY": 24, "MYTHIC": 30, "DIVINE": 0 }
+    }
+  },
+  "OPAL": {
+    "ROUGH": {
+      "stat": "true_defense",
+      "values": { "COMMON": 1, "UNCOMMON": 1, "RARE": 1, "EPIC": 2, "LEGENDARY": 2, "MYTHIC": 3, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "true_defense",
+      "values": { "COMMON": 2, "UNCOMMON": 2, "RARE": 2, "EPIC": 3, "LEGENDARY": 3, "MYTHIC": 4, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "true_defense",
+      "values": { "COMMON": 3, "UNCOMMON": 3, "RARE": 3, "EPIC": 4, "LEGENDARY": 4, "MYTHIC": 5, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "true_defense",
+      "values": { "COMMON": 4, "UNCOMMON": 4, "RARE": 5, "EPIC": 6, "LEGENDARY": 8, "MYTHIC": 9, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "true_defense",
+      "values": { "COMMON": 5, "UNCOMMON": 6, "RARE": 7, "EPIC": 9, "LEGENDARY": 11, "MYTHIC": 13, "DIVINE": 0 }
+    }
+  },
+  "AQUAMARINE": {
+    "ROUGH": {
+      "stat": "fishing_speed",
+      "values": { "COMMON": 0.5, "UNCOMMON": 0.5, "RARE": 1.0, "EPIC": 1.0, "LEGENDARY": 1.5, "MYTHIC": 2.0, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "fishing_speed",
+      "values": { "COMMON": 1.0, "UNCOMMON": 1.0, "RARE": 1.5, "EPIC": 2.0, "LEGENDARY": 3.0, "MYTHIC": 4.0, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "fishing_speed",
+      "values": { "COMMON": 2.5, "UNCOMMON": 3.0, "RARE": 3.5, "EPIC": 4.0, "LEGENDARY": 5.0, "MYTHIC": 6.0, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "fishing_speed",
+      "values": { "COMMON": 4.5, "UNCOMMON": 5.0, "RARE": 5.5, "EPIC": 6.0, "LEGENDARY": 7.0, "MYTHIC": 8.0, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "fishing_speed",
+      "values": { "COMMON": 6.5, "UNCOMMON": 7.0, "RARE": 7.5, "EPIC": 8.0, "LEGENDARY": 9.0, "MYTHIC": 10.0, "DIVINE": 0 }
+    }
+  },
+  "CITRINE": {
+    "ROUGH": {
+      "stat": "foraging_fortune",
+      "values": { "COMMON": 0.5, "UNCOMMON": 1, "RARE": 1.5, "EPIC": 2, "LEGENDARY": 2.5, "MYTHIC": 3, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "foraging_fortune",
+      "values": { "COMMON": 1, "UNCOMMON": 1.5, "RARE": 2, "EPIC": 2.5, "LEGENDARY": 3, "MYTHIC": 4, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "foraging_fortune",
+      "values": { "COMMON": 1.5, "UNCOMMON": 2, "RARE": 3, "EPIC": 4, "LEGENDARY": 5, "MYTHIC": 6, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "foraging_fortune",
+      "values": { "COMMON": 2, "UNCOMMON": 3, "RARE": 4, "EPIC": 5, "LEGENDARY": 6, "MYTHIC": 8, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "foraging_fortune",
+      "values": { "COMMON": 3, "UNCOMMON": 4, "RARE": 5, "EPIC": 6, "LEGENDARY": 8, "MYTHIC": 10, "DIVINE": 0 }
+    }
+  },
+  "ONYX": {
+    "ROUGH": {
+      "stat": "crit_damage",
+      "values": { "COMMON": 1, "UNCOMMON": 1, "RARE": 2, "EPIC": 2, "LEGENDARY": 3, "MYTHIC": 4, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "crit_damage",
+      "values": { "COMMON": 2, "UNCOMMON": 2, "RARE": 3, "EPIC": 3, "LEGENDARY": 4, "MYTHIC": 6, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "crit_damage",
+      "values": { "COMMON": 3, "UNCOMMON": 3, "RARE": 4, "EPIC": 5, "LEGENDARY": 6, "MYTHIC": 8, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "crit_damage",
+      "values": { "COMMON": 4, "UNCOMMON": 5, "RARE": 6, "EPIC": 7, "LEGENDARY": 8, "MYTHIC": 10, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "crit_damage",
+      "values": { "COMMON": 5, "UNCOMMON": 6, "RARE": 7, "EPIC": 8, "LEGENDARY": 10, "MYTHIC": 12, "DIVINE": 0 }
+    }
+  },
+  "PERIDOT": {
+    "ROUGH": {
+      "stat": "farming_fortune",
+      "values": { "COMMON": 0.5, "UNCOMMON": 1, "RARE": 1.5, "EPIC": 2, "LEGENDARY": 2.5, "MYTHIC": 3, "DIVINE": 0 }
+    },
+    "FLAWED": {
+      "stat": "farming_fortune",
+      "values": { "COMMON": 1, "UNCOMMON": 1.5, "RARE": 2, "EPIC": 2.5, "LEGENDARY": 3, "MYTHIC": 4, "DIVINE": 0 }
+    },
+    "FINE": {
+      "stat": "farming_fortune",
+      "values": { "COMMON": 1.5, "UNCOMMON": 2, "RARE": 3, "EPIC": 4, "LEGENDARY": 5, "MYTHIC": 6, "DIVINE": 0 }
+    },
+    "FLAWLESS": {
+      "stat": "farming_fortune",
+      "values": { "COMMON": 2, "UNCOMMON": 3, "RARE": 4, "EPIC": 5, "LEGENDARY": 6, "MYTHIC": 8, "DIVINE": 0 }
+    },
+    "PERFECT": {
+      "stat": "farming_fortune",
+      "values": { "COMMON": 3, "UNCOMMON": 4, "RARE": 5, "EPIC": 6, "LEGENDARY": 8, "MYTHIC": 10, "DIVINE": 0 }
+    }
+  }
+}
+}

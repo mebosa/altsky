@@ -29,6 +29,11 @@
     return value.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
+  function normalizeRarity(value?: string | null) {
+    const normalized = normalizeIdentifier(value);
+    return normalized ? normalized.toUpperCase() : '';
+  }
+
   function titleize(value: string) {
     return value
       .toLowerCase()
@@ -127,12 +132,11 @@
   $: missingTotal = accessories?.missing_total ?? missingAccessories.length + sortedItems.length;
   const MISSING_PREVIEW_LIMIT = 24;
   $: missingPreview = missingAccessories.slice(0, MISSING_PREVIEW_LIMIT);
-  $: missingByRarity =
-    missingAccessories.reduce<Map<string, number>>((acc, item) => {
-      const key = normalizeRarity(item.tier) || 'UNKNOWN';
-      acc.set(key, (acc.get(key) ?? 0) + 1);
-      return acc;
-    }, new Map()) ?? new Map();
+  $: missingByRarity = missingAccessories.reduce<Map<string, number>>((acc, item) => {
+    const key = normalizeRarity(item.tier) || 'UNKNOWN';
+    acc.set(key, (acc.get(key) ?? 0) + 1);
+    return acc;
+  }, new Map());
 </script>
 
 <section id="accessories" class="accessories-section">

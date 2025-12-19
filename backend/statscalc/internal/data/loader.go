@@ -26,6 +26,7 @@ type fileEnvelope struct {
 	LevelBonuses map[string][]LevelBonus `json:"level_bonuses"`
 	// 확장된 필드
 	ArmorStats        map[string]map[string]float64 `json:"armor_stats"`
+	WeaponStats       map[string]map[string]float64 `json:"weapon_stats"`
 	ArmorSets         map[string]ArmorSet           `json:"armor_sets"`
 	Reforges          map[string]ReforgeData        `json:"reforges"`
 	Gems              map[string]GemData            `json:"gems"`
@@ -177,6 +178,11 @@ func (l *Loader) loadFile(path string, cfg *Config) error {
 	if len(env.ArmorStats) > 0 {
 		for k, v := range env.ArmorStats {
 			cfg.ArmorStats[k] = v
+		}
+	}
+	if len(env.WeaponStats) > 0 {
+		for k, v := range env.WeaponStats {
+			cfg.WeaponStats[k] = v
 		}
 	}
 	if len(env.ArmorSets) > 0 {

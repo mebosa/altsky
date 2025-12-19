@@ -2,6 +2,7 @@ package calculator
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/altskydev/altsky/backend/statscalc/internal/data"
@@ -39,12 +40,90 @@ func (c *Calculator) Calculate(profile model.PlayerProfile) model.StatBlock {
 	applyPetBonuses(out, profile, config)
 	applyHOTMBonuses(out, profile, config)
 
+	// Special effects that modify base stats or multipliers
+	applySpecialItemEffects(out, multipliers, profile)
+
 	// Apply multipliers
 	for stat, mult := range multipliers {
 		out[stat] *= (1 + mult)
 	}
 
 	return out
+}
+
+func applySpecialItemEffects(stats model.StatBlock, multipliers map[string]float64, profile model.PlayerProfile) {
+	// Terminator: Divides Crit Chance by 4
+	if profile.Equipment.Weapon != nil && profile.Equipment.Weapon.ID == "TERMINATOR" {
+		stats["crit_chance"] /= 4
+	}
+
+	// Final Destination Armor Scaling & Set Bonus
+	items := []*model.Item{
+		profile.Equipment.Helmet,
+		profile.Equipment.Chestplate,
+		profile.Equipment.Leggings,
+		profile.Equipment.Boots,
+	}
+
+	fdPieces := 0
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		if strings.HasPrefix(item.ID, "FINAL_DESTINATION_") {
+			fdPieces++
+			// Calculate defense bonus from kills
+			if kills, ok := getIntAttribute(item, "enderman_kills"); ok {
+				bonus := calculateFDBonus(kills)
+				stats["defense"] += bonus
+			}
+		}
+	}
+
+	// Final Destination Set Bonus (Full Set)
+	// Wiki: 1.25x Intelligence (Multiplier +0.25)
+	if fdPieces == 4 {
+		multipliers["intelligence"] += 0.25
+	}
+}
+
+func getIntAttribute(item *model.Item, key string) (int, bool) {
+	if item.ExtraAttributes == nil {
+		return 0, false
+	}
+	val, ok := item.ExtraAttributes[key]
+	if !ok {
+		return 0, false
+	}
+	// JSON unmarshalling might make numbers float64
+	if f, ok := val.(float64); ok {
+		return int(f), true
+	}
+	if i, ok := val.(int); ok {
+		return i, true
+	}
+	return 0, false
+}
+
+func calculateFDBonus(kills int) float64 {
+	// Table from Wiki
+	thresholds := []struct {
+		kills int
+		bonus float64
+	}{
+		{200000, 400}, {150000, 395}, {125000, 390}, {100000, 380},
+		{75000, 370}, {50000, 355}, {25000, 335}, {10000, 310},
+		{5000, 270}, {3500, 240}, {2500, 210}, {1750, 180},
+		{1200, 150}, {800, 120}, {500, 90}, {300, 60},
+		{200, 40}, {100, 20},
+	}
+
+	for _, t := range thresholds {
+		if kills >= t.kills {
+			return t.bonus
+		}
+	}
+	return 0
 }
 
 func applySkillBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
@@ -145,7 +224,12 @@ func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64
 		}
 		
 		// 기본 아이템 스탯
-		if itemStats, ok := cfg.ArmorStats[item.ID]; ok {
+		itemStats, ok := cfg.ArmorStats[item.ID]
+		if !ok {
+			itemStats, ok = cfg.WeaponStats[item.ID]
+		}
+
+		if ok {
 			// Dungeon Stars (Outside Dungeon: +2% per star)
 			starMultiplier := 1.0
 			if item.Stars > 0 {

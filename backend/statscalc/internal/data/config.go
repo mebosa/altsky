@@ -8,6 +8,7 @@ type Config struct {
 	LevelBonuses map[string][]LevelBonus
 	// 확장된 데이터 구조
 	ArmorStats        map[string]map[string]float64       // item_id -> stats
+	WeaponStats       map[string]map[string]float64       // item_id -> stats
 	ArmorSets         map[string]ArmorSet                 // set_name -> set_bonus
 	Reforges          map[string]ReforgeData              // reforge -> rarity -> stats
 	Gems              map[string]GemData                  // gem_type -> quality -> stats
@@ -30,7 +31,12 @@ type ArmorSet struct {
 
 type ReforgeData map[string]map[string]float64 // rarity -> stats
 
-type GemData map[string]map[string]float64 // quality -> stats
+type GemData map[string]GemQualityData // quality -> data
+
+type GemQualityData struct {
+	Stat   string             `json:"stat"`
+	Values map[string]float64 `json:"values"` // rarity -> value
+}
 
 type EnchantData struct {
 	PerLevel map[string]float64 `json:"per_level"`
@@ -57,6 +63,7 @@ func newConfig() Config {
 		BaseStats:        make(map[string]float64),
 		LevelBonuses:     make(map[string][]LevelBonus),
 		ArmorStats:       make(map[string]map[string]float64),
+		WeaponStats:      make(map[string]map[string]float64),
 		ArmorSets:        make(map[string]ArmorSet),
 		Reforges:         make(map[string]ReforgeData),
 		Gems:             make(map[string]GemData),

@@ -1,0 +1,14 @@
+{
+  "comment": "Weapon stats data",
+  "weapon_stats": {
+    "HYPERION": { "damage": 260, "strength": 150, "intelligence": 350, "ferocity": 30 },
+    "TERMINATOR": { "damage": 310, "strength": 50, "crit_damage": 250, "attack_speed": 40 },
+    "JUJU_SHORTBOW": { "damage": 310, "strength": 40, "crit_chance": 10, "crit_damage": 110 },
+    "GIANTS_SWORD": { "damage": 500 },
+    "DARK_CLAYMORE": { "damage": 500, "strength": 100, "crit_damage": 100 },
+    "LIVID_DAGGER": { "damage": 210, "strength": 60, "crit_chance": 100, "crit_damage": 50, "attack_speed": 50 },
+    "SHADOW_FURY": { "damage": 300, "strength": 130, "crit_damage": 30, "speed": 30 },
+    "ASPECT_OF_THE_END": { "damage": 100, "strength": 100 },
+    "ASPECT_OF_THE_VOID": { "damage": 120, "strength": 100 }
+  }
+}
