@@ -319,6 +319,21 @@
 						}
 					});
 
+					// Hide cape, elytra, and ears on armor models by scaling them to 0
+					// This avoids potential issues with visibility toggling or if they share materials
+					if (model.cape) {
+						model.cape.visible = false;
+						model.cape.scale.set(0, 0, 0);
+					}
+					if (model.elytra) {
+						model.elytra.visible = false;
+						model.elytra.scale.set(0, 0, 0);
+					}
+					if (model.ears) {
+						model.ears.visible = false;
+						model.ears.scale.set(0, 0, 0);
+					}
+
 					viewer.playerObject.add(model);
 					createdModels.push(model);
 

@@ -23,6 +23,7 @@ type Config struct {
 	ClassBonuses      map[string][]LevelBonus             // class name -> level -> stats
 	Powers            map[string]map[string]float64       // power_name -> base_stats
 	PowerMultipliers  map[string]float64                  // stat -> multiplier
+	PowerBaseBonuses  map[string]map[string]float64       // power_name -> flat bonuses
 	Attributes        map[string]AttributeData            // attribute -> data
 }
 
@@ -52,6 +53,7 @@ type AttributeData struct {
 type PetTierData struct {
 	PerLevel      map[string]float64 `json:"per_level"`
 	Base          map[string]float64 `json:"base"`
+	BaseLevel     int                `json:"base_level,omitempty"`
 	MaxLevelBonus map[string]float64 `json:"max_level_bonus"`
 }
 
@@ -86,6 +88,7 @@ func newConfig() Config {
 		ClassBonuses:     make(map[string][]LevelBonus),
 		Powers:           make(map[string]map[string]float64),
 		PowerMultipliers: make(map[string]float64),
+		PowerBaseBonuses: make(map[string]map[string]float64),
 		Attributes:       make(map[string]AttributeData),
 	}
 }

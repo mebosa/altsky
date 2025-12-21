@@ -349,6 +349,13 @@
   function handleIconError(event: Event, iconUrl?: string | null) {
     const target = event.currentTarget as HTMLImageElement | null;
     if (!target) return;
+    const fallback = target.dataset.fallback;
+    if (fallback && target.src !== fallback) {
+      clearRetryTimer(target);
+      target.dataset.fallback = '';
+      target.src = fallback;
+      return;
+    }
     if (!iconUrl) {
       target.dataset.failed = '1';
       clearRetryTimer(target);
@@ -437,6 +444,21 @@
     }
 
     return baseIcon;
+  }
+
+  function resolveFallbackIcon(
+    item: WardrobeItem | null,
+    current: string | null | undefined
+  ): string | null {
+    if (!item || !current) return null;
+    const variants = item.icon_variants ?? {};
+    if (current === variants.furfsky) return variants.vanilla ?? null;
+    if (current === variants.vanilla) return variants.furfsky ?? null;
+    if (current.startsWith('data:image') && variants.furfsky) return variants.furfsky;
+    if (current === item.icon_url) {
+      return variants.furfsky ?? variants.vanilla ?? null;
+    }
+    return item.icon_url ?? variants.furfsky ?? variants.vanilla ?? null;
   }
 
   let wardrobeItems: (WardrobeItem | null)[] = [];
@@ -604,6 +626,7 @@
             {#each equippedGroupItems as item, index (index)}
               {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
               {@const iconSrc = resolveDisplayIcon(item ?? null, tintedIconVersion, $texturePackStore)}
+              {@const fallbackIcon = resolveFallbackIcon(item ?? null, iconSrc)}
               <div
                 class={`hero-icon ${iconSrc ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''}`}
                 style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
@@ -615,6 +638,7 @@
                     loading="lazy"
                     width="56"
                     height="56"
+                    data-fallback={fallbackIcon ?? undefined}
                     on:load={handleIconLoad}
                     on:error={(event) => handleIconError(event, iconSrc)}
                   />
@@ -678,6 +702,7 @@
             {#each column.items as item, index (index)}
               {@const leatherColor = item ? formatLeatherColor(item.leather_color) : null}
               {@const slotIcon = resolveDisplayIcon(item ?? null, tintedIconVersion, $texturePackStore)}
+              {@const slotFallbackIcon = resolveFallbackIcon(item ?? null, slotIcon)}
               <button class="slot-shell" data-piece={pieceLabelFromIndex(index)} type="button">
                 <div
                   class={`slot-icon ${slotIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
@@ -690,6 +715,7 @@
                       loading="lazy"
                       width="42"
                       height="42"
+                      data-fallback={slotFallbackIcon ?? undefined}
                       on:load={handleIconLoad}
                       on:error={(event) => handleIconError(event, slotIcon)}
                     />

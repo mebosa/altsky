@@ -43,6 +43,7 @@ type fileEnvelope struct {
 	ClassBonuses      map[string][]LevelBonus       `json:"class_bonuses"`
 	Powers            map[string]map[string]float64 `json:"powers"`
 	PowerMultipliers  map[string]float64            `json:"multipliers"`
+	PowerBaseBonuses  map[string]map[string]float64 `json:"power_base_bonuses"`
 	Attributes        map[string]AttributeData      `json:"attributes"`
 }
 
@@ -253,6 +254,11 @@ func (l *Loader) loadFile(path string, cfg *Config) error {
 	if len(env.PowerMultipliers) > 0 {
 		for k, v := range env.PowerMultipliers {
 			cfg.PowerMultipliers[k] = v
+		}
+	}
+	if len(env.PowerBaseBonuses) > 0 {
+		for k, v := range env.PowerBaseBonuses {
+			cfg.PowerBaseBonuses[k] = v
 		}
 	}
 	if len(env.Attributes) > 0 {

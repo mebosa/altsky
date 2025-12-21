@@ -90,6 +90,18 @@
     return formatIdentifier(key) ?? key;
   }
 
+  function handleAccessoryIconError(event: Event, fallback?: string | null) {
+    const target = event.currentTarget as HTMLImageElement | null;
+    if (!target) return;
+    if (fallback && target.dataset.fallback !== '1') {
+      target.dataset.fallback = '1';
+      target.src = fallback;
+      return;
+    }
+    target.dataset.failed = '1';
+    target.style.display = 'none';
+  }
+
   $: accessories = summary?.accessories;
   $: items = accessories?.items ?? [];
   $: sortedItems = items
@@ -269,12 +281,22 @@
           item.icon_variants?.vanilla?.includes('/block/') ? item.icon_variants?.vanilla : null}
         {@const forceBlockIcon =
           itemId.startsWith('PERSONAL_COMPACTOR') || itemId.startsWith('PERSONAL_DELETOR')}
+        {@const preferVanillaBlock =
+          forceBlockIcon && $texturePackStore === 'vanilla' && vanillaBlockSrc}
         {@const iconCandidate =
-          forceBlockIcon && vanillaBlockSrc ? vanillaBlockSrc : iconSrcRaw}
+          preferVanillaBlock
+            ? vanillaBlockSrc
+            : iconSrcRaw ?? (forceBlockIcon ? vanillaBlockSrc : null)}
         {@const isFallbackIcon =
           iconCandidate?.includes('/block/stone') || iconCandidate?.includes('/item/barrier')}
         {@const iconSrc = isFallbackIcon ? null : iconCandidate}
-        {@const isBlockIcon = iconSrc?.includes('/block/')}
+        {@const fallbackIcon =
+          iconSrc === item.icon_variants?.furfsky
+            ? item.icon_variants?.vanilla ?? item.icon_url ?? null
+            : iconSrc === item.icon_variants?.vanilla
+              ? item.icon_variants?.furfsky ?? item.icon_url ?? null
+              : item.icon_url ?? item.icon_variants?.furfsky ?? item.icon_variants?.vanilla ?? null}
+        {@const isBlockIcon = iconSrc?.includes('/api/vanilla/block/')}
         {@const isIsometric = isBlockIcon}
         <div class="accessory-slot">
           <button
@@ -292,6 +314,7 @@
                 loading="lazy"
                 width="56"
                 height="56"
+                on:error={(event) => handleAccessoryIconError(event, fallbackIcon)}
               />
             {:else}
               <span class="initial">{item.name.slice(0, 1).toUpperCase()}</span>
@@ -389,18 +412,38 @@
                 : null}
             {@const forceBlockIcon =
               missingId.startsWith('PERSONAL_COMPACTOR') || missingId.startsWith('PERSONAL_DELETOR')}
+            {@const preferVanillaBlock =
+              forceBlockIcon && $texturePackStore === 'vanilla' && vanillaBlockSrc}
             {@const iconCandidate =
-              forceBlockIcon && vanillaBlockSrc ? vanillaBlockSrc : iconSrcRaw}
+              preferVanillaBlock
+                ? vanillaBlockSrc
+                : iconSrcRaw ?? (forceBlockIcon ? vanillaBlockSrc : null)}
             {@const isFallbackIcon =
               iconCandidate?.includes('/block/stone') || iconCandidate?.includes('/item/barrier')}
             {@const iconSrc = isFallbackIcon ? null : iconCandidate}
-            {@const isBlockIcon = iconSrc?.includes('/block/')}
+            {@const fallbackIcon =
+              iconSrc === missingItem.icon_variants?.furfsky
+                ? missingItem.icon_variants?.vanilla ?? missingItem.icon_url ?? null
+                : iconSrc === missingItem.icon_variants?.vanilla
+                  ? missingItem.icon_variants?.furfsky ?? missingItem.icon_url ?? null
+                  : missingItem.icon_url ??
+                    missingItem.icon_variants?.furfsky ??
+                    missingItem.icon_variants?.vanilla ??
+                    null}
+            {@const isBlockIcon = iconSrc?.includes('/api/vanilla/block/')}
             {@const buyPrice = missingItem.upgrade_buy_price ?? missingItem.price}
             <div class="missing-chip">
               <div class="row top">
                 <div class="missing-icon {isBlockIcon ? 'isometric' : ''}">
                   {#if iconSrc}
-                    <img src={iconSrc} alt="" loading="lazy" width="32" height="32" />
+                    <img
+                      src={iconSrc}
+                      alt=""
+                      loading="lazy"
+                      width="32"
+                      height="32"
+                      on:error={(event) => handleAccessoryIconError(event, fallbackIcon)}
+                    />
                   {:else}
                     <span class="initial">{(missingItem.name ?? missingItem.id).slice(0, 1)}</span>
                   {/if}

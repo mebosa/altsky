@@ -585,12 +585,18 @@ func applyPowerBonuses(ctx *Context, totalMP float64, selectedPower string, cfg 
 
 	powerStats, ok := cfg.Powers[selectedPower]
 	if !ok {
-		return
+		powerStats = nil
 	}
 
-	// Calculate the multiplier from Magical Power
-	// Formula: 719.28 * (ln(1 + 0.0019 * MP))^1.2
-	mpMultiplier := 719.28 * math.Pow(math.Log(1.0+(0.0019*totalMP)), 1.2)
+	if baseBonuses, ok := cfg.PowerBaseBonuses[selectedPower]; ok {
+		for stat, value := range baseBonuses {
+			ctx.Add(stat, fmt.Sprintf("Power: %s (Base)", selectedPower), value)
+		}
+	}
+
+	// Calculate the multiplier from Magical Power (wiki-based)
+	// Formula: 29.97 * (ln(1 + 0.0019 * MP))^1.2
+	mpMultiplier := 29.97 * math.Pow(math.Log(1.0+(0.0019*totalMP)), 1.2)
 
 	for stat, baseValue := range powerStats {
 		// Get the specific multiplier for this stat
@@ -599,8 +605,8 @@ func applyPowerBonuses(ctx *Context, totalMP float64, selectedPower string, cfg 
 			statMultiplier = val
 		}
 
-		// Final Value = (BasePower / 100) * StatMultiplier * mpMultiplier
-		finalValue := (baseValue / 100.0) * statMultiplier * mpMultiplier
+		// Final Value = BasePower * StatMultiplier * mpMultiplier
+		finalValue := baseValue * statMultiplier * mpMultiplier
 		ctx.Add(stat, fmt.Sprintf("Power: %s (MP: %.0f)", selectedPower, totalMP), finalValue)
 	}
 }
@@ -633,8 +639,15 @@ func applyPetBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config)
 	for stat, value := range tierData.Base {
 		ctx.Add(stat, fmt.Sprintf("Pet: %s (Base)", activePet.Type), value)
 	}
+	levelDelta := activePet.Level
+	if tierData.BaseLevel > 0 {
+		levelDelta = activePet.Level - tierData.BaseLevel
+		if levelDelta < 0 {
+			levelDelta = 0
+		}
+	}
 	for stat, valuePerLevel := range tierData.PerLevel {
-		ctx.Add(stat, fmt.Sprintf("Pet: %s (Lvl %d)", activePet.Type, activePet.Level), valuePerLevel*float64(activePet.Level))
+		ctx.Add(stat, fmt.Sprintf("Pet: %s (Lvl %d)", activePet.Type, activePet.Level), valuePerLevel*float64(levelDelta))
 	}
 
 	// 최대 레벨 보너스 (레벨 100 가정)

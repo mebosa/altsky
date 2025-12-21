@@ -841,7 +841,8 @@
           "bonus_attack_speed": 25.0,
           "magic_find": 5.0
         },
-        "max_level_bonus": {}
+        "max_level_bonus": {},
+        "base_level": 100
       }
     },
     "GOLEM": {
@@ -1159,7 +1160,8 @@
           "foraging_fortune": 25.0,
           "strength": 25.0
         },
-        "max_level_bonus": {}
+        "max_level_bonus": {},
+        "base_level": 100
       }
     },
     "JELLYFISH": {
@@ -1511,14 +1513,16 @@
         "base": {
           "rift_time": 25.0
         },
-        "max_level_bonus": {}
+        "max_level_bonus": {},
+        "base_level": 100
       },
       "EPIC": {
         "per_level": {},
         "base": {
           "rift_time": 25.0
         },
-        "max_level_bonus": {}
+        "max_level_bonus": {},
+        "base_level": 100
       }
     },
     "MOOSHROOM_COW": {
@@ -1954,7 +1958,8 @@
           "speed": 50.0,
           "farming_fortune": 20.0
         },
-        "max_level_bonus": {}
+        "max_level_bonus": {},
+        "base_level": 100
       }
     },
     "SCATHA": {
