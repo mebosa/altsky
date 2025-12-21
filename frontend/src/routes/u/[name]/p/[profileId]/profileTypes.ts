@@ -13,6 +13,18 @@ export type SkillStat = {
   to_next: number;
 };
 
+export type SlayerKills = {
+  total: number;
+  tiers: Record<string, number>;
+};
+
+export type SlayerBoss = {
+  level: number;
+  xp: number;
+  kills?: SlayerKills;
+  drops?: Record<string, number>;
+};
+
 export type WardrobeItem = {
   slot: number;
   id: string;
@@ -72,7 +84,7 @@ export type ProfileSummaryResponse = {
     experience: number;
   };
   skills: Record<string, SkillStat> & { average_level: number };
-  slayer: Record<string, { level: number; xp: number }> & { total_xp: number };
+  slayer: Record<string, SlayerBoss> & { total_xp: number };
   dungeons: {
     catacombs: {
       level: number;

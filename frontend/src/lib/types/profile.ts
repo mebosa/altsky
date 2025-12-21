@@ -24,7 +24,15 @@ export type ProfileSummaryResponse = {
     experience: number;
   };
   skills: Record<string, SkillStat> & { average_level: number };
-  slayer: Record<string, { level: number; xp: number }> & { total_xp: number };
+  slayer: Record<
+    string,
+    {
+      level: number;
+      xp: number;
+      kills?: { total: number; tiers: Record<string, number> };
+      drops?: Record<string, number>;
+    }
+  > & { total_xp: number };
   dungeons: {
     catacombs: {
       level: number;

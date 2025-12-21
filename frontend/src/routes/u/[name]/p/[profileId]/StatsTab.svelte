@@ -275,7 +275,7 @@
   }
 
   .stat-panel-head {
-    padding: 20px 24px 8px;
+    padding: 16px 24px 4px;
   }
 
   .stat-panel-title {
@@ -287,20 +287,20 @@
   }
 
   .stat-panel-sub {
-    margin: 6px 0 0;
+    margin: 4px 0 0;
     color: rgba(255, 255, 255, 0.9);
   }
 
   .stat-panel-body {
-    padding: 4px 24px 18px;
+    padding: 4px 24px 12px;
   }
 
   .stat-row {
     display: grid;
     grid-template-columns: 1fr auto auto;
     align-items: center;
-    gap: 16px;
-    padding: 10px 0;
+    gap: 12px;
+    padding: 6px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
@@ -334,7 +334,7 @@
     color: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
-    padding: 4px 8px;
+    padding: 2px 8px;
     background: rgba(255, 255, 255, 0.04);
     display: flex;
     align-items: center;
@@ -396,7 +396,7 @@
   }
 
   .stat-panel-foot {
-    margin: 12px 0 0;
+    margin: 8px 0 0;
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.7);
   }
@@ -422,7 +422,7 @@
   .stat-chip {
     border: 1px solid var(--theme-surface-border);
     border-radius: 12px;
-    padding: 12px 14px;
+    padding: 8px 12px;
     display: flex;
     flex-direction: column;
     gap: 4px;

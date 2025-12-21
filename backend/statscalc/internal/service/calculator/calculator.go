@@ -473,6 +473,11 @@ func applyAttributeBonuses(ctx *Context, attributes map[string]any, cfg data.Con
 // applyAccessoryBonuses는 악세서리 스탯을 계산합니다.
 func applyAccessoryBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	totalMagicalPower := 0.0
+	useProvidedMP := profile.MagicalPower > 0
+
+	if useProvidedMP {
+		totalMagicalPower = profile.MagicalPower
+	}
 
 	for _, acc := range profile.Accessories {
 		// 기본 악세서리 스탯
@@ -506,26 +511,33 @@ func applyAccessoryBonuses(ctx *Context, profile model.PlayerProfile, cfg data.C
 			}
 		}
 
-		// Magical Power 계산
-		rarity := acc.Rarity
-		if rarity == "" {
-			rarity = "EPIC"
-		}
-		mp := getMagicalPowerForRarity(rarity)
-
-		// Abiphone (Contacts / 2)
-		if strings.Contains(acc.ID, "ABIPHONE") {
-			if contacts, ok := acc.ExtraAttributes["abiphone_contacts_count"].(float64); ok {
-				mp += math.Floor(contacts / 2.0)
+		// Magical Power 계산 (외부에서 제공되지 않은 경우에만)
+		if !useProvidedMP {
+			rarity := acc.Rarity
+			if rarity == "" {
+				rarity = "EPIC"
 			}
-		}
+			mp := getMagicalPowerForRarity(rarity)
 
-		// Hegemony Artifact (Double MP)
-		if acc.ID == "HEGEMONY_ARTIFACT" {
-			mp *= 2
-		}
+			// Abiphone (Contacts / 2)
+			if strings.Contains(acc.ID, "ABIPHONE") {
+				if contacts, ok := acc.ExtraAttributes["abiphone_contacts_count"].(float64); ok {
+					mp += math.Floor(contacts / 2.0)
+				}
+			}
 
-		totalMagicalPower += mp
+			// Hegemony Artifact (Double MP)
+			if acc.ID == "HEGEMONY_ARTIFACT" {
+				mp *= 2
+			}
+
+			totalMagicalPower += mp
+			
+			// Tuning (Magical Power) - Tuning is usually points, but if it's per accessory in the model...
+			// Actually, Tuning in model seems to be unused or legacy. 
+			// But let's keep existing logic if any.
+			totalMagicalPower += float64(acc.Tuning)
+		}
 	}
 
 	// Magical Power 티어 보너스 적용 (Selected Power)

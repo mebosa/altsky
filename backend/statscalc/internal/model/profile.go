@@ -11,6 +11,7 @@ type PlayerProfile struct {
 	Equipment      Equipment         `json:"equipment,omitempty"`
 	Accessories    []Accessory       `json:"accessories,omitempty"`
 	SelectedPower  string            `json:"selected_power,omitempty"` // 추가: 선택된 파워 (예: "itchy")
+	MagicalPower   float64           `json:"magical_power,omitempty"`  // 추가: 외부에서 계산된 Magical Power
 	Pets           []Pet             `json:"pets,omitempty"`
 	HOTM           *HOTM             `json:"hotm,omitempty"`
 	CustomMetadata map[string]any    `json:"meta,omitempty"`

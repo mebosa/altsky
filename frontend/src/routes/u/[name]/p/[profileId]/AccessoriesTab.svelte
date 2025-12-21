@@ -258,16 +258,24 @@
     <div class="accessory-grid">
       {#each sortedItems as item (item.slot)}
         {@const rarityColor = rarityToBackground(item.rarity)}
-        {@const iconSrc =
+        {@const iconSrcRaw =
             item.icon_variants?.[$texturePackStore] ??
             item.icon_variants?.furfsky ??
             item.icon_variants?.vanilla ??
             item.icon_url ??
             null}
+        {@const isFallbackIcon =
+          iconSrcRaw?.includes('/block/stone') || iconSrcRaw?.includes('/item/barrier')}
+        {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
+        {@const isBlockIcon = iconSrc?.includes('/block/')}
+        {@const isBlockFace = iconSrc ? /_(front|side|top)\.png$/i.test(iconSrc) : false}
+        {@const isIsometric = isBlockIcon && !isBlockFace}
         <div class="accessory-slot">
           <button
             type="button"
-            class={`accessory-icon ${iconSrc ? '' : 'placeholder'}`}
+            class="accessory-icon"
+            class:placeholder={!iconSrc}
+            class:isometric={isIsometric}
             style={rarityColor ? `--rarity-color:${rarityColor}` : undefined}
             aria-label={item.name}
           >
@@ -371,7 +379,8 @@
             {@const isFallbackIcon =
               iconSrcRaw?.includes('/block/stone') || iconSrcRaw?.includes('/item/barrier')}
             {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
-            {@const isBlockIcon = iconSrc?.includes('/block/')}
+            {@const vanillaBlock = missingItem.icon_variants?.vanilla?.includes('/block/')}
+            {@const isBlockIcon = vanillaBlock || iconSrc?.includes('/block/')}
             <div class="missing-chip">
               <div class="row top">
                 <div class="missing-icon {isBlockIcon ? 'isometric' : ''}">
@@ -552,6 +561,7 @@
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     padding: 0;
+    perspective: 500px;
   }
 
   .accessory-icon.placeholder {
@@ -569,6 +579,12 @@
     width: 48px;
     height: 48px;
     object-fit: contain;
+  }
+
+  .accessory-icon.isometric img {
+    transform: rotateX(55deg) rotateZ(45deg) scale(1.08);
+    transform-origin: 50% 50%;
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
   }
 
   .initial {

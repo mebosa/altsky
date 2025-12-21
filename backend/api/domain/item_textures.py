@@ -486,7 +486,11 @@ def _color_from_damage(durability: Optional[int]) -> Optional[str]:
     return None
 
 
-def _build_material_candidates(name: str, durability: Optional[int] = None) -> Iterable[str]:
+def _build_material_candidates(
+    name: str,
+    durability: Optional[int] = None,
+    include_generic_fallback: bool = True,
+) -> Iterable[str]:
     normalized = name.lower().replace("minecraft:", "").replace(":", "_")
     normalized = MATERIAL_ALIASES.get(normalized, normalized)
     normalized = normalized.replace(".", "_")
@@ -552,11 +556,12 @@ def _build_material_candidates(name: str, durability: Optional[int] = None) -> I
             f"block/{tail}.png",
         ])
 
-    # Better generic fallbacks - try common block items
-    candidates.extend([
-        "block/stone.png",
-        "item/barrier.png",
-    ])
+    if include_generic_fallback:
+        # Better generic fallbacks - try common block items
+        candidates.extend([
+            "block/stone.png",
+            "item/barrier.png",
+        ])
 
     seen = set()
     for candidate in candidates:
@@ -576,6 +581,7 @@ def _material_texture(
     name: Optional[str],
     durability: Optional[int] = None,
     pack: TexturePack = "furfsky",
+    include_generic_fallback: bool = True,
 ) -> Optional[str]:
     if not name:
         return None
@@ -596,7 +602,11 @@ def _material_texture(
 
     normalized_pack = "vanilla" if str(pack).lower() == "vanilla" else "furfsky"
 
-    for candidate in _build_material_candidates(str(normalized), durability):
+    for candidate in _build_material_candidates(
+        str(normalized),
+        durability,
+        include_generic_fallback=include_generic_fallback,
+    ):
         if normalized_pack == "furfsky":
             local_path = _local_asset_path(candidate)
             if local_path:
@@ -634,12 +644,14 @@ def resolve_item_icon_for_pack(
     entry_durability: Optional[int] = None
     entry_material = None
     entry_internal = None
+    entry_category = None
 
     if entry:
         icon_url = _decode_skin_url(entry.get("skin"))  # type: ignore[arg-type]
         entry_material = entry.get("material")
         entry_durability = entry.get("durability")
         entry_internal = entry.get("internalname")
+        entry_category = entry.get("category")
 
     # FurSky: try override on internal name first
     if normalized_pack == "furfsky" and icon_url:
@@ -653,7 +665,13 @@ def resolve_item_icon_for_pack(
     if icon_url:
         return icon_url
 
-    icon_url = _material_texture(entry_material, entry_durability, pack=normalized_pack)
+    skip_generic_fallback = str(entry_category).upper() == "ACCESSORY"
+    icon_url = _material_texture(
+        entry_material,
+        entry_durability,
+        pack=normalized_pack,
+        include_generic_fallback=not skip_generic_fallback,
+    )
     if icon_url:
         return icon_url
 
@@ -666,7 +684,12 @@ def resolve_item_icon_for_pack(
         if override:
             return override
 
-    return _material_texture(mc_id, effective_durability, pack=normalized_pack)
+    return _material_texture(
+        mc_id,
+        effective_durability,
+        pack=normalized_pack,
+        include_generic_fallback=not skip_generic_fallback,
+    )
 
 
 def resolve_item_icon_variants(

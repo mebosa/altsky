@@ -1,0 +1,76 @@
+{
+  "reforges": {
+    "ancient": {
+      "COMMON": { "strength": 4, "crit_chance": 3 },
+      "UNCOMMON": { "strength": 8, "crit_chance": 5 },
+      "RARE": { "strength": 12, "crit_chance": 7 },
+      "EPIC": { "strength": 18, "crit_chance": 9 },
+      "LEGENDARY": { "strength": 25, "crit_chance": 12 },
+      "MYTHIC": { "strength": 35, "crit_chance": 15 },
+      "DIVINE": { "strength": 45, "crit_chance": 18 }
+    },
+    "withered": {
+      "COMMON": { "strength": 60 },
+      "UNCOMMON": { "strength": 70 },
+      "RARE": { "strength": 80 },
+      "EPIC": { "strength": 90 },
+      "LEGENDARY": { "strength": 110 },
+      "MYTHIC": { "strength": 135 },
+      "DIVINE": { "strength": 150 }
+    },
+    "necrotic": {
+      "COMMON": { "intelligence": 30 },
+      "UNCOMMON": { "intelligence": 60 },
+      "RARE": { "intelligence": 90 },
+      "EPIC": { "intelligence": 120 },
+      "LEGENDARY": { "intelligence": 150 },
+      "MYTHIC": { "intelligence": 200 },
+      "DIVINE": { "intelligence": 250 }
+    },
+    "loving": {
+      "COMMON": { "health": 4, "defense": 4, "intelligence": 20, "ability_damage": 5 },
+      "UNCOMMON": { "health": 5, "defense": 5, "intelligence": 40, "ability_damage": 5 },
+      "RARE": { "health": 6, "defense": 6, "intelligence": 60, "ability_damage": 5 },
+      "EPIC": { "health": 8, "defense": 8, "intelligence": 80, "ability_damage": 5 },
+      "LEGENDARY": { "health": 10, "defense": 10, "intelligence": 100, "ability_damage": 5 },
+      "MYTHIC": { "health": 14, "defense": 14, "intelligence": 120, "ability_damage": 5 },
+      "DIVINE": { "health": 18, "defense": 18, "intelligence": 140, "ability_damage": 5 }
+    },
+    "fierce": {
+      "COMMON": { "strength": 2, "crit_chance": 2, "crit_damage": 4 },
+      "UNCOMMON": { "strength": 4, "crit_chance": 3, "crit_damage": 7 },
+      "RARE": { "strength": 6, "crit_chance": 4, "crit_damage": 10 },
+      "EPIC": { "strength": 8, "crit_chance": 5, "crit_damage": 14 },
+      "LEGENDARY": { "strength": 10, "crit_chance": 6, "crit_damage": 18 },
+      "MYTHIC": { "strength": 12, "crit_chance": 8, "crit_damage": 24 },
+      "DIVINE": { "strength": 14, "crit_chance": 10, "crit_damage": 30 }
+    },
+    "pure": {
+      "COMMON": { "strength": 2, "crit_chance": 2, "crit_damage": 2, "attack_speed": 1, "health": 2, "defense": 2, "speed": 1, "intelligence": 2 },
+      "UNCOMMON": { "strength": 3, "crit_chance": 4, "crit_damage": 3, "attack_speed": 1, "health": 3, "defense": 3, "speed": 1, "intelligence": 3 },
+      "RARE": { "strength": 4, "crit_chance": 6, "crit_damage": 4, "attack_speed": 2, "health": 4, "defense": 4, "speed": 1, "intelligence": 4 },
+      "EPIC": { "strength": 6, "crit_chance": 8, "crit_damage": 6, "attack_speed": 3, "health": 6, "defense": 6, "speed": 2, "intelligence": 6 },
+      "LEGENDARY": { "strength": 8, "crit_chance": 10, "crit_damage": 8, "attack_speed": 4, "health": 8, "defense": 8, "speed": 3, "intelligence": 8 },
+      "MYTHIC": { "strength": 10, "crit_chance": 12, "crit_damage": 10, "attack_speed": 5, "health": 10, "defense": 10, "speed": 4, "intelligence": 10 },
+      "DIVINE": { "strength": 12, "crit_chance": 14, "crit_damage": 12, "attack_speed": 6, "health": 12, "defense": 12, "speed": 5, "intelligence": 12 }
+    },
+    "smart": {
+      "COMMON": { "intelligence": 20, "defense": 4, "health": 4 },
+      "UNCOMMON": { "intelligence": 40, "defense": 6, "health": 6 },
+      "RARE": { "intelligence": 60, "defense": 9, "health": 9 },
+      "EPIC": { "intelligence": 80, "defense": 12, "health": 12 },
+      "LEGENDARY": { "intelligence": 100, "defense": 15, "health": 15 },
+      "MYTHIC": { "intelligence": 120, "defense": 20, "health": 20 },
+      "DIVINE": { "intelligence": 140, "defense": 25, "health": 25 }
+    },
+    "wise": {
+      "COMMON": { "intelligence": 25, "speed": 1, "health": 6 },
+      "UNCOMMON": { "intelligence": 50, "speed": 1, "health": 8 },
+      "RARE": { "intelligence": 75, "speed": 1, "health": 10 },
+      "EPIC": { "intelligence": 100, "speed": 2, "health": 12 },
+      "LEGENDARY": { "intelligence": 125, "speed": 2, "health": 15 },
+      "MYTHIC": { "intelligence": 150, "speed": 3, "health": 20 },
+      "DIVINE": { "intelligence": 175, "speed": 4, "health": 25 }
+    }
+  }
+}

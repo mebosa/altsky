@@ -26,6 +26,63 @@ def xp_to_level(boss: str, xp: int) -> int:
 
 BOSSES = ["zombie", "spider", "wolf", "enderman", "blaze", "vampire"]
 
+KILL_TIER_RE = re.compile(r"boss_kills_t(?:ie|ei)r_(\d+)$")
+
+
+def _safe_int(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        try:
+            return int(float(value))
+        except (TypeError, ValueError):
+            return 0
+
+
+def _extract_kills(boss_data: Dict[str, Any]) -> Dict[str, Any]:
+    tiers: Dict[str, int] = {}
+    for key, value in boss_data.items():
+        match = KILL_TIER_RE.match(str(key))
+        if not match:
+            continue
+        tier_index = _safe_int(match.group(1))
+        count = _safe_int(value)
+        if count <= 0:
+            continue
+        tiers[str(tier_index + 1)] = count
+
+    total = sum(tiers.values())
+    if total <= 0:
+        fallback = _safe_int(boss_data.get("boss_kills"))
+        if fallback > 0:
+            total = fallback
+
+    return {"total": total, "tiers": tiers}
+
+
+def _extract_drops(boss_data: Dict[str, Any]) -> Dict[str, int]:
+    drops: Dict[str, int] = {}
+    raw = boss_data.get("drops")
+    if isinstance(raw, dict):
+        for key, value in raw.items():
+            count = _safe_int(value)
+            if count > 0:
+                drops[str(key)] = count
+
+    for key, value in boss_data.items():
+        key_str = str(key)
+        if key_str in {"xp", "claimed_levels", "drops"}:
+            continue
+        if key_str.startswith("boss_kills_") or key_str.startswith("boss_attempts_"):
+            continue
+        if not (key_str.startswith("drop_") or key_str.startswith("drops_") or key_str.endswith("_drop") or key_str.endswith("_drops")):
+            continue
+        count = _safe_int(value)
+        if count > 0:
+            drops.setdefault(key_str, count)
+
+    return drops
+
 
 def level_from_claimed(claimed: Dict[str, Any]) -> Optional[int]:
     """
@@ -70,18 +127,16 @@ def extract_slayer(data: Dict[str, Any]) -> Dict[str, Any]:
 
     for boss in BOSSES:
         boss_data = slayer.get(boss, {}) or {}
-        xp_raw = boss_data.get("xp", 0) or 0
-        try:
-            xp = int(xp_raw)
-        except (TypeError, ValueError):
-            try:
-                xp = int(float(xp_raw))
-            except (TypeError, ValueError):
-                xp = 0
+        xp = _safe_int(boss_data.get("xp", 0) or 0)
         claimed_levels = boss_data.get("claimed_levels") or {}
         lvl_from_claims = level_from_claimed(claimed_levels)
         lvl = lvl_from_claims if lvl_from_claims is not None else xp_to_level(boss, xp)
-        out[boss] = {"xp": xp, "level": lvl}
+        out[boss] = {
+            "xp": xp,
+            "level": lvl,
+            "kills": _extract_kills(boss_data),
+            "drops": _extract_drops(boss_data),
+        }
         total_xp += xp
 
     out["total_xp"] = total_xp

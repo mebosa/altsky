@@ -595,6 +595,11 @@ def _build_statscalc_payload(
             selected_power = summary['accessories'].get('selected_power')
             if selected_power:
                 payload['selected_power'] = selected_power
+            
+            # Magical Power (from summary, which is more accurate)
+            magical_power = summary['accessories'].get('magical_power')
+            if magical_power:
+                payload['magical_power'] = magical_power
 
         # 펫
         pets = extract_pets_from_profile(member_data)
@@ -929,6 +934,13 @@ def get_vanilla_armor_texture_view(request: Request, name: str, layer: str) -> R
     """
     color_hex = request.query_params.get("color")
     print(f"DEBUG: Vanilla armor request: name={name}, layer={layer}, color={color_hex}", flush=True)
+
+    # Fix for leather armor sometimes missing color (appearing gray)
+    if not color_hex or color_hex.lower() in ("undefined", "null", "none"):
+        if name == "leather":
+            color_hex = "A06540"
+        else:
+            color_hex = None
     
     # Base URL for 1.8.9 assets
     base_url = "https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.8.9/assets/minecraft/textures/models/armor"
