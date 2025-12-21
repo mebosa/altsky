@@ -1,0 +1,2629 @@
+{
+  "comment": "Pet stats from Hypixel SkyBlock Wiki (Fandom) Module:Pet/Data.",
+  "pets": {
+    "ANKYLOSAURUS": {
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.5,
+          "defense": 0.5,
+          "true_defense": 0.15
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "AMMONITE": {
+      "LEGENDARY": {
+        "per_level": {
+          "sea_creature_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ARMADILLO": {
+      "COMMON": {
+        "per_level": {
+          "defense": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "defense": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "defense": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "defense": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "defense": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "BABY_YETI": {
+      "EPIC": {
+        "per_level": {
+          "strength": 0.4,
+          "intelligence": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.4,
+          "intelligence": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "BAL": {
+      "EPIC": {
+        "per_level": {
+          "mining_fortune": 1.0,
+          "heat_resistance": 1.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "mining_fortune": 1.0,
+          "heat_resistance": 1.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "BAT": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "speed": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "speed": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 1.0,
+          "speed": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "speed": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "speed": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "speed": 0.05,
+          "sea_creature_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "BEE": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.25,
+          "intelligence": 0.5,
+          "speed": 0.1
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.25,
+          "intelligence": 0.5,
+          "speed": 0.1
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.25,
+          "intelligence": 0.5,
+          "speed": 0.1
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.25,
+          "intelligence": 0.5,
+          "speed": 0.1
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.25,
+          "intelligence": 0.5,
+          "speed": 0.1
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "BINGO": {
+      "COMMON": {
+        "per_level": {
+          "health": 1.0,
+          "strength": 0.25,
+          "speed": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 1.0,
+          "strength": 0.25,
+          "speed": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 1.0,
+          "strength": 0.25,
+          "speed": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 1.0,
+          "strength": 0.25,
+          "speed": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "strength": 0.25,
+          "speed": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "health": 1.0,
+          "strength": 0.25,
+          "speed": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "BLACK_CAT": {
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 1.25,
+          "intelligence": 1.0,
+          "magic_find": 0.15,
+          "pet_luck": 0.15
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "speed": 1.25,
+          "intelligence": 1.0,
+          "magic_find": 0.15,
+          "pet_luck": 0.15
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "BLAZE": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "BLUE_WHALE": {
+      "COMMON": {
+        "per_level": {
+          "health": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 2.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "CHICKEN": {
+      "COMMON": {
+        "per_level": {
+          "speed": 0.5,
+          "farming_fortune": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "speed": 0.5,
+          "farming_fortune": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "speed": 0.5,
+          "farming_fortune": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "speed": 0.5,
+          "farming_fortune": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.5,
+          "farming_fortune": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "DOLPHIN": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "sea_creature_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "sea_creature_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 1.0,
+          "sea_creature_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "sea_creature_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "sea_creature_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "EERIE": {
+      "COMMON": {
+        "per_level": {
+          "speed": 0.1,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "speed": 0.1,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.1,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ELEPHANT": {
+      "COMMON": {
+        "per_level": {
+          "health": 1.0,
+          "intelligence": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 1.0,
+          "intelligence": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 1.0,
+          "intelligence": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 1.0,
+          "intelligence": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "intelligence": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ENDER_DRAGON": {
+      "EPIC": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_damage": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_damage": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ENDERMAN": {
+      "COMMON": {
+        "per_level": {
+          "crit_damage": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "crit_damage": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "crit_damage": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "crit_damage": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "crit_damage": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "crit_damage": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ENDERMITE": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 1.5,
+          "pet_luck": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 1.5,
+          "pet_luck": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 1.5,
+          "pet_luck": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.5,
+          "pet_luck": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.5,
+          "pet_luck": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "intelligence": 1.5,
+          "pet_luck": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "FLYING_FISH": {
+      "RARE": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "FROG": {
+      "COMMON": {
+        "per_level": {
+          "speed": 0.5,
+          "fishing_speed": 0.4,
+          "respiration": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "speed": 0.5,
+          "fishing_speed": 0.4,
+          "respiration": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "speed": 0.5,
+          "fishing_speed": 0.4,
+          "respiration": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "speed": 0.5,
+          "fishing_speed": 0.4,
+          "respiration": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.5,
+          "fishing_speed": 0.4,
+          "respiration": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GHOUL": {
+      "EPIC": {
+        "per_level": {
+          "health": 1.0,
+          "intelligence": 0.75,
+          "ferocity": 0.05,
+          "vit": 0.25,
+          "md": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "intelligence": 0.75,
+          "ferocity": 0.05,
+          "vit": 0.25,
+          "md": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GIRAFFE": {
+      "COMMON": {
+        "per_level": {
+          "health": 1.0,
+          "crit_chance": 0.05,
+          "sr": 0.01
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 1.0,
+          "crit_chance": 0.05,
+          "sr": 0.01
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 1.0,
+          "crit_chance": 0.05,
+          "sr": 0.01
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 1.0,
+          "crit_chance": 0.05,
+          "sr": 0.01
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "crit_chance": 0.05,
+          "sr": 0.01
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GLACITE_GOLEM": {
+      "COMMON": {
+        "per_level": {
+          "mining_speed": 1.25,
+          "cold_resistance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "mining_speed": 1.25,
+          "cold_resistance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "mining_speed": 1.25,
+          "cold_resistance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "mining_speed": 1.25,
+          "cold_resistance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "mining_speed": 1.25,
+          "cold_resistance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GOBLIN": {
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.2,
+          "ore_fortune": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GOLDEN_DRAGON": {
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.25,
+          "bonus_attack_speed": 0.25,
+          "magic_find": 0.05
+        },
+        "base": {
+          "strength": 25.0,
+          "bonus_attack_speed": 25.0,
+          "magic_find": 5.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "GOLEM": {
+      "EPIC": {
+        "per_level": {
+          "health": 1.5,
+          "strength": 0.5,
+          "sr": 0.01
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.5,
+          "strength": 0.5,
+          "sr": 0.01
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GRANDMA_WOLF": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.25,
+          "health": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.25,
+          "health": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.25,
+          "health": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.25,
+          "health": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.25,
+          "health": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GRIFFIN": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1,
+          "crit_damage": 0.5,
+          "bonus_attack_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1,
+          "crit_damage": 0.5,
+          "bonus_attack_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1,
+          "crit_damage": 0.5,
+          "bonus_attack_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1,
+          "crit_damage": 0.5,
+          "bonus_attack_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1,
+          "crit_damage": 0.5,
+          "bonus_attack_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1,
+          "crit_damage": 0.5,
+          "bonus_attack_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "GUARDIAN": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "defense": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "HEDGEHOG": {
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.15
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "HERMIT_CRAB": {
+      "COMMON": {
+        "per_level": {
+          "defense": 0.2,
+          "fishing_speed": 0.2,
+          "sea_creature_chance": 0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "defense": 0.2,
+          "fishing_speed": 0.2,
+          "sea_creature_chance": 0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "defense": 0.2,
+          "fishing_speed": 0.2,
+          "sea_creature_chance": 0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "defense": 0.2,
+          "fishing_speed": 0.2,
+          "sea_creature_chance": 0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "defense": 0.2,
+          "fishing_speed": 0.2,
+          "sea_creature_chance": 0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "defense": 0.2,
+          "fishing_speed": 0.2,
+          "sea_creature_chance": 0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "HORSE": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "HOUND": {
+      "EPIC": {
+        "per_level": {
+          "speed": 0.1,
+          "strength": 0.4,
+          "bonus_attack_speed": 0.25,
+          "ferocity": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.1,
+          "strength": 0.4,
+          "bonus_attack_speed": 0.25,
+          "ferocity": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "JADE_DRAGON": {
+      "LEGENDARY": {
+        "per_level": {
+          "magic_find": 0.05,
+          "foraging_fortune": 0.25,
+          "strength": 0.25
+        },
+        "base": {
+          "magic_find": 5.0,
+          "foraging_fortune": 25.0,
+          "strength": 25.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "JELLYFISH": {
+      "EPIC": {
+        "per_level": {
+          "health": 2.0,
+          "hr": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 2.0,
+          "hr": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "JERRY": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": -1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": -1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": -1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": -1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": -1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "intelligence": -1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "KUUDRA": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.4,
+          "health": 4.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.4,
+          "health": 4.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.4,
+          "health": 4.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.4,
+          "health": 4.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.4,
+          "health": 4.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "LION": {
+      "COMMON": {
+        "per_level": {
+          "ferocity": 0.05,
+          "strength": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "ferocity": 0.05,
+          "strength": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "ferocity": 0.05,
+          "strength": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "ferocity": 0.05,
+          "strength": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "ferocity": 0.05,
+          "strength": 0.5,
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "MAGMA_CUBE": {
+      "COMMON": {
+        "per_level": {
+          "health": 0.5,
+          "strength": 0.2,
+          "defense": 0.33
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 0.5,
+          "strength": 0.2,
+          "defense": 0.33
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 0.5,
+          "strength": 0.2,
+          "defense": 0.33
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 0.5,
+          "strength": 0.2,
+          "defense": 0.33
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 0.5,
+          "strength": 0.2,
+          "defense": 0.33
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "MAMMOTH": {
+      "LEGENDARY": {
+        "per_level": {
+          "defense": 0.5,
+          "cold_resistance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "MEGALODON": {
+      "EPIC": {
+        "per_level": {
+          "strength": 0.5,
+          "magic_find": 0.1,
+          "sea_creature_chance": 0.05,
+          "ferocity": 0.05,
+          "fishing_speed": 0.3
+        },
+        "base": {
+          "sea_creature_chance": 5.0,
+          "ferocity": 5.0,
+          "fishing_speed": 10.0
+        },
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "magic_find": 0.1,
+          "sea_creature_chance": 0.05,
+          "ferocity": 0.05,
+          "fishing_speed": 0.3
+        },
+        "base": {
+          "sea_creature_chance": 5.0,
+          "ferocity": 5.0,
+          "fishing_speed": 10.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "MITHRIL_GOLEM": {
+      "COMMON": {
+        "per_level": {
+          "true_defense": 0.5,
+          "mining_fortune": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "true_defense": 0.5,
+          "mining_fortune": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "true_defense": 0.5,
+          "mining_fortune": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "true_defense": 0.5,
+          "mining_fortune": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "true_defense": 0.5,
+          "mining_fortune": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "true_defense": 0.5,
+          "mining_fortune": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "MOLE": {
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "magic_find": 0.05,
+          "mining_speed": 0.75
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "MONKEY": {
+      "COMMON": {
+        "per_level": {
+          "speed": 0.2,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "speed": 0.2,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "speed": 0.2,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "speed": 0.2,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.2,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "MONTEZUMA": {
+      "RARE": {
+        "per_level": {},
+        "base": {
+          "rift_time": 25.0
+        },
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {},
+        "base": {
+          "rift_time": 25.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "MOOSHROOM_COW": {
+      "COMMON": {
+        "per_level": {
+          "health": 1.0,
+          "farming_fortune": 1.0
+        },
+        "base": {
+          "farming_fortune": 10.0
+        },
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 1.0,
+          "farming_fortune": 1.0
+        },
+        "base": {
+          "farming_fortune": 10.0
+        },
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 1.0,
+          "farming_fortune": 1.0
+        },
+        "base": {
+          "farming_fortune": 10.0
+        },
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 1.0,
+          "farming_fortune": 1.0
+        },
+        "base": {
+          "farming_fortune": 10.0
+        },
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "farming_fortune": 1.0
+        },
+        "base": {
+          "farming_fortune": 10.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "MOSQUITO": {
+      "COMMON": {
+        "per_level": {
+          "speed": 0.2,
+          "bpc": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "speed": 0.2,
+          "bpc": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "speed": 0.2,
+          "bpc": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "speed": 0.2,
+          "bpc": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.2,
+          "bpc": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "OCELOT": {
+      "COMMON": {
+        "per_level": {
+          "speed": 0.5,
+          "ferocity": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "speed": 0.5,
+          "ferocity": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "speed": 0.5,
+          "ferocity": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "speed": 0.5,
+          "ferocity": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.5,
+          "ferocity": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "PARROT": {
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "crit_damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "crit_damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "PENGUIN": {
+      "LEGENDARY": {
+        "per_level": {
+          "sea_creature_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "PHOENIX": {
+      "EPIC": {
+        "per_level": {
+          "strength": 0.5,
+          "intelligence": 1.0
+        },
+        "base": {
+          "strength": 10.0,
+          "intelligence": 50.0
+        },
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "intelligence": 1.0
+        },
+        "base": {
+          "strength": 10.0,
+          "intelligence": 50.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "PIG": {
+      "COMMON": {
+        "per_level": {
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "PIGMAN": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5,
+          "ferocity": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5,
+          "ferocity": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5,
+          "ferocity": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5,
+          "ferocity": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "defense": 0.5,
+          "ferocity": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "PRECURSOR_DRONE": {
+      "COMMON": {
+        "per_level": {
+          "sea_creature_chance": 0.1,
+          "mining_fortune": 0.3,
+          "foraging_fortune": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "RABBIT": {
+      "COMMON": {
+        "per_level": {
+          "health": 1.0,
+          "speed": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 1.0,
+          "speed": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 1.0,
+          "speed": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 1.0,
+          "speed": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "speed": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "health": 1.0,
+          "speed": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "RAT": {
+      "LEGENDARY": {
+        "per_level": {
+          "crit_damage": 0.1,
+          "strength": 0.5,
+          "health": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "crit_damage": 0.1,
+          "strength": 0.5,
+          "health": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "REINDEER": {
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "sea_creature_chance": 0.05,
+          "fishing_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "RIFT_FERRET": {
+      "EPIC": {
+        "per_level": {
+          "speed": 0.5,
+          "intelligence": -0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.5,
+          "intelligence": -0.02
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ROCK": {
+      "COMMON": {
+        "per_level": {
+          "defense": 2.0,
+          "true_defense": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "defense": 2.0,
+          "true_defense": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "defense": 2.0,
+          "true_defense": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "defense": 2.0,
+          "true_defense": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "defense": 2.0,
+          "true_defense": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ROSE_DRAGON": {
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.5,
+          "farming_fortune": 0.2
+        },
+        "base": {
+          "speed": 50.0,
+          "farming_fortune": 20.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "SCATHA": {
+      "RARE": {
+        "per_level": {
+          "mining_speed": 1.0,
+          "mining_fortune": 1.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "mining_speed": 1.0,
+          "mining_fortune": 1.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "mining_speed": 1.0,
+          "mining_fortune": 1.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SHEEP": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "ability_damage": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 1.0,
+          "ability_damage": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 1.0,
+          "ability_damage": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.0,
+          "ability_damage": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "ability_damage": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SILVERFISH": {
+      "COMMON": {
+        "per_level": {
+          "defense": 1.0,
+          "mining_fortune": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "defense": 1.0,
+          "mining_fortune": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "defense": 1.0,
+          "mining_fortune": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "defense": 1.0,
+          "mining_fortune": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "defense": 1.0,
+          "mining_fortune": 0.2
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SKELETON": {
+      "COMMON": {
+        "per_level": {
+          "crit_chance": 0.15,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "crit_chance": 0.15,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "crit_chance": 0.15,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "crit_chance": 0.15,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "crit_chance": 0.15,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SKELETON_HORSE": {
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0,
+          "speed": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SLUG": {
+      "EPIC": {
+        "per_level": {
+          "defense": 0.2,
+          "intelligence": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "defense": 0.2,
+          "intelligence": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SNAIL": {
+      "COMMON": {
+        "per_level": {
+          "intelligence": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "intelligence": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "intelligence": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "intelligence": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "intelligence": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SNOWMAN": {
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.25,
+          "damage": 0.25,
+          "crit_damage": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "strength": 0.25,
+          "damage": 0.25,
+          "crit_damage": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SPIDER": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "strength": 0.5,
+          "crit_chance": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SPINOSAURUS": {
+      "LEGENDARY": {
+        "per_level": {
+          "sea_creature_chance": 0.08,
+          "fishing_speed": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SPIRIT": {
+      "EPIC": {
+        "per_level": {
+          "speed": 0.3,
+          "intelligence": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "speed": 0.3,
+          "intelligence": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "SQUID": {
+      "COMMON": {
+        "per_level": {
+          "health": 0.5,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 0.5,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 0.5,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 0.5,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 0.5,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "TYRANNOSAURUS": {
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.75,
+          "crit_chance": 0.05,
+          "ferocity": 0.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "TARANTULA": {
+      "EPIC": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.1,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.1,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "MYTHIC": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.1,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "TIGER": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.05,
+          "crit_damage": 0.5,
+          "ferocity": 0.25
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.05,
+          "crit_damage": 0.5,
+          "ferocity": 0.25
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.05,
+          "crit_damage": 0.5,
+          "ferocity": 0.25
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.05,
+          "crit_damage": 0.5,
+          "ferocity": 0.25
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.1,
+          "crit_chance": 0.05,
+          "crit_damage": 0.5,
+          "ferocity": 0.25
+        },
+        "base": {
+          "strength": 5.0
+        },
+        "max_level_bonus": {}
+      }
+    },
+    "TURTLE": {
+      "EPIC": {
+        "per_level": {
+          "health": 0.5,
+          "defense": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 0.5,
+          "defense": 1.0
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "DROPLET_WISP,FROST_WISP,GLACIAL_WISP,SUBZERO_WISP": {
+      "UNCOMMON": {
+        "per_level": {
+          "health": 1.0,
+          "damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 2.5,
+          "damage": 0.15,
+          "true_defense": 0.15,
+          "intelligence": 0.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 4.0,
+          "damage": 0.2,
+          "true_defense": 0.3,
+          "intelligence": 1.25
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 6.0,
+          "damage": 0.25,
+          "true_defense": 0.35,
+          "intelligence": 2.5
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "WITHER_SKELETON": {
+      "COMMON": {
+        "per_level": {
+          "strength": 0.25,
+          "crit_damage": 0.25,
+          "defense": 0.25,
+          "intelligence": 0.25,
+          "crit_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "strength": 0.25,
+          "crit_damage": 0.25,
+          "defense": 0.25,
+          "intelligence": 0.25,
+          "crit_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "strength": 0.25,
+          "crit_damage": 0.25,
+          "defense": 0.25,
+          "intelligence": 0.25,
+          "crit_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "strength": 0.25,
+          "crit_damage": 0.25,
+          "defense": 0.25,
+          "intelligence": 0.25,
+          "crit_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "strength": 0.25,
+          "crit_damage": 0.25,
+          "defense": 0.25,
+          "intelligence": 0.25,
+          "crit_chance": 0.05
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "WOLF": {
+      "COMMON": {
+        "per_level": {
+          "health": 0.5,
+          "speed": 0.2,
+          "true_defense": 0.1,
+          "crit_damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 0.5,
+          "speed": 0.2,
+          "true_defense": 0.1,
+          "crit_damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 0.5,
+          "speed": 0.2,
+          "true_defense": 0.1,
+          "crit_damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 0.5,
+          "speed": 0.2,
+          "true_defense": 0.1,
+          "crit_damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 0.5,
+          "speed": 0.2,
+          "true_defense": 0.1,
+          "crit_damage": 0.1
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    },
+    "ZOMBIE": {
+      "COMMON": {
+        "per_level": {
+          "health": 1.0,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "UNCOMMON": {
+        "per_level": {
+          "health": 1.0,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "RARE": {
+        "per_level": {
+          "health": 1.0,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "EPIC": {
+        "per_level": {
+          "health": 1.0,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      },
+      "LEGENDARY": {
+        "per_level": {
+          "health": 1.0,
+          "crit_damage": 0.3
+        },
+        "base": {},
+        "max_level_bonus": {}
+      }
+    }
+  }
+}

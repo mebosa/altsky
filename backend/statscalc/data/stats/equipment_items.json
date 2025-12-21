@@ -1,0 +1,586 @@
+{
+  "comment": "Equipment slot items (necklace/cloak/belt/gloves/bracelet) from Hypixel resources (aligned to wiki).",
+  "armor_stats": {
+    "ADAPTIVE_BELT": {
+      "strength": 5,
+      "health": 10,
+      "defense": 5
+    },
+    "AMBER_NECKLACE": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "AMETHYST_GAUNTLET": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "ANCIENT_CLOAK": {
+      "health": 15,
+      "mining_fortune": 10
+    },
+    "ANGLER_BELT": {
+      "fishing_speed": 1,
+      "sea_creature_chance": 0.5
+    },
+    "ANGLER_BRACELET": {
+      "fishing_speed": 1,
+      "sea_creature_chance": 0.5
+    },
+    "ANGLER_CLOAK": {
+      "fishing_speed": 1,
+      "sea_creature_chance": 0.5
+    },
+    "ANGLER_NECKLACE": {
+      "fishing_speed": 1,
+      "sea_creature_chance": 0.5
+    },
+    "ANNIHILATION_CLOAK": {
+      "health": 80,
+      "strength": 20,
+      "crit_damage": 20,
+      "magic_find": 2,
+      "foraging_wisdom": 2
+    },
+    "ARACHNE_BELT": {
+      "defense": 5,
+      "health": 10
+    },
+    "ARACHNE_CLOAK": {
+      "defense": 5,
+      "health": 10
+    },
+    "ARACHNE_GLOVES": {
+      "defense": 5,
+      "health": 10
+    },
+    "ARACHNE_NECKLACE": {
+      "defense": 5,
+      "health": 10
+    },
+    "BACKWATER_BELT": {
+      "fishing_speed": 2,
+      "sea_creature_chance": 1,
+      "treasure_chance": 0.1
+    },
+    "BACKWATER_CLOAK": {
+      "fishing_speed": 2,
+      "sea_creature_chance": 1,
+      "treasure_chance": 0.1
+    },
+    "BACKWATER_GLOVES": {
+      "fishing_speed": 2,
+      "sea_creature_chance": 1,
+      "treasure_chance": 0.1
+    },
+    "BACKWATER_NECKLACE": {
+      "fishing_speed": 2,
+      "sea_creature_chance": 1,
+      "treasure_chance": 0.1
+    },
+    "BALLOON_SNAKE": {
+      "health": 10,
+      "intelligence": 10
+    },
+    "BLAZE_BELT": {
+      "defense": 7,
+      "strength": 7
+    },
+    "BLOSSOM_BELT": {
+      "farming_fortune": 7,
+      "health": 15
+    },
+    "BLOSSOM_BRACELET": {
+      "farming_fortune": 7,
+      "health": 15
+    },
+    "BLOSSOM_CLOAK": {
+      "farming_fortune": 7,
+      "health": 15
+    },
+    "BLOSSOM_NECKLACE": {
+      "farming_fortune": 7,
+      "health": 15
+    },
+    "BONE_NECKLACE": {
+      "defense": 35,
+      "crit_chance": 3
+    },
+    "CHALLENGER_BELT": {
+      "strength": 5,
+      "health": 20,
+      "defense": 10
+    },
+    "CHALLENGER_BRACELET": {
+      "strength": 5,
+      "health": 20,
+      "defense": 10
+    },
+    "CHALLENGER_CLOAK": {
+      "strength": 5,
+      "health": 20,
+      "defense": 10
+    },
+    "CHALLENGER_NECKLACE": {
+      "strength": 5,
+      "health": 20,
+      "defense": 10
+    },
+    "CLAY_BRACELET": {
+      "sea_creature_chance": 0.5,
+      "strength": 3,
+      "fishing_speed": 2
+    },
+    "CLOWNFISH_CLOAK": {
+      "sea_creature_chance": 0.5,
+      "fishing_speed": 2
+    },
+    "DAVIDS_CLOAK": {
+      "health": 50,
+      "magic_find": 2
+    },
+    "DELIRIUM_NECKLACE": {
+      "health": 1,
+      "defense": 1,
+      "strength": 1,
+      "intelligence": 1,
+      "crit_damage": 1,
+      "speed": 1,
+      "ferocity": 1,
+      "magic_find": 1,
+      "sea_creature_chance": 1
+    },
+    "DEMONLORD_GAUNTLET": {
+      "defense": 20,
+      "health": 40,
+      "crit_damage": 25,
+      "true_defense": 5
+    },
+    "DESTRUCTION_CLOAK": {
+      "health": 60,
+      "strength": 15,
+      "crit_damage": 15,
+      "magic_find": 1,
+      "foraging_wisdom": 1
+    },
+    "DISINFESTOR_GLOVES": {
+      "rift_time": 30
+    },
+    "DIVAN_PENDANT": {
+      "mining_speed": 100,
+      "mining_fortune": 25,
+      "cold_resistance": 10
+    },
+    "DOJO_BLACK_BELT": {
+      "health": 35,
+      "defense": 25
+    },
+    "DOJO_BLUE_BELT": {
+      "health": 25,
+      "defense": 15
+    },
+    "DOJO_BROWN_BELT": {
+      "health": 30,
+      "defense": 20
+    },
+    "DOJO_GREEN_BELT": {
+      "health": 20,
+      "defense": 10
+    },
+    "DOJO_WHITE_BELT": {
+      "health": 10,
+      "defense": 5
+    },
+    "DOJO_YELLOW_BELT": {
+      "health": 15,
+      "defense": 5
+    },
+    "DRAGONFADE_CLOAK": {
+      "health": 30,
+      "defense": 5,
+      "strength": 5
+    },
+    "DRAGONFUSE_GLOVE": {
+      "health": 30,
+      "defense": 5,
+      "crit_damage": 5
+    },
+    "DWARVEN_HANDWARMERS": {
+      "mining_speed": 45,
+      "mining_fortune": 30,
+      "cold_resistance": 5
+    },
+    "ENDER_BELT": {
+      "health": 15,
+      "defense": 10
+    },
+    "ENDER_CLOAK": {
+      "health": 15,
+      "defense": 10
+    },
+    "ENDER_GAUNTLET": {
+      "health": 15,
+      "defense": 10
+    },
+    "ENDER_NECKLACE": {
+      "health": 15,
+      "defense": 10
+    },
+    "FINWAVE_BELT": {
+      "health": 18,
+      "health_regen": 1,
+      "fishing_speed": 10
+    },
+    "FINWAVE_CLOAK": {
+      "health": 15,
+      "health_regen": 1,
+      "fishing_speed": 10
+    },
+    "FINWAVE_GLOVES": {
+      "health": 12,
+      "health_regen": 1,
+      "fishing_speed": 10
+    },
+    "FLAMING_FIST": {
+      "strength": 10,
+      "health": 30,
+      "defense": 20,
+      "crit_damage": 10,
+      "ferocity": 1
+    },
+    "FROZEN_AMULET": {
+      "sea_creature_chance": 1,
+      "fishing_speed": 3,
+      "treasure_chance": 0.5
+    },
+    "GAUNTLET_OF_CONTAGION": {
+      "health": 20,
+      "defense": 10,
+      "strength": 15
+    },
+    "GHAST_CLOAK": {
+      "health": 7,
+      "defense": 7
+    },
+    "GILLSPLASH_BELT": {
+      "health": 30,
+      "health_regen": 2,
+      "fishing_speed": 14
+    },
+    "GILLSPLASH_CLOAK": {
+      "health": 25,
+      "health_regen": 2,
+      "fishing_speed": 14
+    },
+    "GILLSPLASH_GLOVES": {
+      "health": 20,
+      "health_regen": 2,
+      "fishing_speed": 14
+    },
+    "GLOWSTONE_GAUNTLET": {
+      "intelligence": 10,
+      "mining_fortune": 5
+    },
+    "GOLDEN_BELT": {
+      "rift_time": 100,
+      "rift_walk_speed": 4,
+      "rift_intelligence": 10
+    },
+    "GOLDEN_FLEECE": {
+      "strength": 20,
+      "crit_damage": 15,
+      "true_defense": 10
+    },
+    "GREAT_SPOOK_BELT": {
+      "fear": 5
+    },
+    "GREAT_SPOOK_CLOAK": {
+      "fear": 5
+    },
+    "GREAT_SPOOK_GLOVES": {
+      "fear": 5
+    },
+    "GREAT_SPOOK_NECKLACE": {
+      "fear": 5
+    },
+    "ICHTHYIC_BELT": {
+      "health": 12,
+      "fishing_speed": 6
+    },
+    "ICHTHYIC_CLOAK": {
+      "health": 10,
+      "fishing_speed": 6
+    },
+    "ICHTHYIC_GLOVES": {
+      "health": 8,
+      "fishing_speed": 6
+    },
+    "IMPLOSION_BELT": {
+      "defense": 70
+    },
+    "JADE_BELT": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "LAVA_SHELL_NECKLACE": {
+      "health": 100,
+      "intelligence": 50,
+      "defense": 30
+    },
+    "LEECH_BELT": {
+      "rift_time": 80,
+      "rift_walk_speed": 3,
+      "rift_intelligence": 5
+    },
+    "LOTUS_BELT": {
+      "farming_fortune": 5,
+      "health": 10
+    },
+    "LOTUS_BRACELET": {
+      "farming_fortune": 5,
+      "health": 10
+    },
+    "LOTUS_CLOAK": {
+      "farming_fortune": 5,
+      "health": 10
+    },
+    "LOTUS_NECKLACE": {
+      "farming_fortune": 5,
+      "health": 10
+    },
+    "LUMINOUS_BRACELET": {
+      "fishing_speed": 1,
+      "sea_creature_chance": 1
+    },
+    "MAGMA_LORD_GAUNTLET": {
+      "strength": 10,
+      "crit_damage": 30,
+      "health": 35,
+      "ferocity": 2,
+      "sea_creature_chance": 1.5
+    },
+    "MAGMA_NECKLACE": {
+      "health": 15
+    },
+    "MANGROVE_GRIPPERS": {
+      "foraging_fortune": 5,
+      "sweep": 1
+    },
+    "MANGROVE_LOCKET": {
+      "foraging_fortune": 5,
+      "sweep": 1
+    },
+    "MANGROVE_VINE": {
+      "foraging_fortune": 5,
+      "sweep": 1
+    },
+    "MANTICORE_CLAW": {
+      "strength": 20,
+      "attack_speed": 2.5,
+      "ferocity": 4
+    },
+    "MITHRIL_BELT": {
+      "mining_speed": 20,
+      "mining_fortune": 5
+    },
+    "MITHRIL_CLOAK": {
+      "mining_speed": 20,
+      "mining_fortune": 5
+    },
+    "MITHRIL_GAUNTLET": {
+      "mining_speed": 20,
+      "mining_fortune": 5
+    },
+    "MITHRIL_NECKLACE": {
+      "mining_speed": 20,
+      "mining_fortune": 5
+    },
+    "MOLTEN_BELT": {
+      "health": 30,
+      "defense": 20,
+      "strength": 20
+    },
+    "MOLTEN_BRACELET": {
+      "health": 30,
+      "defense": 20,
+      "strength": 20
+    },
+    "MOLTEN_CLOAK": {
+      "health": 30,
+      "defense": 20,
+      "strength": 20
+    },
+    "MOLTEN_NECKLACE": {
+      "health": 30,
+      "defense": 20,
+      "strength": 20
+    },
+    "MYTHOS_BELT": {
+      "strength": 15,
+      "health": 25,
+      "defense": 15
+    },
+    "MYTHOS_BRACELET": {
+      "strength": 15,
+      "health": 25,
+      "defense": 15
+    },
+    "MYTHOS_CLOAK": {
+      "strength": 15,
+      "health": 25,
+      "defense": 15
+    },
+    "MYTHOS_NECKLACE": {
+      "strength": 15,
+      "health": 25,
+      "defense": 15
+    },
+    "PELT_BELT": {
+      "farming_wisdom": 1
+    },
+    "PESTHUNTERS_BELT": {
+      "bonus_pest_chance": 5
+    },
+    "PESTHUNTERS_CLOAK": {
+      "bonus_pest_chance": 5
+    },
+    "PESTHUNTERS_GLOVES": {
+      "bonus_pest_chance": 5
+    },
+    "PESTHUNTERS_NECKLACE": {
+      "bonus_pest_chance": 5
+    },
+    "PEST_VEST": {
+      "bonus_pest_chance": 10
+    },
+    "PRISMARINE_NECKLACE": {
+      "sea_creature_chance": 0.5,
+      "health": 7,
+      "fishing_speed": 2
+    },
+    "SAPPHIRE_CLOAK": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "SCOURGE_CLOAK": {
+      "health": 25,
+      "crit_damage": 20
+    },
+    "SCOVILLE_BELT": {
+      "defense": 30,
+      "strength": 15
+    },
+    "SHADOW_ASSASSIN_CLOAK": {
+      "strength": 20,
+      "speed": 3
+    },
+    "SHENS_RINGALIA": {
+      "rift_time": 50
+    },
+    "SHRIVELED_BRACELET": {
+      "crit_damage": 15,
+      "strength": 10
+    },
+    "SILKRIDER_SAFETY_BELT": {
+      "rift_time": 60,
+      "rift_walk_speed": 2
+    },
+    "SNOW_BELT": {
+      "health": 5,
+      "intelligence": 5,
+      "speed": 2
+    },
+    "SNOW_CLOAK": {
+      "health": 5,
+      "intelligence": 5,
+      "speed": 2
+    },
+    "SNOW_GLOVES": {
+      "health": 5,
+      "intelligence": 5,
+      "speed": 2
+    },
+    "SNOW_NECKLACE": {
+      "health": 5,
+      "intelligence": 5,
+      "speed": 2
+    },
+    "SOULWEAVER_GLOVES": {
+      "strength": 10,
+      "crit_damage": 10
+    },
+    "SPONGE_BELT": {
+      "sea_creature_chance": 0.5,
+      "health": 5,
+      "fishing_speed": 2
+    },
+    "STARRED_ADAPTIVE_BELT": {
+      "strength": 10,
+      "health": 15,
+      "defense": 10
+    },
+    "STARRED_BONE_NECKLACE": {
+      "defense": 45,
+      "crit_chance": 5
+    },
+    "STARRED_SHADOW_ASSASSIN_CLOAK": {
+      "strength": 25,
+      "speed": 5
+    },
+    "TERA_SHELL_NECKLACE": {
+      "health": 80,
+      "defense": 30,
+      "intelligence": 20
+    },
+    "THE_PRIMORDIAL": {
+      "strength": 15,
+      "crit_damage": 20
+    },
+    "THUNDERBOLT_NECKLACE": {
+      "health": 40,
+      "defense": 30,
+      "sea_creature_chance": 1.5
+    },
+    "TITANIUM_BELT": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "TITANIUM_CLOAK": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "TITANIUM_GAUNTLET": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "TITANIUM_NECKLACE": {
+      "mining_speed": 30,
+      "mining_fortune": 10
+    },
+    "VANQUISHED_BLAZE_BELT": {
+      "defense": 20,
+      "strength": 5
+    },
+    "VANQUISHED_GHAST_CLOAK": {
+      "health": 10,
+      "defense": 10
+    },
+    "VANQUISHED_GLOWSTONE_GAUNTLET": {
+      "intelligence": 15,
+      "mining_fortune": 7
+    },
+    "VANQUISHED_MAGMA_NECKLACE": {
+      "health": 20
+    },
+    "VERMIN_BELT": {
+      "rift_time": 100,
+      "rift_walk_speed": 4,
+      "rift_intelligence": 10
+    },
+    "ZORROS_CAPE": {
+      "farming_fortune": 10,
+      "farming_wisdom": 1,
+      "strength": 10,
+      "ferocity": 2
+    }
+  }
+}

@@ -630,6 +630,9 @@ func applyPetBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config)
 	}
 
 	// 레벨당 스탯
+	for stat, value := range tierData.Base {
+		ctx.Add(stat, fmt.Sprintf("Pet: %s (Base)", activePet.Type), value)
+	}
 	for stat, valuePerLevel := range tierData.PerLevel {
 		ctx.Add(stat, fmt.Sprintf("Pet: %s (Lvl %d)", activePet.Type, activePet.Level), valuePerLevel*float64(activePet.Level))
 	}
@@ -687,4 +690,28 @@ func applyHOTMBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config
 			}
 		}
 	}
+}
+
+func applyFairySoulBonuses(ctx *Context, profile model.PlayerProfile) {
+souls := profile.FairySouls
+if souls <= 0 {
+return
+}
+
+// Basic exchange: 5 souls = +10 HP, +1 Def, +1 Str
+exchanges := float64(souls / 5)
+
+hp := exchanges * 10
+def := exchanges * 1
+str := exchanges * 1
+
+// Speed milestones (approximate: +1 every 50 souls)
+spd := float64(souls / 50)
+
+ctx.Add("health", "Fairy Souls", hp)
+ctx.Add("defense", "Fairy Souls", def)
+ctx.Add("strength", "Fairy Souls", str)
+if spd > 0 {
+ctx.Add("speed", "Fairy Souls", spd)
+}
 }

@@ -46,6 +46,47 @@
 					console.warn(`Failed to load skin from ${url}:`, e);
 				}
 			}
+
+			// Try to load cape
+			viewer.loadCape(null); // Reset cape
+
+			try {
+				const response = await fetch(`https://api.capes.dev/load/${cleanUuid}`);
+				if (response.ok) {
+					const data = await response.json();
+					// Priority: Minecraft > Optifine > LabyMod > MinecraftCapes > etc.
+					const capeTypes = ['minecraft', 'optifine', 'labymod', 'minecraftcapes', 'tlauncher', '5zig'];
+					let capeUrl = null;
+					
+					for (const type of capeTypes) {
+						if (data[type] && data[type].exists && data[type].imageUrl) {
+							capeUrl = data[type].imageUrl;
+							console.log(`Found ${type} cape: ${capeUrl}`);
+							break;
+						}
+					}
+
+					if (capeUrl) {
+						await viewer.loadCape(capeUrl);
+					} else {
+						// Fallback to Visage/Crafatar if capes.dev finds nothing (unlikely but safe)
+						const capeProviders = [
+							`https://visage.surgeplay.com/cape/${cleanUuid}`,
+							`https://crafatar.com/capes/${cleanUuid}`
+						];
+						for (const url of capeProviders) {
+							try {
+								await viewer.loadCape(url);
+								break;
+							} catch (e) {
+								// ignore
+							}
+						}
+					}
+				}
+			} catch (e) {
+				console.warn('Failed to load cape from capes.dev', e);
+			}
 			
 			if (loading) {
 				// If all providers fail

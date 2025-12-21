@@ -699,7 +699,6 @@ def _parse_accessory_items(
     rarity_counts: Dict[str, int] = {}
     unique_ids: Set[str] = set()
     magical_power_total = 0
-    counted_ids: Set[str] = set()
 
     for index, compound in enumerate(file.get("i", [])):
         if not compound or "id" not in compound:
@@ -807,14 +806,41 @@ def _parse_accessory_items(
         if display_rarity:
             rarity_counts[display_rarity] = rarity_counts.get(display_rarity, 0) + 1
 
-        counted_key = accessory["id"] or accessory["mc_id"]
-        if counted_key and counted_key not in counted_ids:
-            extra_mp = 0
-            if accessory["abiphone_contacts"] is not None and (accessory["id"] or "").upper() in ABICASE_IDS:
-                # Abicase: +1 MP per 2 contacts, capped at +10 MP (wiki)
-                extra_mp = min(10, max(0, accessory["abiphone_contacts"] // 2))
-            magical_power_total += _magical_power_for_item(accessory["id"], display_rarity) + extra_mp
-            counted_ids.add(counted_key)
+    # Compute magical power once per chain (highest tier only).
+    id_to_mp: Dict[str, int] = {}
+    for accessory in items:
+        raw_id = accessory.get("id") or accessory.get("mc_id")
+        normalized_id = _normalize_accessory_id(raw_id) if raw_id else None
+        if not normalized_id:
+            continue
+        base_mp = _magical_power_for_item(normalized_id, accessory.get("rarity"))
+        extra_mp = 0
+        if accessory.get("abiphone_contacts") is not None and normalized_id in ABICASE_IDS:
+            # Abicase: +1 MP per 2 contacts, capped at +10 MP (wiki)
+            extra_mp = min(10, max(0, accessory["abiphone_contacts"] // 2))
+        total_mp = base_mp + extra_mp
+        if total_mp <= 0:
+            continue
+        current = id_to_mp.get(normalized_id)
+        if current is None or total_mp > current:
+            id_to_mp[normalized_id] = total_mp
+
+    counted_ids: Set[str] = set()
+    for chain in ACCESSORY_UPGRADES:
+        owned_id = None
+        for cid in reversed(chain):
+            cid_upper = cid.upper()
+            if cid_upper in id_to_mp:
+                owned_id = cid_upper
+                break
+        if owned_id:
+            magical_power_total += id_to_mp[owned_id]
+            for cid in chain:
+                counted_ids.add(cid.upper())
+
+    for item_id, mp in id_to_mp.items():
+        if item_id not in counted_ids:
+            magical_power_total += mp
 
     return items, rarity_counts, unique_ids, magical_power_total
 

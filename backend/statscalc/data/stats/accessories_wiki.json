@@ -1,0 +1,496 @@
+{
+  "comment": "Accessory base stats from Hypixel resources (aligned to wiki).",
+  "accessories": {
+    "AGARIMOO_ARTIFACT": {
+      "fishing_wisdom": 1,
+      "farming_wisdom": 1,
+      "fishing_speed": 3
+    },
+    "AGARIMOO_RING": {
+      "fishing_wisdom": 1,
+      "fishing_speed": 2
+    },
+    "AGARIMOO_TALISMAN": {
+      "fishing_speed": 1
+    },
+    "ANGUISH_ARTIFACT": {
+      "magic_find": 3,
+      "true_defense": 1.5
+    },
+    "ANGUISH_RING": {
+      "magic_find": 2,
+      "true_defense": 1
+    },
+    "ANGUISH_TALISMAN": {
+      "magic_find": 1,
+      "true_defense": 0.5
+    },
+    "ARGOFAY_TRINKET": {
+      "rift_intelligence": 2
+    },
+    "BAT_ARTIFACT": {
+      "speed": 3,
+      "health": 5,
+      "intelligence": 3
+    },
+    "BAT_RING": {
+      "speed": 2,
+      "health": 3,
+      "intelligence": 2
+    },
+    "BAT_TALISMAN": {
+      "speed": 1,
+      "health": 1,
+      "intelligence": 1
+    },
+    "BIG_BRAIN_TALISMAN": {
+      "intelligence": 1
+    },
+    "BLAZE_TALISMAN": {
+      "true_defense": 3
+    },
+    "BLOOD_DONOR_ARTIFACT": {
+      "health_regen": 3,
+      "rift_time": 15,
+      "rift_mana_regen": 10
+    },
+    "BLOOD_DONOR_RING": {
+      "health_regen": 2,
+      "rift_time": 10,
+      "rift_mana_regen": 5
+    },
+    "BLOOD_DONOR_TALISMAN": {
+      "health_regen": 1,
+      "rift_time": 5
+    },
+    "BLUERTOOTH_RING": {
+      "intelligence": -2,
+      "speed": -3
+    },
+    "BLUETOOTH_RING": {
+      "rift_time": 30,
+      "intelligence": -1,
+      "speed": -2
+    },
+    "BURSTSTOPPER_ARTIFACT": {
+      "true_defense": 3,
+      "strength": 2
+    },
+    "BURSTSTOPPER_TALISMAN": {
+      "true_defense": 2,
+      "strength": 1
+    },
+    "CAMPFIRE_TALISMAN_21": {
+      "health_regen": 1
+    },
+    "CAMPFIRE_TALISMAN_22": {
+      "health_regen": 1.5
+    },
+    "CAMPFIRE_TALISMAN_23": {
+      "health_regen": 2
+    },
+    "CAMPFIRE_TALISMAN_24": {
+      "health_regen": 2.5
+    },
+    "CAMPFIRE_TALISMAN_25": {
+      "health_regen": 3
+    },
+    "CAMPFIRE_TALISMAN_26": {
+      "health_regen": 3.5
+    },
+    "CAMPFIRE_TALISMAN_27": {
+      "health_regen": 4
+    },
+    "CAMPFIRE_TALISMAN_28": {
+      "health_regen": 4.5
+    },
+    "CAMPFIRE_TALISMAN_29": {
+      "health_regen": 5
+    },
+    "CAT_TALISMAN": {
+      "speed": 1
+    },
+    "CHEETAH_TALISMAN": {
+      "speed": 3
+    },
+    "CHUMMING_TALISMAN": {
+      "fishing_speed": 1,
+      "fishing_wisdom": 1
+    },
+    "CROPIE_TALISMAN": {
+      "wheat_fortune": 10,
+      "carrot_fortune": 10,
+      "potato_fortune": 10
+    },
+    "CRUX_TALISMAN_1": {
+      "rift_time": 10
+    },
+    "CRUX_TALISMAN_2": {
+      "rift_time": 20,
+      "rift_intelligence": 2
+    },
+    "CRUX_TALISMAN_3": {
+      "rift_time": 35,
+      "rift_intelligence": 5
+    },
+    "CRUX_TALISMAN_4": {
+      "rift_time": 55,
+      "rift_intelligence": 7
+    },
+    "CRUX_TALISMAN_5": {
+      "rift_time": 70,
+      "rift_intelligence": 10,
+      "rift_walk_speed": 1
+    },
+    "CRUX_TALISMAN_6": {
+      "rift_time": 100,
+      "rift_intelligence": 15,
+      "rift_walk_speed": 2
+    },
+    "CRUX_TALISMAN_7": {
+      "rift_time": 130,
+      "rift_intelligence": 20,
+      "rift_walk_speed": 3
+    },
+    "DEFECTIVE_MONITOR": {
+      "rift_intelligence": 6,
+      "rift_time": 60
+    },
+    "DRACONIC_ARTIFACT": {
+      "health": 3
+    },
+    "DRACONIC_RING": {
+      "health": 2
+    },
+    "DRACONIC_TALISMAN": {
+      "health": 1
+    },
+    "DULL_SHARK_TOOTH_NECKLACE": {
+      "strength": 4
+    },
+    "DWARVEN_METAL": {
+      "dwarven_metal_fortune": 15
+    },
+    "FERMENTO_ARTIFACT": {
+      "wheat_fortune": 30,
+      "carrot_fortune": 30,
+      "potato_fortune": 30,
+      "melon_fortune": 30,
+      "pumpkin_fortune": 30,
+      "cocoa_beans_fortune": 30,
+      "sugar_cane_fortune": 30,
+      "cactus_fortune": 30,
+      "mushroom_fortune": 30,
+      "nether_stalk_fortune": 30
+    },
+    "FISH_AFFINITY_TALISMAN": {
+      "fishing_speed": 10
+    },
+    "FRIED_FROZEN_CHICKEN": {
+      "speed": 1,
+      "heat_resistance": 1,
+      "cold_resistance": 1
+    },
+    "FROZEN_CHICKEN": {
+      "speed": 1
+    },
+    "FUTURE_CALORIES": {
+      "tracking": 0.5,
+      "rift_time": 21
+    },
+    "GLOSSY_MINERAL_TALISMAN": {
+      "mining_fortune": 6
+    },
+    "GREAT_SPOOK_ARTIFACT": {
+      "fear": 6
+    },
+    "GREAT_SPOOK_RING": {
+      "fear": 4
+    },
+    "GREAT_SPOOK_TALISMAN": {
+      "fear": 2
+    },
+    "GRIZZLY_PAW": {
+      "speed": 1
+    },
+    "HARMONIOUS_SURGERY_TOOLKIT": {
+      "rift_walk_speed": 2,
+      "rift_time": 10
+    },
+    "HASTE_ARTIFACT": {
+      "mining_speed": 25
+    },
+    "HASTE_RING": {
+      "mining_speed": 10
+    },
+    "HEALING_RING": {
+      "vitality": 10
+    },
+    "HEALING_TALISMAN": {
+      "vitality": 5
+    },
+    "HELIANTHUS_RELIC": {
+      "farming_fortune": 40
+    },
+    "HONED_SHARK_TOOTH_NECKLACE": {
+      "strength": 6
+    },
+    "HUNTER_RING": {
+      "combat_wisdom": 5
+    },
+    "HUNTER_TALISMAN": {
+      "combat_wisdom": 2
+    },
+    "JACOBUS_REGISTER": {
+      "health": 10,
+      "pet_luck": 1
+    },
+    "JAKE_PLUSHIE": {
+      "health": 2
+    },
+    "JERRY_TALISMAN_BLUE": {
+      "intelligence": -2
+    },
+    "JERRY_TALISMAN_GOLDEN": {
+      "intelligence": -4
+    },
+    "JERRY_TALISMAN_GREEN": {
+      "intelligence": -1
+    },
+    "JERRY_TALISMAN_PURPLE": {
+      "intelligence": -3
+    },
+    "JUNGLE_AMULET": {
+      "gemstone_fortune": 10
+    },
+    "LUSH_ARTIFACT": {
+      "health": 5,
+      "health_regen": 1
+    },
+    "LUSH_RING": {
+      "health": 3
+    },
+    "LUSH_TALISMAN": {
+      "health": 1
+    },
+    "LYNX_TALISMAN": {
+      "speed": 2
+    },
+    "MELODY_HAIR": {
+      "intelligence": 6
+    },
+    "MINERAL_TALISMAN": {
+      "mining_fortune": 3
+    },
+    "MINIATURIZED_TUBULATOR": {
+      "health": 1
+    },
+    "MOONGLADE_ARTIFACT": {
+      "fig_fortune": 15,
+      "mangrove_fortune": 15
+    },
+    "MOONGLADE_RING": {
+      "fig_fortune": 10,
+      "mangrove_fortune": 10
+    },
+    "MOONGLADE_TALISMAN": {
+      "fig_fortune": 5,
+      "mangrove_fortune": 5
+    },
+    "ODGERS_BRONZE_TOOTH": {
+      "sea_creature_chance": 0.5,
+      "trophy_fish_chance": 1
+    },
+    "ODGERS_DIAMOND_TOOTH": {
+      "sea_creature_chance": 2,
+      "trophy_fish_chance": 4
+    },
+    "ODGERS_GOLD_TOOTH": {
+      "sea_creature_chance": 1.5,
+      "trophy_fish_chance": 3
+    },
+    "ODGERS_SILVER_TOOTH": {
+      "sea_creature_chance": 1,
+      "trophy_fish_chance": 2
+    },
+    "PARTY_HAT_CRAB": {
+      "magic_find": 1
+    },
+    "PARTY_HAT_CRAB_ANIMATED": {
+      "magic_find": 1
+    },
+    "PARTY_HAT_SLOTH": {
+      "magic_find": 1
+    },
+    "PESTHUNTER_ARTIFACT": {
+      "bonus_pest_chance": 60
+    },
+    "PESTHUNTER_BADGE": {
+      "bonus_pest_chance": 20
+    },
+    "PESTHUNTER_RELIC": {
+      "bonus_pest_chance": 80
+    },
+    "PESTHUNTER_RING": {
+      "bonus_pest_chance": 40
+    },
+    "PIGS_FOOT": {
+      "speed": 1
+    },
+    "POTATO_RING": {
+      "speed": 2
+    },
+    "POTATO_TALISMAN": {
+      "speed": 1
+    },
+    "PRESSURE_ARTIFACT": {
+      "pressure_resistance": 30
+    },
+    "PRESSURE_RING": {
+      "pressure_resistance": 20
+    },
+    "PRESSURE_TALISMAN": {
+      "pressure_resistance": 10
+    },
+    "PUNCHCARD_ARTIFACT": {
+      "rift_time": 30
+    },
+    "RAGGEDY_SHARK_TOOTH_NECKLACE": {
+      "strength": 2
+    },
+    "RAZOR_SHARP_SHARK_TOOTH_NECKLACE": {
+      "strength": 10
+    },
+    "RED_CLAW_ARTIFACT": {
+      "crit_damage": 5
+    },
+    "RED_CLAW_RING": {
+      "crit_damage": 3
+    },
+    "RED_CLAW_TALISMAN": {
+      "crit_damage": 1
+    },
+    "RESPIRATION_ARTIFACT": {
+      "respiration": 30
+    },
+    "RESPIRATION_RING": {
+      "respiration": 20
+    },
+    "RESPIRATION_TALISMAN": {
+      "respiration": 10
+    },
+    "RING_OF_BROKEN_LOVE": {
+      "rift_time": 80
+    },
+    "RING_OF_ETERNAL_LOVE": {
+      "rift_time": 80
+    },
+    "SCARF_GRIMOIRE": {
+      "rift_time": 12
+    },
+    "SCARF_STUDIES": {
+      "rift_time": 10
+    },
+    "SCARF_THESIS": {
+      "rift_time": 11
+    },
+    "SEAL_RING": {
+      "sea_creature_chance": 1,
+      "treasure_chance": 0.2
+    },
+    "SEAL_TALISMAN": {
+      "sea_creature_chance": 0.5,
+      "treasure_chance": 0.1
+    },
+    "SEA_CREATURE_ARTIFACT": {
+      "sea_creature_chance": 0.3
+    },
+    "SEA_CREATURE_RING": {
+      "sea_creature_chance": 0.2
+    },
+    "SEA_CREATURE_TALISMAN": {
+      "sea_creature_chance": 0.1
+    },
+    "SHARP_SHARK_TOOTH_NECKLACE": {
+      "strength": 8
+    },
+    "SOUL_CAMPFIRE_TALISMAN_21": {
+      "mending": 2
+    },
+    "SOUL_CAMPFIRE_TALISMAN_22": {
+      "mending": 3
+    },
+    "SOUL_CAMPFIRE_TALISMAN_23": {
+      "mending": 4
+    },
+    "SOUL_CAMPFIRE_TALISMAN_24": {
+      "mending": 5
+    },
+    "SOUL_CAMPFIRE_TALISMAN_25": {
+      "mending": 6
+    },
+    "SOUL_CAMPFIRE_TALISMAN_26": {
+      "mending": 7
+    },
+    "SOUL_CAMPFIRE_TALISMAN_27": {
+      "mending": 8
+    },
+    "SOUL_CAMPFIRE_TALISMAN_28": {
+      "mending": 9
+    },
+    "SOUL_CAMPFIRE_TALISMAN_29": {
+      "mending": 10
+    },
+    "SPEED_ARTIFACT": {
+      "speed": 5
+    },
+    "SPEED_RING": {
+      "speed": 3
+    },
+    "SPEED_TALISMAN": {
+      "speed": 1
+    },
+    "SQUASH_RING": {
+      "wheat_fortune": 20,
+      "carrot_fortune": 20,
+      "potato_fortune": 20,
+      "melon_fortune": 20,
+      "pumpkin_fortune": 20,
+      "cocoa_beans_fortune": 20
+    },
+    "SURVIVOR_CUBE": {
+      "vitality": 5
+    },
+    "TEST_BUCKET_PLEASE_IGNORE": {
+      "true_defense": 0.5
+    },
+    "TINY_DANCER": {
+      "crit_damage": 1
+    },
+    "TITANIUM_ARTIFACT": {
+      "mining_speed": 45
+    },
+    "TITANIUM_RELIC": {
+      "mining_speed": 60
+    },
+    "TITANIUM_RING": {
+      "mining_speed": 30
+    },
+    "TITANIUM_TALISMAN": {
+      "mining_speed": 15
+    },
+    "VAMPIRE_DENTIST_RELIC": {
+      "health_regen": 10,
+      "vitality": 1,
+      "rift_time": 30,
+      "rift_health": 1
+    },
+    "WARDING_TRINKET": {
+      "rift_time": 40,
+      "rift_intelligence": 5
+    },
+    "WOLF_PAW": {
+      "speed": 1
+    }
+  }
+}

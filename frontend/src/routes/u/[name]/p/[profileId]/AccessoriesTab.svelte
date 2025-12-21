@@ -264,9 +264,16 @@
             item.icon_variants?.vanilla ??
             item.icon_url ??
             null}
-            {@const isFallbackIcon =
-              iconSrcRaw?.includes('/block/stone') || iconSrcRaw?.includes('/item/barrier')}
-            {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
+        {@const itemId = (item.id ?? '').toUpperCase()}
+        {@const vanillaBlockSrc =
+          item.icon_variants?.vanilla?.includes('/block/') ? item.icon_variants?.vanilla : null}
+        {@const forceBlockIcon =
+          itemId.startsWith('PERSONAL_COMPACTOR') || itemId.startsWith('PERSONAL_DELETOR')}
+        {@const iconCandidate =
+          forceBlockIcon && vanillaBlockSrc ? vanillaBlockSrc : iconSrcRaw}
+        {@const isFallbackIcon =
+          iconCandidate?.includes('/block/stone') || iconCandidate?.includes('/item/barrier')}
+        {@const iconSrc = isFallbackIcon ? null : iconCandidate}
         {@const isBlockIcon = iconSrc?.includes('/block/')}
         {@const isIsometric = isBlockIcon}
         <div class="accessory-slot">
@@ -375,11 +382,19 @@
               missingItem.icon_variants?.vanilla ??
               missingItem.icon_url ??
               null}
+            {@const missingId = (missingItem.id ?? '').toUpperCase()}
+            {@const vanillaBlockSrc =
+              missingItem.icon_variants?.vanilla?.includes('/block/')
+                ? missingItem.icon_variants?.vanilla
+                : null}
+            {@const forceBlockIcon =
+              missingId.startsWith('PERSONAL_COMPACTOR') || missingId.startsWith('PERSONAL_DELETOR')}
+            {@const iconCandidate =
+              forceBlockIcon && vanillaBlockSrc ? vanillaBlockSrc : iconSrcRaw}
             {@const isFallbackIcon =
-              iconSrcRaw?.includes('/block/stone') || iconSrcRaw?.includes('/item/barrier')}
-            {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
-            {@const vanillaBlock = missingItem.icon_variants?.vanilla?.includes('/block/')}
-            {@const isBlockIcon = vanillaBlock || iconSrc?.includes('/block/')}
+              iconCandidate?.includes('/block/stone') || iconCandidate?.includes('/item/barrier')}
+            {@const iconSrc = isFallbackIcon ? null : iconCandidate}
+            {@const isBlockIcon = iconSrc?.includes('/block/')}
             {@const buyPrice = missingItem.upgrade_buy_price ?? missingItem.price}
             <div class="missing-chip">
               <div class="row top">

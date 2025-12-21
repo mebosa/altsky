@@ -13,6 +13,7 @@ declare global {
 			}) => {
 				setSize: (width: number, height: number) => void;
 				loadSkin: (skin: string | HTMLImageElement, options?: { model?: 'default' | 'slim' | 'auto-detect' }) => Promise<void> | void;
+				loadCape: (cape: string | HTMLImageElement | null) => Promise<void> | void;
 				dispose: () => void;
 				controls: {
 					enableZoom: boolean;

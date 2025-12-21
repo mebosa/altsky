@@ -1,0 +1,1259 @@
+{
+  "comment": "Weapon/tool stats from Hypixel resources (aligned to wiki).",
+  "weapon_stats": {
+    "ADVANCED_GARDENING_AXE": {
+      "farming_fortune": 10
+    },
+    "ADVANCED_GARDENING_HOE": {
+      "farming_fortune": 10
+    },
+    "AIMING_BOW": {
+      "damage": 100
+    },
+    "ALCHEMISTS_STAFF": {
+      "damage": 50,
+      "strength": 20,
+      "weapon_ability_damage": 10000,
+      "intelligence": 20
+    },
+    "ALPHA_PICK": {
+      "breaking_power": 1,
+      "mining_speed": 1
+    },
+    "ANTI_SENTIENT_PICKAXE": {
+      "rift_damage": 5
+    },
+    "APEX_PRAEDATOR": {
+      "damage": 20
+    },
+    "ARACK": {
+      "damage": 90
+    },
+    "ARTISANAL_SHORTBOW": {
+      "damage": 40
+    },
+    "ASPECT_OF_THE_DRAGON": {
+      "damage": 225,
+      "strength": 100,
+      "weapon_ability_damage": 12000
+    },
+    "ASPECT_OF_THE_END": {
+      "damage": 100,
+      "strength": 100
+    },
+    "ASPECT_OF_THE_JERRY": {
+      "damage": 1
+    },
+    "ASPECT_OF_THE_JERRY_SIGNATURE": {
+      "damage": 2
+    },
+    "ASPECT_OF_THE_VOID": {
+      "damage": 120,
+      "strength": 100
+    },
+    "ASTRAEA": {
+      "defense": 250,
+      "damage": 270,
+      "strength": 150,
+      "ferocity": 30,
+      "true_defense": 20,
+      "intelligence": 50
+    },
+    "ATOMSPLIT_KATANA": {
+      "damage": 305,
+      "strength": 100,
+      "crit_damage": 50,
+      "intelligence": 300
+    },
+    "AUGER_ROD": {
+      "damage": 135,
+      "strength": 90,
+      "fishing_speed": 110
+    },
+    "AXE_OF_THE_SHREDDED": {
+      "damage": 140,
+      "strength": 115
+    },
+    "BANDAGED_MITHRIL_PICKAXE": {
+      "breaking_power": 5,
+      "damage": 30,
+      "mining_speed": 250,
+      "mining_fortune": 4
+    },
+    "BASIC_FISHING_NET": {
+      "pull": 5
+    },
+    "BASIC_GARDENING_AXE": {
+      "farming_fortune": 5
+    },
+    "BASIC_GARDENING_HOE": {
+      "farming_fortune": 5
+    },
+    "BAT_WAND": {
+      "damage": 180,
+      "weapon_ability_damage": 2000,
+      "intelligence": 300
+    },
+    "BINGO_BLASTER": {
+      "ability_damage": 20,
+      "weapon_ability_damage": 625,
+      "intelligence": 300
+    },
+    "BLADE_OF_THE_VOLCANO": {
+      "damage": 220,
+      "strength": 70,
+      "crit_damage": 20
+    },
+    "BONE_BOOMERANG": {
+      "damage": 270,
+      "strength": 130
+    },
+    "BONE_REAVER": {
+      "damage": 235,
+      "strength": 90,
+      "swing_range": 0.5
+    },
+    "BONZO_STAFF": {
+      "damage": 160,
+      "weapon_ability_damage": 1000,
+      "intelligence": 250
+    },
+    "BOSS_SPIRIT_BOW": {
+      "damage": 1
+    },
+    "BOUQUET_OF_LIES": {
+      "damage": 220,
+      "strength": 300,
+      "crit_damage": 50
+    },
+    "BOW": {
+      "damage": 30
+    },
+    "BURSTFIRE_DAGGER": {
+      "damage": 130,
+      "strength": 55,
+      "crit_damage": 20,
+      "attack_speed": 10
+    },
+    "BURSTMAW_DAGGER": {
+      "damage": 130,
+      "strength": 55,
+      "crit_damage": 20,
+      "attack_speed": 10
+    },
+    "CELESTE_WAND": {
+      "weapon_ability_damage": 40
+    },
+    "CHALLENGE_ROD": {
+      "damage": 75,
+      "strength": 75,
+      "fishing_speed": 35,
+      "sea_creature_chance": 2
+    },
+    "CHAMP_ROD": {
+      "damage": 100,
+      "strength": 100,
+      "fishing_speed": 50,
+      "sea_creature_chance": 4
+    },
+    "CHRONO_PICKAXE": {
+      "rift_damage": 5
+    },
+    "CHUM_ROD": {
+      "damage": 55,
+      "strength": 40,
+      "sea_creature_chance": 2,
+      "fishing_speed": 70
+    },
+    "CLEAVER": {
+      "damage": 40,
+      "strength": 10
+    },
+    "CURSUS_FERAE": {
+      "damage": 15
+    },
+    "CUTLASS": {
+      "damage": 1,
+      "attack_speed": 100
+    },
+    "DARK_CLAYMORE": {
+      "damage": 500,
+      "strength": 100,
+      "crit_damage": 100,
+      "swing_range": 2
+    },
+    "DEATH_BOW": {
+      "damage": 300
+    },
+    "DECENT_AXE": {
+      "foraging_fortune": 5,
+      "sweep": 24,
+      "damage": 20
+    },
+    "DECENT_BOW": {
+      "damage": 45
+    },
+    "DIAMOND_AXE": {
+      "damage": 30
+    },
+    "DIAMOND_PICKAXE": {
+      "breaking_power": 4,
+      "damage": 30,
+      "mining_speed": 220
+    },
+    "DIAMOND_SPADE": {
+      "damage": 30
+    },
+    "DIAMOND_SWORD": {
+      "damage": 35
+    },
+    "DIRT_ROD": {
+      "fishing_speed": 20
+    },
+    "DIVAN_DRILL": {
+      "breaking_power": 10,
+      "damage": 75,
+      "mining_fortune": 150,
+      "mining_speed": 1800
+    },
+    "DRAGON_SHORTBOW": {
+      "damage": 120,
+      "strength": 40,
+      "crit_damage": 50,
+      "crit_chance": 15
+    },
+    "DUNGEON_HAMMER": {
+      "damage": 75
+    },
+    "EDIBLE_MACE": {
+      "damage": 125,
+      "strength": 25
+    },
+    "EFFICIENT_AXE": {
+      "damage": 25
+    },
+    "ELECTRIC_WAND_ITEM": {
+      "damage": 10
+    },
+    "ELLES_LAVA_ROD": {
+      "damage": 50,
+      "strength": 50,
+      "fishing_speed": 8
+    },
+    "ELLES_PICKAXE": {
+      "breaking_power": 5,
+      "damage": 10,
+      "mining_speed": 250
+    },
+    "EMBER_ROD": {
+      "damage": 80,
+      "strength": 35,
+      "weapon_ability_damage": 30,
+      "intelligence": 50
+    },
+    "EMERALD_BLADE": {
+      "damage": 130
+    },
+    "ENDER_BOW": {
+      "damage": 60
+    },
+    "END_STONE_BOW": {
+      "damage": 140
+    },
+    "END_STONE_SWORD": {
+      "damage": 120,
+      "strength": 80
+    },
+    "END_SWORD": {
+      "damage": 35
+    },
+    "ENRAGER": {
+      "damage": 270,
+      "strength": 150
+    },
+    "EON_PICKAXE": {
+      "rift_damage": 5
+    },
+    "EXPLOSIVE_BOW": {
+      "damage": 100,
+      "strength": 20
+    },
+    "FANCY_SWORD": {
+      "damage": 20
+    },
+    "FARMER_ROD": {
+      "damage": 50,
+      "strength": 20,
+      "fishing_speed": 60
+    },
+    "FELTHORN_REAPER": {
+      "damage": 275,
+      "crit_damage": 115,
+      "swing_range": 1
+    },
+    "FEL_SWORD": {
+      "damage": 190,
+      "strength": 135
+    },
+    "FEROCITY_SWORD_150": {
+      "damage": 10,
+      "ferocity": 150
+    },
+    "FEROCITY_SWORD_50": {
+      "damage": 10,
+      "ferocity": 50
+    },
+    "FIGSTONE_AXE": {
+      "damage": 50,
+      "sweep": 24,
+      "foraging_fortune": 35,
+      "strength": 15
+    },
+    "FIG_AXE": {
+      "damage": 30,
+      "sweep": 7,
+      "foraging_fortune": 20,
+      "strength": 10
+    },
+    "FIREDUST_DAGGER": {
+      "damage": 90,
+      "strength": 45,
+      "crit_damage": 15
+    },
+    "FIRE_FREEZE_STAFF": {
+      "damage": 50,
+      "strength": 20
+    },
+    "FIRE_FURY_STAFF": {
+      "damage": 100,
+      "intelligence": 300,
+      "weapon_ability_damage": 42000
+    },
+    "FIRE_VEIL_WAND": {
+      "weapon_ability_damage": 15000,
+      "damage": 50,
+      "intelligence": 200
+    },
+    "FISHING_ROD": {
+      "damage": 15,
+      "strength": 15,
+      "fishing_speed": 5,
+      "sea_creature_chance": 1
+    },
+    "FLAMING_FLAY": {
+      "damage": 200,
+      "strength": 250,
+      "ferocity": 25
+    },
+    "FLAMING_SWORD": {
+      "damage": 50,
+      "strength": 20
+    },
+    "FLORID_ZOMBIE_SWORD": {
+      "damage": 150,
+      "strength": 80,
+      "intelligence": 100
+    },
+    "FLOWER_OF_TRUTH": {
+      "damage": 160,
+      "strength": 300
+    },
+    "FRACTURED_MITHRIL_PICKAXE": {
+      "breaking_power": 5,
+      "damage": 30,
+      "mining_speed": 225,
+      "mining_fortune": 2
+    },
+    "FROZEN_SCYTHE": {
+      "damage": 80,
+      "weapon_ability_damage": 1000
+    },
+    "FULL_TREE_AXE": {
+      "sweep": 500
+    },
+    "GEMSTONE_DRILL_1": {
+      "breaking_power": 7,
+      "damage": 75,
+      "mining_speed": 150,
+      "gemstone_fortune": 60,
+      "pristine": 0.5
+    },
+    "GEMSTONE_DRILL_2": {
+      "breaking_power": 8,
+      "damage": 75,
+      "mining_speed": 300,
+      "gemstone_fortune": 80,
+      "pristine": 1
+    },
+    "GEMSTONE_DRILL_3": {
+      "breaking_power": 9,
+      "damage": 75,
+      "mining_speed": 450,
+      "gemstone_fortune": 100,
+      "pristine": 1.5
+    },
+    "GEMSTONE_DRILL_4": {
+      "breaking_power": 9,
+      "damage": 75,
+      "mining_speed": 600,
+      "gemstone_fortune": 120,
+      "pristine": 2
+    },
+    "GEMSTONE_GAUNTLET": {
+      "breaking_power": 8,
+      "damage": 300,
+      "mining_speed": 800,
+      "strength": 50
+    },
+    "GENERALS_HOPE_OF_THE_RESISTANCE": {
+      "weapon_ability_damage": 1000
+    },
+    "GHOUL_BUSTER": {
+      "damage": 140,
+      "strength": 90,
+      "crit_damage": 25
+    },
+    "GIANTS_EYE_SWORD": {
+      "damage": 500,
+      "weapon_ability_damage": 100000,
+      "swing_range": 1
+    },
+    "GIANTS_SWORD": {
+      "damage": 500,
+      "weapon_ability_damage": 100000,
+      "swing_range": 1
+    },
+    "GIANT_CLEAVER": {
+      "damage": 235,
+      "strength": 120,
+      "crit_damage": 120
+    },
+    "GIANT_FISHING_ROD": {
+      "double_hook_chance": 10
+    },
+    "GLACIAL_SCYTHE": {
+      "damage": 120,
+      "intelligence": 30,
+      "weapon_ability_damage": 1500
+    },
+    "GOLD_AXE": {
+      "damage": 20
+    },
+    "GOLD_PICKAXE": {
+      "breaking_power": 1,
+      "damage": 15,
+      "mining_speed": 250
+    },
+    "GOLD_SPADE": {
+      "damage": 15
+    },
+    "GOLD_SWORD": {
+      "damage": 20
+    },
+    "GOLEM_SWORD": {
+      "defense": 25,
+      "damage": 80,
+      "strength": 125,
+      "weapon_ability_damage": 250
+    },
+    "GREAT_SPOOK_SWORD": {
+      "damage": 0
+    },
+    "HARVESTING_SWORD": {
+      "damage": 50
+    },
+    "HEALING_CIRCLE_ITEM": {
+      "damage": 10
+    },
+    "HEARTFIRE_DAGGER": {
+      "damage": 160,
+      "strength": 75,
+      "crit_damage": 25,
+      "crit_chance": 10,
+      "attack_speed": 20
+    },
+    "HEARTMAW_DAGGER": {
+      "damage": 160,
+      "strength": 75,
+      "crit_damage": 25,
+      "crit_chance": 10,
+      "attack_speed": 20
+    },
+    "HELLFIRE_ROD": {
+      "damage": 225,
+      "strength": 225,
+      "fishing_speed": 60,
+      "sea_creature_chance": 14,
+      "trophy_fish_chance": 25
+    },
+    "HELLSTORM_STAFF": {
+      "damage": 120,
+      "strength": 50,
+      "weapon_ability_damage": 12000,
+      "intelligence": 100
+    },
+    "HOLLOW_WAND": {
+      "damage": 150,
+      "strength": 20,
+      "intelligence": 120,
+      "weapon_ability_damage": 15000
+    },
+    "HOPE_OF_THE_RESISTANCE": {
+      "weapon_ability_damage": 500
+    },
+    "HORSEMAN_SCYTHE": {
+      "damage": 100
+    },
+    "HUNTER_KNIFE": {
+      "speed": 40,
+      "damage": 50
+    },
+    "HURRICANE_BOW": {
+      "damage": 120,
+      "strength": 50
+    },
+    "HYPERION": {
+      "damage": 260,
+      "strength": 150,
+      "ferocity": 30,
+      "intelligence": 350
+    },
+    "HYPER_CLEAVER": {
+      "damage": 175,
+      "strength": 100,
+      "crit_damage": 100
+    },
+    "ICE_ROD": {
+      "damage": 30,
+      "fishing_speed": 15
+    },
+    "INFERNO_ROD": {
+      "damage": 200,
+      "strength": 200,
+      "fishing_speed": 50,
+      "sea_creature_chance": 10,
+      "trophy_fish_chance": 20
+    },
+    "INFINI_VACUUM": {
+      "farming_fortune": 20,
+      "damage": 200
+    },
+    "INFINI_VACUUM_HOOVERIUS": {
+      "farming_fortune": 25,
+      "damage": 250
+    },
+    "INK_WAND": {
+      "damage": 130,
+      "strength": 90,
+      "weapon_ability_damage": 10000
+    },
+    "IRON_AXE": {
+      "damage": 25
+    },
+    "IRON_PICKAXE": {
+      "breaking_power": 3,
+      "damage": 25,
+      "mining_speed": 160
+    },
+    "IRON_SPADE": {
+      "damage": 25
+    },
+    "IRON_SWORD": {
+      "damage": 30
+    },
+    "ITEM_SPIRIT_BOW": {
+      "damage": 210,
+      "strength": 100
+    },
+    "JERRY_STAFF": {
+      "damage": 80,
+      "weapon_ability_damage": 500,
+      "intelligence": 200
+    },
+    "JUJU_SHORTBOW": {
+      "damage": 310,
+      "strength": 40,
+      "crit_damage": 110,
+      "crit_chance": 10
+    },
+    "JUNGLE_AXE": {
+      "sweep": 4
+    },
+    "JUNGLE_PICKAXE": {
+      "breaking_power": 5,
+      "damage": 50,
+      "mining_speed": 330
+    },
+    "LAPIS_PICKAXE": {
+      "breaking_power": 4,
+      "damage": 20,
+      "mining_speed": 200
+    },
+    "LAST_BREATH": {
+      "damage": 200,
+      "strength": 180,
+      "crit_damage": 50
+    },
+    "LEAPING_SWORD": {
+      "damage": 150,
+      "strength": 100,
+      "crit_damage": 25,
+      "weapon_ability_damage": 350
+    },
+    "LEECH_SWORD": {
+      "rift_damage": 3
+    },
+    "LEGEND_ROD": {
+      "damage": 125,
+      "strength": 125,
+      "fishing_speed": 65,
+      "sea_creature_chance": 6
+    },
+    "LIVID_DAGGER": {
+      "damage": 210,
+      "strength": 60,
+      "attack_speed": 50,
+      "crit_damage": 50,
+      "crit_chance": 100
+    },
+    "MAGMA_BOW": {
+      "damage": 100,
+      "strength": 100
+    },
+    "MAGMA_ROD": {
+      "damage": 175,
+      "strength": 175,
+      "fishing_speed": 40,
+      "sea_creature_chance": 6,
+      "trophy_fish_chance": 15
+    },
+    "MAWDUST_DAGGER": {
+      "damage": 90,
+      "strength": 45,
+      "crit_damage": 15
+    },
+    "MEDIUM_FISHING_NET": {
+      "pull": 25
+    },
+    "MERCENARY_AXE": {
+      "strength": 20,
+      "damage": 70
+    },
+    "MIDAS_STAFF": {
+      "damage": 130,
+      "strength": 150,
+      "weapon_ability_damage": 6000,
+      "intelligence": 50
+    },
+    "MIDAS_SWORD": {
+      "damage": 170
+    },
+    "MITHRIL_DRILL_1": {
+      "breaking_power": 5,
+      "damage": 65,
+      "mining_speed": 450,
+      "mining_fortune": 15
+    },
+    "MITHRIL_DRILL_2": {
+      "breaking_power": 6,
+      "damage": 65,
+      "mining_speed": 600,
+      "mining_fortune": 20
+    },
+    "MITHRIL_PICKAXE": {
+      "breaking_power": 5,
+      "damage": 40,
+      "mining_speed": 300,
+      "mining_fortune": 7
+    },
+    "MOSQUITO_BOW": {
+      "damage": 251,
+      "strength": 151,
+      "crit_damage": 39,
+      "vitality": 20
+    },
+    "NECROMANCER_SWORD": {
+      "defense": 125,
+      "damage": 250,
+      "strength": 125
+    },
+    "NECRON_BLADE": {
+      "damage": 260,
+      "strength": 110,
+      "ferocity": 30,
+      "intelligence": 50
+    },
+    "NEX_TITANUM": {
+      "damage": 25
+    },
+    "NOVA_SWORD": {
+      "damage": 99999999,
+      "swing_range": 99999999
+    },
+    "ORNATE_ZOMBIE_SWORD": {
+      "damage": 110,
+      "strength": 60,
+      "intelligence": 50
+    },
+    "PHANTOM_ROD": {
+      "damage": 200,
+      "strength": 125,
+      "fishing_speed": 100
+    },
+    "PICKONIMBUS": {
+      "breaking_power": 8,
+      "damage": 30,
+      "mining_speed": 750
+    },
+    "PIGMAN_SWORD": {
+      "damage": 200,
+      "strength": 100,
+      "crit_damage": 30,
+      "crit_chance": 5,
+      "weapon_ability_damage": 30000,
+      "intelligence": 300
+    },
+    "POLISHED_TOPAZ_ROD": {
+      "damage": 100,
+      "strength": 100,
+      "fishing_speed": 50,
+      "sea_creature_chance": 2
+    },
+    "POOCH_SWORD": {
+      "speed": 5,
+      "damage": 120,
+      "strength": 20
+    },
+    "PRISMARINE_BLADE": {
+      "damage": 50,
+      "strength": 25
+    },
+    "PRISMARINE_BOW": {
+      "damage": 50,
+      "strength": 25
+    },
+    "PRISMARINE_ROD": {
+      "damage": 15,
+      "strength": 10,
+      "fishing_speed": 15
+    },
+    "PROMISING_AXE": {
+      "damage": 25
+    },
+    "PROMISING_PICKAXE": {
+      "breaking_power": 3,
+      "damage": 20,
+      "mining_speed": 50
+    },
+    "RAGNAROCK_AXE": {
+      "damage": 200,
+      "strength": 70
+    },
+    "RAIDER_AXE": {
+      "damage": 80,
+      "strength": 50
+    },
+    "RAYGUN": {
+      "damage": 99999999
+    },
+    "REAPER_SCYTHE": {
+      "speed": 10,
+      "damage": 333
+    },
+    "REAPER_SWORD": {
+      "damage": 120,
+      "strength": 100,
+      "intelligence": 200
+    },
+    "RECLUSE_FANG": {
+      "damage": 60,
+      "strength": 30,
+      "crit_damage": 10
+    },
+    "REFINED_MITHRIL_PICKAXE": {
+      "breaking_power": 5,
+      "damage": 50,
+      "mining_speed": 350,
+      "mining_fortune": 10
+    },
+    "REFINED_TITANIUM_PICKAXE": {
+      "breaking_power": 6,
+      "damage": 65,
+      "mining_speed": 200
+    },
+    "REVENANT_SWORD": {
+      "damage": 90,
+      "strength": 50,
+      "intelligence": 100
+    },
+    "ROD_OF_THE_SEA": {
+      "damage": 150,
+      "strength": 150,
+      "fishing_speed": 80,
+      "sea_creature_chance": 8
+    },
+    "ROGUE_SWORD": {
+      "damage": 20
+    },
+    "ROOKIE_AXE": {
+      "damage": 20
+    },
+    "ROOKIE_PICKAXE": {
+      "breaking_power": 2,
+      "damage": 15,
+      "mining_speed": 150,
+      "ore_fortune": 5
+    },
+    "RUNAANS_BOW": {
+      "damage": 160,
+      "strength": 50
+    },
+    "RUNIC_STAFF": {
+      "damage": 20,
+      "weapon_ability_damage": 10000,
+      "intelligence": 250
+    },
+    "RUSTY_TITANIUM_PICKAXE": {
+      "breaking_power": 5,
+      "damage": 55,
+      "mining_speed": 100
+    },
+    "SAVANA_BOW": {
+      "damage": 50
+    },
+    "SCORPION_BOW": {
+      "damage": 50,
+      "strength": 25,
+      "crit_chance": 10
+    },
+    "SCORPION_FOIL": {
+      "damage": 120,
+      "strength": 60,
+      "crit_damage": 30
+    },
+    "SCYLLA": {
+      "damage": 270,
+      "strength": 150,
+      "crit_damage": 35,
+      "crit_chance": 12,
+      "ferocity": 30,
+      "intelligence": 50
+    },
+    "SEISMIC_WAVE_STICK": {
+      "damage": 10
+    },
+    "SELF_RECURSIVE_PICKAXE": {
+      "rift_damage": 5
+    },
+    "SERIOUSLY_DAMAGED_AXE": {
+      "foraging_fortune": 5,
+      "sweep": 7,
+      "damage": 10
+    },
+    "SHADOW_FURY": {
+      "speed": 30,
+      "damage": 300,
+      "strength": 130,
+      "crit_damage": 30
+    },
+    "SHAMAN_SWORD": {
+      "speed": 5,
+      "damage": 100,
+      "strength": 20
+    },
+    "SILK_EDGE_SWORD": {
+      "damage": 175,
+      "strength": 125,
+      "crit_damage": 25,
+      "weapon_ability_damage": 400
+    },
+    "SILVA_DOMINUS": {
+      "damage": 10
+    },
+    "SILVERTWIST_KARAMBIT": {
+      "rift_damage": 6,
+      "rift_walk_speed": 15
+    },
+    "SILVER_LACED_KARAMBIT": {
+      "rift_damage": 5,
+      "rift_walk_speed": 10
+    },
+    "SINSEEKER_SCYTHE": {
+      "damage": 100,
+      "strength": 100
+    },
+    "SKYMART_HYPER_VACUUM": {
+      "farming_fortune": 15,
+      "damage": 150
+    },
+    "SKYMART_TURBO_VACUUM": {
+      "farming_fortune": 10,
+      "damage": 120
+    },
+    "SKYMART_VACUUM": {
+      "farming_fortune": 5,
+      "damage": 100
+    },
+    "SLIME_BOW": {
+      "damage": 100,
+      "crit_damage": 50
+    },
+    "SOULS_REBOUND": {
+      "damage": 450
+    },
+    "SOUL_WHIP": {
+      "damage": 145,
+      "strength": 175
+    },
+    "SPEEDSTER_ROD": {
+      "damage": 30,
+      "strength": 15,
+      "fishing_speed": 45
+    },
+    "SPIDER_QUEENS_STINGER": {
+      "damage": 360
+    },
+    "SPIDER_SWORD": {
+      "damage": 30
+    },
+    "SPIRIT_SWORD": {
+      "damage": 210,
+      "strength": 50
+    },
+    "SPONGE_ROD": {
+      "damage": 20,
+      "strength": 15,
+      "fishing_speed": 30
+    },
+    "SQUIRE_SWORD": {
+      "strength": 10,
+      "damage": 50
+    },
+    "STAFF_OF_THE_RISING_MOON": {
+      "weapon_ability_damage": 1
+    },
+    "STAFF_OF_THE_VOLCANO": {
+      "damage": 60,
+      "weapon_ability_damage": 24000,
+      "intelligence": 150
+    },
+    "STARLIGHT_WAND": {
+      "weapon_ability_damage": 50
+    },
+    "STARRED_BAT_WAND": {
+      "damage": 190,
+      "weapon_ability_damage": 2250,
+      "intelligence": 330
+    },
+    "STARRED_BONE_BOOMERANG": {
+      "damage": 320,
+      "strength": 150
+    },
+    "STARRED_BONZO_STAFF": {
+      "damage": 160,
+      "weapon_ability_damage": 1100,
+      "intelligence": 300
+    },
+    "STARRED_FELTHORN_REAPER": {
+      "damage": 285,
+      "strength": 10,
+      "crit_damage": 125,
+      "swing_range": 1.5
+    },
+    "STARRED_GLACIAL_SCYTHE": {
+      "damage": 130,
+      "intelligence": 40,
+      "weapon_ability_damage": 1700
+    },
+    "STARRED_ITEM_SPIRIT_BOW": {
+      "damage": 220,
+      "strength": 110
+    },
+    "STARRED_LAST_BREATH": {
+      "damage": 210,
+      "strength": 190,
+      "crit_damage": 50
+    },
+    "STARRED_MIDAS_STAFF": {
+      "damage": 130,
+      "strength": 150,
+      "weapon_ability_damage": 6000,
+      "intelligence": 50
+    },
+    "STARRED_MIDAS_SWORD": {
+      "damage": 170
+    },
+    "STARRED_SHADOW_FURY": {
+      "speed": 40,
+      "damage": 310,
+      "strength": 160,
+      "crit_damage": 60
+    },
+    "STARRED_SPIDER_QUEENS_STINGER": {
+      "damage": 600
+    },
+    "STARRED_STONE_BLADE": {
+      "damage": 190
+    },
+    "STARRED_VENOMS_TOUCH": {
+      "damage": 370,
+      "strength": 180
+    },
+    "STARRED_YETI_SWORD": {
+      "damage": 160,
+      "strength": 185,
+      "weapon_ability_damage": 17000,
+      "intelligence": 50
+    },
+    "STARTER_LAVA_ROD": {
+      "damage": 50,
+      "strength": 50,
+      "fishing_speed": 10,
+      "trophy_fish_chance": 5
+    },
+    "STAR_SWORD": {
+      "damage": 99999
+    },
+    "STAR_SWORD_3000": {
+      "damage": 999999
+    },
+    "STAR_SWORD_9000": {
+      "damage": 99999999,
+      "swing_range": 99999999
+    },
+    "STING": {
+      "damage": 150,
+      "strength": 75,
+      "crit_damage": 40
+    },
+    "STONE_AXE": {
+      "damage": 15
+    },
+    "STONE_BLADE": {
+      "damage": 170
+    },
+    "STONE_PICKAXE": {
+      "breaking_power": 2,
+      "damage": 20,
+      "mining_speed": 110
+    },
+    "STONE_SPADE": {
+      "damage": 20
+    },
+    "STONE_SWORD": {
+      "damage": 25
+    },
+    "STONK_PICKAXE": {
+      "breaking_power": 1,
+      "mining_speed": 380
+    },
+    "SULPHUR_BOW": {
+      "damage": 200,
+      "strength": 100
+    },
+    "SUPER_CLEAVER": {
+      "damage": 105,
+      "strength": 20,
+      "crit_damage": 20
+    },
+    "SUPER_UNDEAD_BOW": {
+      "damage": 220
+    },
+    "SWEEP_AXE": {
+      "sweep": 8
+    },
+    "SWEET_AXE": {
+      "damage": 25
+    },
+    "SWORD_OF_BAD_HEALTH": {
+      "damage": 200,
+      "strength": 50,
+      "crit_damage": 50
+    },
+    "SWORD_OF_REVELATIONS": {
+      "damage": 180,
+      "strength": 50
+    },
+    "SWORD_OF_THE_MULTIVERSE": {
+      "rift_damage": 99999999,
+      "swing_range": 15
+    },
+    "TACTICIAN_MURDER_WEAPON": {
+      "rift_damage": 4
+    },
+    "TACTICIAN_SWORD": {
+      "damage": 50,
+      "crit_chance": 20
+    },
+    "TARANTULA_FANG": {
+      "damage": 90,
+      "strength": 45,
+      "crit_damage": 20
+    },
+    "TERMINATOR": {
+      "damage": 310,
+      "strength": 50,
+      "attack_speed": 40,
+      "crit_damage": 250
+    },
+    "TEST_WAND_WEAPON": {
+      "rift_damage": 20
+    },
+    "THE_SHREDDER": {
+      "damage": 120,
+      "ferocity": 50,
+      "fishing_speed": 115
+    },
+    "THROWING_AXE": {
+      "damage": 120,
+      "strength": 50
+    },
+    "TITANIUM_DRILL_1": {
+      "breaking_power": 7,
+      "damage": 75,
+      "mining_fortune": 25,
+      "mining_speed": 700
+    },
+    "TITANIUM_DRILL_2": {
+      "breaking_power": 8,
+      "damage": 75,
+      "mining_fortune": 40,
+      "mining_speed": 900
+    },
+    "TITANIUM_DRILL_3": {
+      "breaking_power": 9,
+      "damage": 75,
+      "mining_fortune": 70,
+      "mining_speed": 1200
+    },
+    "TITANIUM_DRILL_4": {
+      "breaking_power": 9,
+      "damage": 75,
+      "mining_fortune": 120,
+      "mining_speed": 1600
+    },
+    "TITANIUM_PICKAXE": {
+      "breaking_power": 6,
+      "damage": 60,
+      "mining_speed": 140
+    },
+    "TORMENTOR": {
+      "damage": 525,
+      "crit_damage": 100
+    },
+    "TREECAPITATOR_AXE": {
+      "sweep": 25
+    },
+    "TRIBAL_SPEAR": {
+      "strength": 100
+    },
+    "TURBO_FISHING_NET": {
+      "pull": 50
+    },
+    "UNDEAD_BOW": {
+      "damage": 80
+    },
+    "UNDEAD_SWORD": {
+      "damage": 30
+    },
+    "VALKYRIE": {
+      "damage": 270,
+      "strength": 145,
+      "ferocity": 60,
+      "intelligence": 60
+    },
+    "VENATOR_GENESIS": {
+      "damage": 5
+    },
+    "VENOMOUS_SWORD": {
+      "damage": 30
+    },
+    "VENOMS_TOUCH": {
+      "damage": 250,
+      "strength": 100
+    },
+    "VOIDEDGE_KATANA": {
+      "damage": 155,
+      "strength": 60,
+      "crit_damage": 25,
+      "intelligence": 50
+    },
+    "VOIDWALKER_KATANA": {
+      "damage": 105,
+      "strength": 40,
+      "crit_damage": 15
+    },
+    "VOID_SWORD": {
+      "damage": 125
+    },
+    "VORPAL_KATANA": {
+      "damage": 190,
+      "strength": 80,
+      "crit_damage": 30,
+      "intelligence": 200
+    },
+    "WAND_OF_STRENGTH": {
+      "damage": 50,
+      "strength": 20
+    },
+    "WINTER_ROD": {
+      "damage": 50,
+      "strength": 50,
+      "fishing_speed": 75
+    },
+    "WITHER_BOW": {
+      "damage": 30
+    },
+    "WITHER_CLOAK": {
+      "defense": 250,
+      "damage": 190,
+      "strength": 135
+    },
+    "WOOD_AXE": {
+      "damage": 10
+    },
+    "WOOD_PICKAXE": {
+      "breaking_power": 1,
+      "damage": 15,
+      "mining_speed": 70
+    },
+    "WOOD_SPADE": {
+      "damage": 15
+    },
+    "WOOD_SWORD": {
+      "damage": 20
+    },
+    "WYLD_SWORD": {
+      "rift_damage": 2
+    },
+    "YETI_ROD": {
+      "damage": 150,
+      "strength": 130,
+      "fishing_speed": 75
+    },
+    "YETI_SWORD": {
+      "damage": 150,
+      "strength": 170,
+      "weapon_ability_damage": 15000,
+      "intelligence": 50
+    },
+    "ZOMBIE_COMMANDER_WHIP": {
+      "damage": 65,
+      "strength": 5
+    },
+    "ZOMBIE_PICKAXE": {
+      "breaking_power": 3,
+      "mining_speed": 190
+    },
+    "ZOMBIE_SWORD": {
+      "damage": 100,
+      "strength": 50,
+      "intelligence": 50
+    },
+    "ZOOM_PICKAXE": {
+      "breaking_power": 10,
+      "damage": 99999999,
+      "mining_speed": 99999999
+    }
+  }
+}

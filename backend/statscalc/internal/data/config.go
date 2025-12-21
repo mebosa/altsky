@@ -51,6 +51,7 @@ type AttributeData struct {
 
 type PetTierData struct {
 	PerLevel      map[string]float64 `json:"per_level"`
+	Base          map[string]float64 `json:"base"`
 	MaxLevelBonus map[string]float64 `json:"max_level_bonus"`
 }
 

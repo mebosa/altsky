@@ -1,0 +1,10 @@
+{
+  "comment": "Enchantment stat bonuses from Hypixel wiki (non-conditional only).",
+  "enchants": {
+    "rejuvenate": {
+      "per_level": {
+        "health_regen": 2
+      }
+    }
+  }
+}
