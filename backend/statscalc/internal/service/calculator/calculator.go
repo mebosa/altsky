@@ -21,42 +21,94 @@ func New(loader *data.Loader) *Calculator {
 	return &Calculator{loader: loader}
 }
 
-// Calculate는 현재 Config를 참조해 플레이어 스탯을 계산한다.
-func (c *Calculator) Calculate(profile model.PlayerProfile) model.StatBlock {
-	config := c.loader.Current()
-	out := make(model.StatBlock, len(config.BaseStats))
-
-	for stat, baseValue := range config.BaseStats {
-		out[stat] = baseValue
-	}
-
-	applySkillBonuses(out, profile, config)
-	applySlayerBonuses(out, profile, config)
-	applyDungeonBonuses(out, profile, config)
-	applySkyBlockLevelBonuses(out, profile)
-	
-	multipliers := make(map[string]float64)
-	applyEquipmentBonuses(out, multipliers, profile, config)
-	
-	applyAccessoryBonuses(out, profile, config)
-	applyPetBonuses(out, profile, config)
-	applyHOTMBonuses(out, profile, config)
-
-	// Special effects that modify base stats or multipliers
-	applySpecialItemEffects(out, multipliers, profile)
-
-	// Apply multipliers
-	for stat, mult := range multipliers {
-		out[stat] *= (1 + mult)
-	}
-
-	return out
+type Context struct {
+	Stats       model.StatBlock
+	Breakdown   model.StatBreakdown
+	Multipliers map[string]float64
 }
 
-func applySpecialItemEffects(stats model.StatBlock, multipliers map[string]float64, profile model.PlayerProfile) {
+func NewContext(baseStats map[string]float64) *Context {
+	stats := make(model.StatBlock)
+	breakdown := make(model.StatBreakdown)
+
+	for k, v := range baseStats {
+		stats[k] = v
+		breakdown[k] = &model.StatDetail{
+			Total:   v,
+			Base:    v,
+			Bonuses: []model.Bonus{},
+		}
+	}
+
+	return &Context{
+		Stats:       stats,
+		Breakdown:   breakdown,
+		Multipliers: make(map[string]float64),
+	}
+}
+
+func (c *Context) Add(stat, source string, value float64) {
+	if value == 0 {
+		return
+	}
+	c.Stats[stat] += value
+
+	if _, ok := c.Breakdown[stat]; !ok {
+		c.Breakdown[stat] = &model.StatDetail{Bonuses: []model.Bonus{}}
+	}
+	c.Breakdown[stat].Total += value
+	c.Breakdown[stat].Bonuses = append(c.Breakdown[stat].Bonuses, model.Bonus{Source: source, Value: value})
+}
+
+func (c *Context) AddMultiplier(stat, source string, value float64) {
+	if value == 0 {
+		return
+	}
+	c.Multipliers[stat] += value
+}
+
+// Calculate는 현재 Config를 참조해 플레이어 스탯을 계산한다.
+func (c *Calculator) Calculate(profile model.PlayerProfile) model.CalculationResult {
+	config := c.loader.Current()
+	ctx := NewContext(config.BaseStats)
+
+	applySkillBonuses(ctx, profile, config)
+	applySlayerBonuses(ctx, profile, config)
+	applyDungeonBonuses(ctx, profile, config)
+	applySkyBlockLevelBonuses(ctx, profile)
+
+	applyEquipmentBonuses(ctx, profile, config)
+
+	applyAccessoryBonuses(ctx, profile, config)
+	applyPetBonuses(ctx, profile, config)
+	applyHOTMBonuses(ctx, profile, config)
+
+	// Special effects that modify base stats or multipliers
+	applySpecialItemEffects(ctx, profile)
+
+	// Apply multipliers
+	for stat, mult := range ctx.Multipliers {
+		if mult != 0 {
+			// Multiplier is applied to the total
+			currentTotal := ctx.Stats[stat]
+			bonus := currentTotal * mult
+			ctx.Add(stat, "Multipliers", bonus)
+		}
+	}
+
+	return model.CalculationResult{
+		Stats:     ctx.Stats,
+		Breakdown: ctx.Breakdown,
+	}
+}
+
+func applySpecialItemEffects(ctx *Context, profile model.PlayerProfile) {
 	// Terminator: Divides Crit Chance by 4
 	if profile.Equipment.Weapon != nil && profile.Equipment.Weapon.ID == "TERMINATOR" {
-		stats["crit_chance"] /= 4
+		current := ctx.Stats["crit_chance"]
+		// Subtract 75% to simulate division by 4
+		reduction := current * -0.75
+		ctx.Add("crit_chance", "Terminator", reduction)
 	}
 
 	items := []*model.Item{
@@ -76,14 +128,14 @@ func applySpecialItemEffects(stats model.StatBlock, multipliers map[string]float
 			fdPieces++
 			if kills, ok := getIntAttribute(item, "enderman_kills"); ok {
 				bonus := calculateFDBonus(kills)
-				stats["defense"] += bonus
+				ctx.Add("defense", fmt.Sprintf("Final Destination (%d kills)", kills), bonus)
 			}
 		}
 		// Reaper Armor
 		if strings.HasPrefix(item.ID, "REAPER_") {
 			if kills, ok := getIntAttribute(item, "zombie_kills"); ok {
 				bonus := calculateReaperBonus(kills)
-				stats["defense"] += bonus
+				ctx.Add("defense", fmt.Sprintf("Reaper Armor (%d kills)", kills), bonus)
 			}
 		}
 	}
@@ -91,7 +143,7 @@ func applySpecialItemEffects(stats model.StatBlock, multipliers map[string]float
 	// Final Destination Set Bonus (Full Set)
 	// Wiki: 1.25x Intelligence (Multiplier +0.25)
 	if fdPieces == 4 {
-		multipliers["intelligence"] += 0.25
+		ctx.AddMultiplier("intelligence", "Final Destination Set", 0.25)
 	}
 }
 
@@ -154,59 +206,59 @@ func calculateReaperBonus(kills int) float64 {
 	return 0
 }
 
-func applySkillBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
+func applySkillBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	for name, skill := range profile.Skills {
 		if skill.Level <= 0 {
 			continue
 		}
 		key := fmt.Sprintf("skill_%s", name)
-		applyLevelBonuses(stats, key, skill.Level, cfg.LevelBonuses)
+		applyLevelBonuses(ctx, key, skill.Level, cfg.LevelBonuses, fmt.Sprintf("Skill: %s", name))
 	}
 }
 
-func applySlayerBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
+func applySlayerBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	for name, slayer := range profile.Slayer {
 		if slayer.Level <= 0 {
 			continue
 		}
 		key := fmt.Sprintf("slayer_%s", name)
-		applyLevelBonuses(stats, key, slayer.Level, cfg.LevelBonuses)
+		applyLevelBonuses(ctx, key, slayer.Level, cfg.LevelBonuses, fmt.Sprintf("Slayer: %s", name))
 	}
 }
 
 // applySkyBlockLevelBonuses applies stats based on SkyBlock Level.
 // +5 Health per level
 // +1 Strength every 5 levels
-func applySkyBlockLevelBonuses(stats model.StatBlock, profile model.PlayerProfile) {
+func applySkyBlockLevelBonuses(ctx *Context, profile model.PlayerProfile) {
 	if profile.SkyBlockLevel <= 0 {
 		return
 	}
 
 	// Health: +5 per level
-	stats["health"] += float64(profile.SkyBlockLevel) * 5.0
+	ctx.Add("health", "SkyBlock Level", float64(profile.SkyBlockLevel)*5.0)
 
 	// Strength: +1 every 5 levels
 	strengthBonus := float64(profile.SkyBlockLevel / 5)
-	stats["strength"] += strengthBonus
+	ctx.Add("strength", "SkyBlock Level", strengthBonus)
 }
 
 // applyDungeonBonuses는 Catacombs 및 클래스 레벨 보너스를 적용합니다.
-func applyDungeonBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
+func applyDungeonBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	if profile.Dungeons == nil {
 		return
 	}
-	
+
 	// Catacombs 레벨 보너스
 	if profile.Dungeons.Catacombs.Level > 0 {
 		for _, bonus := range cfg.CatacombsBonuses {
 			if bonus.Level <= profile.Dungeons.Catacombs.Level {
 				for stat, value := range bonus.Stats {
-					stats[stat] += value
+					ctx.Add(stat, fmt.Sprintf("Catacombs Level %d", bonus.Level), value)
 				}
 			}
 		}
 	}
-	
+
 	// 클래스 레벨 보너스 (가장 높은 클래스 적용)
 	highestClass := ""
 	highestLevel := 0
@@ -216,13 +268,13 @@ func applyDungeonBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg
 			highestLevel = classData.Level
 		}
 	}
-	
+
 	if highestLevel > 0 && highestClass != "" {
 		if classBonuses, ok := cfg.ClassBonuses[highestClass]; ok {
 			for _, bonus := range classBonuses {
 				if bonus.Level <= highestLevel {
 					for stat, value := range bonus.Stats {
-						stats[stat] += value
+						ctx.Add(stat, fmt.Sprintf("Dungeon Class: %s Level %d", highestClass, bonus.Level), value)
 					}
 				}
 			}
@@ -230,7 +282,7 @@ func applyDungeonBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg
 	}
 }
 
-func applyLevelBonuses(stats model.StatBlock, key string, level int, bonuses map[string][]data.LevelBonus) {
+func applyLevelBonuses(ctx *Context, key string, level int, bonuses map[string][]data.LevelBonus, sourcePrefix string) {
 	steps, ok := bonuses[key]
 	if !ok || len(steps) == 0 {
 		return
@@ -245,13 +297,13 @@ func applyLevelBonuses(stats model.StatBlock, key string, level int, bonuses map
 			continue
 		}
 		for stat, value := range steps[idx].Stats {
-			stats[stat] += value
+			ctx.Add(stat, sourcePrefix, value)
 		}
 	}
 }
 
 // applyEquipmentBonuses는 장비(방어구) 스탯을 계산합니다.
-func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64, profile model.PlayerProfile, cfg data.Config) {
+func applyEquipmentBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	items := []*model.Item{
 		profile.Equipment.Helmet,
 		profile.Equipment.Chestplate,
@@ -259,14 +311,16 @@ func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64
 		profile.Equipment.Boots,
 		profile.Equipment.Weapon, // 무기 추가
 	}
-	
+
 	armorCount := make(map[string]int)
-	
+
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
-		
+
+		itemName := item.ID
+
 		// 기본 아이템 스탯
 		itemStats, ok := cfg.ArmorStats[item.ID]
 		if !ok {
@@ -281,10 +335,10 @@ func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64
 			}
 
 			for stat, value := range itemStats {
-				stats[stat] += value * starMultiplier
+				ctx.Add(stat, fmt.Sprintf("Item: %s", itemName), value*starMultiplier)
 			}
 		}
-		
+
 		// 리포지 스탯 (레어리티 고려)
 		if item.Reforge != "" {
 			if reforgeData, ok := cfg.Reforges[item.Reforge]; ok {
@@ -295,12 +349,12 @@ func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64
 				}
 				if reforgeStats, ok := reforgeData[rarity]; ok {
 					for stat, value := range reforgeStats {
-						stats[stat] += value
+						ctx.Add(stat, fmt.Sprintf("Reforge: %s on %s", item.Reforge, itemName), value)
 					}
 				}
 			}
 		}
-		
+
 		// 젬 스탯 (품질 및 레어리티 고려)
 		for _, gem := range item.Gems {
 			if gemData, ok := cfg.Gems[gem.Type]; ok {
@@ -314,63 +368,63 @@ func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64
 						rarity = "COMMON"
 					}
 					if val, ok := qualityData.Values[rarity]; ok {
-						stats[qualityData.Stat] += val
+						ctx.Add(qualityData.Stat, fmt.Sprintf("Gem: %s (%s) on %s", gem.Type, quality, itemName), val)
 					}
 				}
 			}
 		}
-		
+
 		// 인챈트 스탯
 		for enchantName, enchantLevel := range item.Enchants {
 			if enchantData, ok := cfg.Enchants[enchantName]; ok {
 				for stat, valuePerLevel := range enchantData.PerLevel {
-					stats[stat] += valuePerLevel * float64(enchantLevel)
+					ctx.Add(stat, fmt.Sprintf("Enchant: %s %d on %s", enchantName, enchantLevel, itemName), valuePerLevel*float64(enchantLevel))
 				}
 			}
 		}
-		
+
 		// Hot Potato Books (Armor)
 		if item.HotPotatoCount > 0 {
 			hpbBonus := float64(item.HotPotatoCount) * 2.0
-			stats["health"] += hpbBonus
-			stats["defense"] += hpbBonus
+			ctx.Add("health", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
+			ctx.Add("defense", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
 		}
 
 		// Attributes (Crimson Isle)
 		if item.ExtraAttributes != nil {
 			if attrs, ok := item.ExtraAttributes["attributes"].(map[string]any); ok {
-				applyAttributeBonuses(stats, attrs, cfg)
+				applyAttributeBonuses(ctx, attrs, cfg, itemName)
 			}
-			
+
 			// Art of War (+5 Strength)
 			if aow, ok := item.ExtraAttributes["art_of_war_count"].(float64); ok && aow > 0 {
-				stats["strength"] += 5 * aow
+				ctx.Add("strength", fmt.Sprintf("Art of War on %s", itemName), 5*aow)
 			}
-			
+
 			// Etherwarp Conduit (+180 Intelligence)
 			if merged, ok := item.ExtraAttributes["ethermerge"].(bool); ok && merged {
-				stats["intelligence"] += 180
+				ctx.Add("intelligence", fmt.Sprintf("Etherwarp on %s", itemName), 180)
 			}
 		}
-		
+
 		// 세트 보너스 감지
 		setName := detectArmorSet(item.ID)
 		if setName != "" {
 			armorCount[setName]++
 		}
 	}
-	
+
 	// 세트 보너스 적용
 	for setName, count := range armorCount {
 		if setData, ok := cfg.ArmorSets[setName]; ok {
 			if count >= setData.RequiredPieces {
 				// Additive bonuses
 				for stat, value := range setData.SetBonus {
-					stats[stat] += value
+					ctx.Add(stat, fmt.Sprintf("Set Bonus: %s", setName), value)
 				}
 				// Multiplicative bonuses
 				for stat, value := range setData.SetBonusMultiplier {
-					multipliers[stat] += value
+					ctx.AddMultiplier(stat, fmt.Sprintf("Set Bonus: %s", setName), value)
 				}
 			}
 		}
@@ -384,17 +438,17 @@ func detectArmorSet(itemID string) string {
 		"_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS",
 		"_CP", "_PANTS", // 일부 아이템의 다른 명명
 	}
-	
+
 	for _, suffix := range parts {
 		if len(itemID) > len(suffix) && itemID[len(itemID)-len(suffix):] == suffix {
 			return itemID[:len(itemID)-len(suffix)]
 		}
 	}
-	
+
 	return ""
 }
 
-func applyAttributeBonuses(stats model.StatBlock, attributes map[string]any, cfg data.Config) {
+func applyAttributeBonuses(ctx *Context, attributes map[string]any, cfg data.Config, itemName string) {
 	for name, levelVal := range attributes {
 		level := 0
 		switch v := levelVal.(type) {
@@ -410,24 +464,24 @@ func applyAttributeBonuses(stats model.StatBlock, attributes map[string]any, cfg
 
 		if attrData, ok := cfg.Attributes[name]; ok {
 			for stat, valPerLevel := range attrData.PerLevel {
-				stats[stat] += valPerLevel * float64(level)
+				ctx.Add(stat, fmt.Sprintf("Attribute: %s %d on %s", name, level, itemName), valPerLevel*float64(level))
 			}
 		}
 	}
 }
 
 // applyAccessoryBonuses는 악세서리 스탯을 계산합니다.
-func applyAccessoryBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
+func applyAccessoryBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	totalMagicalPower := 0.0
-	
+
 	for _, acc := range profile.Accessories {
 		// 기본 악세서리 스탯
 		if accStats, ok := cfg.Accessories[acc.ID]; ok {
 			for stat, value := range accStats {
-				stats[stat] += value
+				ctx.Add(stat, fmt.Sprintf("Accessory: %s", acc.ID), value)
 			}
 		}
-		
+
 		// 리포지 스탯
 		if acc.Reforge != "" {
 			if reforgeData, ok := cfg.Reforges[acc.Reforge]; ok {
@@ -437,21 +491,21 @@ func applyAccessoryBonuses(stats model.StatBlock, profile model.PlayerProfile, c
 				}
 				if reforgeStats, ok := reforgeData[rarity]; ok {
 					for stat, value := range reforgeStats {
-						stats[stat] += value
+						ctx.Add(stat, fmt.Sprintf("Reforge: %s on %s", acc.Reforge, acc.ID), value)
 					}
 				}
 			}
 		}
-		
+
 		// 강화(Enrichment) 스탯
 		if acc.Enrichment != "" {
 			if enrichStats, ok := cfg.Enrichments[acc.Enrichment]; ok {
 				for stat, value := range enrichStats {
-					stats[stat] += value
+					ctx.Add(stat, fmt.Sprintf("Enrichment: %s on %s", acc.Enrichment, acc.ID), value)
 				}
 			}
 		}
-		
+
 		// Magical Power 계산
 		rarity := acc.Rarity
 		if rarity == "" {
@@ -465,7 +519,7 @@ func applyAccessoryBonuses(stats model.StatBlock, profile model.PlayerProfile, c
 				mp += math.Floor(contacts / 2.0)
 			}
 		}
-		
+
 		// Hegemony Artifact (Double MP)
 		if acc.ID == "HEGEMONY_ARTIFACT" {
 			mp *= 2
@@ -473,9 +527,9 @@ func applyAccessoryBonuses(stats model.StatBlock, profile model.PlayerProfile, c
 
 		totalMagicalPower += mp
 	}
-	
+
 	// Magical Power 티어 보너스 적용 (Selected Power)
-	applyPowerBonuses(stats, totalMagicalPower, profile.SelectedPower, cfg)
+	applyPowerBonuses(ctx, totalMagicalPower, profile.SelectedPower, cfg)
 }
 
 // getMagicalPowerForRarity는 레어리티별 Magical Power 값을 반환합니다.
@@ -503,7 +557,7 @@ func getMagicalPowerForRarity(rarity string) float64 {
 }
 
 // applyPowerBonuses applies stats based on Magical Power and Selected Power.
-func applyPowerBonuses(stats model.StatBlock, totalMP float64, selectedPower string, cfg data.Config) {
+func applyPowerBonuses(ctx *Context, totalMP float64, selectedPower string, cfg data.Config) {
 	if selectedPower == "" {
 		return
 	}
@@ -529,12 +583,12 @@ func applyPowerBonuses(stats model.StatBlock, totalMP float64, selectedPower str
 
 		// Final Value = (BasePower / 100) * StatMultiplier * mpMultiplier
 		finalValue := (baseValue / 100.0) * statMultiplier * mpMultiplier
-		stats[stat] += finalValue
+		ctx.Add(stat, fmt.Sprintf("Power: %s (MP: %.0f)", selectedPower, totalMP), finalValue)
 	}
 }
 
 // applyPetBonuses는 활성화된 펫의 스탯을 계산합니다.
-func applyPetBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
+func applyPetBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	var activePet *model.Pet
 	for i := range profile.Pets {
 		if profile.Pets[i].Active {
@@ -542,76 +596,76 @@ func applyPetBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg dat
 			break
 		}
 	}
-	
+
 	if activePet == nil {
 		return
 	}
-	
+
 	petData, ok := cfg.Pets[activePet.Type]
 	if !ok {
 		return
 	}
-	
+
 	tierData, ok := petData[activePet.Tier]
 	if !ok {
 		return
 	}
-	
+
 	// 레벨당 스탯
 	for stat, valuePerLevel := range tierData.PerLevel {
-		stats[stat] += valuePerLevel * float64(activePet.Level)
+		ctx.Add(stat, fmt.Sprintf("Pet: %s (Lvl %d)", activePet.Type, activePet.Level), valuePerLevel*float64(activePet.Level))
 	}
-	
+
 	// 최대 레벨 보너스 (레벨 100 가정)
 	if activePet.Level >= 100 {
 		for stat, value := range tierData.MaxLevelBonus {
-			stats[stat] += value
+			ctx.Add(stat, fmt.Sprintf("Pet: %s (Max Level)", activePet.Type), value)
 		}
 	}
-	
+
 	// 펫 아이템 스탯
 	if activePet.HeldItem != "" {
 		if petItemStats, ok := cfg.PetItems[activePet.HeldItem]; ok {
 			for stat, value := range petItemStats {
-				stats[stat] += value
+				ctx.Add(stat, fmt.Sprintf("Pet Item: %s", activePet.HeldItem), value)
 			}
 		}
 	}
 }
 
 // applyHOTMBonuses는 Heart of the Mountain 스탯을 계산합니다.
-func applyHOTMBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
+func applyHOTMBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config) {
 	if profile.HOTM == nil {
 		return
 	}
-	
+
 	// 티어 보너스
 	for _, tierData := range cfg.HOTMTiers {
 		if tierData.Tier <= profile.HOTM.Tier {
 			for stat, value := range tierData.Stats {
-				stats[stat] += value
+				ctx.Add(stat, fmt.Sprintf("HOTM Tier %d", tierData.Tier), value)
 			}
 		}
 	}
-	
+
 	// 퍽 보너스
 	for perkName, perkLevel := range profile.HOTM.Perks {
 		perkData, ok := cfg.HOTMPerks[perkName]
 		if !ok || perkLevel <= 0 {
 			continue
 		}
-		
+
 		// per_level 타입 퍽
 		if len(perkData.PerLevel) > 0 {
 			for stat, valuePerLevel := range perkData.PerLevel {
-				stats[stat] += valuePerLevel * float64(perkLevel)
+				ctx.Add(stat, fmt.Sprintf("HOTM Perk: %s (Lvl %d)", perkName, perkLevel), valuePerLevel*float64(perkLevel))
 			}
 		}
-		
+
 		// 고정 스탯 퍽 (레벨 1만 되면 적용)
 		if len(perkData.Stats) > 0 {
 			for stat, value := range perkData.Stats {
-				stats[stat] += value
+				ctx.Add(stat, fmt.Sprintf("HOTM Perk: %s", perkName), value)
 			}
 		}
 	}

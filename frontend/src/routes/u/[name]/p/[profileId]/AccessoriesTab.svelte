@@ -336,15 +336,15 @@
       <div class="missing-head">
         <div>
           <h3>Missing Accessories</h3>
-          <p class="muted">Pulled from the Hypixel catalog. Upgrade chains are not merged.</p>
+          <p class="muted">Pulled from the Hypixel catalog. Highest missing tier per chain is shown.</p>
         </div>
         <div class="pill">
-          {formatNumber(missingAccessories.length, 0)}
-          {#if missingTotal}
+          {formatNumber(accessories.magical_power ?? 0, 0)}
+          {#if accessories.magical_power_max}
             <span aria-hidden="true" class="divider">/</span>
-            {formatNumber(missingTotal, 0)}
+            {formatNumber(accessories.magical_power_max, 0)}
           {/if}
-          <span class="pill-label">missing</span>
+          <span class="pill-label">MP</span>
         </div>
       </div>
 
@@ -362,15 +362,19 @@
 
         <div class="missing-grid">
           {#each missingPreview as missingItem}
-            {@const iconSrc =
+            {@const iconSrcRaw =
               missingItem.icon_variants?.[$texturePackStore] ??
               missingItem.icon_variants?.furfsky ??
               missingItem.icon_variants?.vanilla ??
               missingItem.icon_url ??
               null}
+            {@const isFallbackIcon =
+              iconSrcRaw?.includes('/block/stone') || iconSrcRaw?.includes('/item/barrier')}
+            {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
+            {@const isBlockIcon = iconSrc?.includes('/block/')}
             <div class="missing-chip">
               <div class="row top">
-                <div class="missing-icon">
+                <div class="missing-icon {isBlockIcon ? 'isometric' : ''}">
                   {#if iconSrc}
                     <img src={iconSrc} alt="" loading="lazy" width="32" height="32" />
                   {:else}
@@ -820,12 +824,19 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    perspective: 400px;
   }
 
   .missing-icon img {
     width: 32px;
     height: 32px;
     object-fit: contain;
+  }
+
+  .missing-icon.isometric img {
+    transform: rotateX(55deg) rotateZ(45deg) scale(1.1);
+    transform-origin: 50% 50%;
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.35);
   }
 
   .missing-icon .initial {

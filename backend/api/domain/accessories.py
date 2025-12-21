@@ -13,7 +13,6 @@ from .item_textures import (
     TEXTURE_PACKS,
     get_item_resource,
     resolve_item_icon_variants,
-    resolve_item_icon_variants,
 )
 from .wardrobe import (
     _component_to_plain,
@@ -109,8 +108,13 @@ ACCESSORY_UPGRADES: List[List[str]] = [
     ["BLOOD_DONOR_TALISMAN", "BLOOD_DONOR_RING", "BLOOD_DONOR_ARTIFACT"],
     ["LUSH_TALISMAN", "LUSH_RING", "LUSH_ARTIFACT"],
     ["ANITA_TALISMAN", "ANITA_RING", "ANITA_ARTIFACT"],
+    ["PESTHUNTER_BADGE", "PESTHUNTER_RING", "PESTHUNTER_ARTIFACT"],
     # Seasonal chocolate upgrades (single chain)
-    ["SMOOTH_CHOCOLATE_BAR", "RICH_CHOCOLATE_CHUNK", "GANACHE_CHOCOLATE_SLAB", "SUPREME_CHOCOLATE_BAR", "PRESTIGE_CHOCOLATE_REALM"],
+    ["NIBBLE_CHOCOLATE_STICK", "SMOOTH_CHOCOLATE_BAR", "RICH_CHOCOLATE_CHUNK", "GANACHE_CHOCOLATE_SLAB", "PRESTIGE_CHOCOLATE_REALM"],
+    ["COIN_TALISMAN", "RING_OF_COINS", "ARTIFACT_OF_COINS", "RELIC_OF_COINS"],
+    ["SCAVENGER_TALISMAN", "SCAVENGER_RING", "SCAVENGER_ARTIFACT"],
+    ["EMERALD_RING", "EMERALD_ARTIFACT"],
+    ["MINERAL_TALISMAN", "GLOSSY_MINERAL_TALISMAN"],
     # Aquarium bowls
     ["SMALL_FISH_BOWL", "MEDIUM_FISH_BOWL", "LARGE_FISH_BOWL", "MINI_FISH_BOWL"],
     # Anguish line
@@ -126,6 +130,47 @@ EXCLUDED_CHAIN_IDS: Set[str] = {
     "PIGGY_BANK",
     "CRACKED_PIGGY_BANK",
     "BROKEN_PIGGY_BANK",
+}
+
+ACCESSORY_ALIASES: Dict[str, List[str]] = {
+    "WEDDING_RING_0": ["WEDDING_RING_1"],
+    "WEDDING_RING_2": ["WEDDING_RING_3"],
+    "WEDDING_RING_4": ["WEDDING_RING_5", "WEDDING_RING_6"],
+    "WEDDING_RING_7": ["WEDDING_RING_8"],
+    "CAMPFIRE_TALISMAN_1": ["CAMPFIRE_TALISMAN_2", "CAMPFIRE_TALISMAN_3"],
+    "CAMPFIRE_TALISMAN_4": ["CAMPFIRE_TALISMAN_5", "CAMPFIRE_TALISMAN_6", "CAMPFIRE_TALISMAN_7"],
+    "CAMPFIRE_TALISMAN_8": [
+        "CAMPFIRE_TALISMAN_9",
+        "CAMPFIRE_TALISMAN_10",
+        "CAMPFIRE_TALISMAN_11",
+        "CAMPFIRE_TALISMAN_12",
+    ],
+    "CAMPFIRE_TALISMAN_13": [
+        "CAMPFIRE_TALISMAN_14",
+        "CAMPFIRE_TALISMAN_15",
+        "CAMPFIRE_TALISMAN_16",
+        "CAMPFIRE_TALISMAN_17",
+        "CAMPFIRE_TALISMAN_18",
+        "CAMPFIRE_TALISMAN_19",
+        "CAMPFIRE_TALISMAN_20",
+    ],
+    "CAMPFIRE_TALISMAN_21": [
+        "CAMPFIRE_TALISMAN_22",
+        "CAMPFIRE_TALISMAN_23",
+        "CAMPFIRE_TALISMAN_24",
+        "CAMPFIRE_TALISMAN_25",
+        "CAMPFIRE_TALISMAN_26",
+        "CAMPFIRE_TALISMAN_27",
+        "CAMPFIRE_TALISMAN_28",
+        "CAMPFIRE_TALISMAN_29",
+    ],
+    "PARTY_HAT_CRAB": ["PARTY_HAT_CRAB_ANIMATED", "PARTY_HAT_SLOTH", "BALLOON_HAT_2024"],
+    "PIGGY_BANK": ["BROKEN_PIGGY_BANK", "CRACKED_PIGGY_BANK"],
+    "DANTE_TALISMAN": ["DANTE_RING"],
+}
+
+ACCESSORY_ALIAS_TO_CANONICAL = {
+    alias: canonical for canonical, aliases in ACCESSORY_ALIASES.items() for alias in aliases
 }
 
 RARITY_ORDER = (
@@ -157,6 +202,9 @@ MAGICAL_POWER_BY_RARITY = {
     "VERY SPECIAL": 5,
     "SUPREME": 22,
 }
+
+# Known theoretical max MP as of current accessory catalog.
+MAGICAL_POWER_MAX_OVERRIDE = 1935
 
 DOUBLE_MAGICAL_POWER_IDS = {
     "HEGEMONY_ARTIFACT",
@@ -302,6 +350,13 @@ def _normalize_rarity(rarity: Optional[str]) -> Optional[str]:
     return " ".join(segment for segment in normalized.upper().split())
 
 
+def _normalize_accessory_id(item_id: Optional[str]) -> Optional[str]:
+    if not item_id:
+        return None
+    normalized = str(item_id).upper()
+    return ACCESSORY_ALIAS_TO_CANONICAL.get(normalized, normalized)
+
+
 def _load_accessory_catalog() -> List[Dict[str, Any]]:
     """
     Fetch and cache the Hypixel accessory catalog. Only minimal fields are kept to
@@ -331,11 +386,16 @@ def _load_accessory_catalog() -> List[Dict[str, Any]]:
         item_id = item.get("id")
         if not item_id:
             continue
+        normalized_id = _normalize_accessory_id(item_id)
+        if not normalized_id:
+            continue
+        if normalized_id != str(item_id).upper():
+            continue
         name = item.get("name") or str(item_id).replace("_", " ").title()
         tier = _normalize_rarity(item.get("tier"))
         catalog.append(
             {
-                "id": str(item_id).upper(),
+                "id": normalized_id,
                 "name": name,
                 "tier": tier,
             }
@@ -361,8 +421,9 @@ def _compute_missing_accessories(accessories: List[Dict[str, Any]]) -> Tuple[Lis
     for accessory in accessories:
         for key in ("id", "mc_id"):
             raw = accessory.get(key)
-            if raw:
-                owned_ids.add(str(raw).upper())
+            normalized = _normalize_accessory_id(raw)
+            if normalized:
+                owned_ids.add(normalized)
 
     missing = [item for item in catalog if item["id"].upper() not in owned_ids]
     missing.sort(
@@ -410,7 +471,7 @@ def _collapse_missing_by_chain(
     If a higher tier is owned, lower tiers are dropped.
     """
     upgrade_index = _build_upgrade_index()
-    missing_map = {str(item.get("id") or "").upper(): item for item in missing}
+    missing_map = {_normalize_accessory_id(item.get("id")) or str(item.get("id") or "").upper(): item for item in missing}
     chains_seen: Set[Tuple[str, ...]] = set()
     output: List[Dict[str, Any]] = []
 
@@ -477,6 +538,42 @@ def _build_upgrade_index() -> Dict[str, List[str]]:
     return index
 
 
+def _compute_max_magical_power() -> int:
+    """
+    Computes the theoretical maximum Magical Power based on the accessory catalog and upgrade chains.
+    """
+    if MAGICAL_POWER_MAX_OVERRIDE:
+        return MAGICAL_POWER_MAX_OVERRIDE
+
+    catalog = _load_accessory_catalog()
+    if not catalog:
+        return 0
+
+    catalog_map = {str(item.get("id") or "").upper(): item for item in catalog}
+    upgrade_index = _build_upgrade_index()
+
+    highest_chain_ids: Set[str] = set()
+    for chain in ACCESSORY_UPGRADES:
+        for cid in reversed(chain):
+            cid_upper = cid.upper()
+            if cid_upper in catalog_map:
+                highest_chain_ids.add(cid_upper)
+                break
+
+    total = 0
+    for item_id, item in catalog_map.items():
+        if not item_id:
+            continue
+        if item_id in highest_chain_ids:
+            total += _magical_power_for_item(item_id, item.get("tier"))
+            continue
+        if item_id in upgrade_index:
+            continue
+        total += _magical_power_for_item(item_id, item.get("tier"))
+
+    return total
+
+
 def _classify_missing_accessories(
     missing: List[Dict[str, Any]],
     owned_ids: Set[str],
@@ -492,7 +589,7 @@ def _classify_missing_accessories(
     for item in missing:
         item_id = item.get("id") or ""
         rarity = item.get("tier")
-        base_id = str(item_id).upper()
+        base_id = _normalize_accessory_id(item_id) or str(item_id).upper()
         chain = None if base_id in EXCLUDED_CHAIN_IDS else upgrade_index.get(base_id)
 
         category = "new"
@@ -750,6 +847,7 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
     # Use the most generous value provided (server authoritative numbers can include buffs or dungeon doubling).
     magical_power = max(storage_magical_power, bag_magical_power, calculated_magical_power, storage_highest_mp, bag_highest_mp)
     highest_magical_power = max(storage_highest_mp, bag_highest_mp, magical_power)
+    magical_power_max = _compute_max_magical_power()
 
     selected_power = _format_identifier(storage.get("selected_power") if isinstance(storage, dict) else None)
 
@@ -766,7 +864,6 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
     missing, missing_total, _ = _compute_missing_accessories(items)
     # Drop lower tiers if higher tiers are already owned, for both missing display and recommendations
     missing = _collapse_missing_by_chain(missing, owned_ids)
-    missing_total = len(missing)
     missing_enriched, missing_count = _classify_missing_accessories(missing, set(owned_ids))
 
     return {
@@ -777,6 +874,7 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
         "selected_power": selected_power,
         "selected_power_label": _titleize_identifier(selected_power),
         "magical_power": magical_power,
+        "magical_power_max": magical_power_max,
         "highest_magical_power": highest_magical_power,
         "tuning": tuning,
         "unlocked_powers": unlocked_powers,

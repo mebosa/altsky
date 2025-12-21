@@ -32,7 +32,4 @@ def calculate_stats(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         LOGGER.warning("Stats calc response is not JSON")
         return None
 
-    stats = body.get("stats")
-    if isinstance(stats, dict):
-        return stats
-    return None
+    return body

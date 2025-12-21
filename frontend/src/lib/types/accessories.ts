@@ -35,6 +35,7 @@ export type AccessorySummary = {
   selected_power?: string | null;
   selected_power_label?: string | null;
   magical_power: number;
+  magical_power_max?: number;
   highest_magical_power: number;
   tuning: Record<string, number>;
   unlocked_powers: string[];

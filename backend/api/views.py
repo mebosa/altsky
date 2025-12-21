@@ -400,10 +400,14 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     # skip_stats 파라미터 확인
     skip_stats = _is_truthy(request.query_params.get('skip_stats'))
     
+    stat_breakdown = None
     if not skip_stats:
         stats_payload = _build_statscalc_payload(summary, normalized_member_uuid, profile_id, member_data)
         if stats_payload:
-            computed_stats = statscalc_client.calculate_stats(stats_payload)
+            calc_result = statscalc_client.calculate_stats(stats_payload)
+            if calc_result:
+                computed_stats = calc_result.get('stats')
+                stat_breakdown = calc_result.get('breakdown')
 
     response_body = {
         'ok': True,
@@ -412,6 +416,8 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     }
     if computed_stats:
         response_body['computed_stats'] = computed_stats
+    if stat_breakdown:
+        response_body['stat_breakdown'] = stat_breakdown
 
     return Response(response_body)
 

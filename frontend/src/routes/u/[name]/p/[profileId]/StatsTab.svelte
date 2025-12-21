@@ -3,8 +3,17 @@
   import type { ProfileSummaryResponse } from './profileTypes';
 
   export let summary: ProfileSummaryResponse;
-  $: computed = summary.computed_stats || null;
+  $: computed = summary.computed_stats?.stats || null;
+  $: breakdown = summary.computed_stats?.breakdown || {};
   export let statLabels: Record<string, string>;
+
+  let expandedStat: string | null = null;
+
+  function toggleBreakdown(key: string) {
+    if (breakdown && breakdown[key]) {
+      expandedStat = expandedStat === key ? null : key;
+    }
+  }
 
   const primaryStatOrder = [
     'speed',
@@ -164,7 +173,16 @@
     <div class="stat-panel-body">
       {#each primaryStatOrder as key}
         {@const diff = getDifference(key)}
-        <div class="stat-row" data-stat={key}>
+        {@const hasBreakdown = !!breakdown[key]}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div 
+          class="stat-row" 
+          data-stat={key} 
+          class:clickable={hasBreakdown}
+          class:expanded={expandedStat === key}
+          on:click={() => toggleBreakdown(key)}
+        >
           <span class="stat-row-label">{getStatLabel(key)}</span>
           <span class="stat-row-value">{formatStatValue(key, getStatValue(key))}</span>
           {#if computed?.[key] !== undefined}
@@ -178,7 +196,28 @@
               {/if}
             </span>
           {/if}
+          {#if hasBreakdown}
+            <span class="expand-icon">{expandedStat === key ? '▼' : '▶'}</span>
+          {/if}
         </div>
+        {#if expandedStat === key && hasBreakdown}
+          <div class="breakdown-container">
+            <div class="breakdown-row base">
+              <span class="source">Base Stats</span>
+              <span class="value">{formatStatValue(key, breakdown[key].base)}</span>
+            </div>
+            {#each breakdown[key].bonuses as bonus}
+              <div class="breakdown-row">
+                <span class="source">{bonus.source}</span>
+                <span class="value">+{formatStatValue(key, bonus.value)}</span>
+              </div>
+            {/each}
+            <div class="breakdown-row total">
+              <span class="source">Total Calculated</span>
+              <span class="value">{formatStatValue(key, breakdown[key].total)}</span>
+            </div>
+          </div>
+        {/if}
       {/each}
       <p class="stat-panel-foot">Also accessible via /stats</p>
     </div>
@@ -480,5 +519,59 @@
   .essence-grid .value {
     font-weight: 600;
     color: var(--theme-text-primary);
+  }
+
+  .stat-row.clickable {
+    cursor: pointer;
+  }
+  
+  .stat-row.clickable:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .expand-icon {
+    margin-left: auto;
+    color: var(--theme-text-soft);
+    font-size: 0.8rem;
+  }
+
+  .breakdown-container {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 16px;
+    border-radius: 0 0 8px 8px;
+    margin-top: -1px;
+    margin-bottom: 8px;
+    border: 1px solid var(--theme-surface-border);
+    border-top: none;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.9rem;
+    color: var(--theme-text-secondary);
+  }
+
+  .breakdown-row.base {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 4px;
+    padding-bottom: 8px;
+  }
+
+  .breakdown-row.total {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 4px;
+    padding-top: 8px;
+    font-weight: bold;
+    color: var(--theme-text-primary);
+  }
+
+  .breakdown-row .source {
+    flex: 1;
+  }
+
+  .breakdown-row .value {
+    font-family: monospace;
   }
 </style>

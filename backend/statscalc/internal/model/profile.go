@@ -103,3 +103,26 @@ type Powder struct {
 
 // StatBlock은 계산 결과.
 type StatBlock map[string]float64
+
+// Bonus는 스탯 보너스 출처와 값
+type Bonus struct {
+	Source string  `json:"source"`
+	Value  float64 `json:"value"`
+}
+
+// StatDetail은 단일 스탯의 상세 내역
+type StatDetail struct {
+	Total   float64 `json:"total"`
+	Base    float64 `json:"base"`
+	Bonuses []Bonus `json:"bonuses"`
+}
+
+// StatBreakdown은 모든 스탯의 상세 내역
+type StatBreakdown map[string]*StatDetail
+
+// CalculationResult는 최종 계산 결과 (스탯 + 내역)
+type CalculationResult struct {
+	Stats     StatBlock     `json:"stats"`
+	Breakdown StatBreakdown `json:"breakdown"`
+}
+

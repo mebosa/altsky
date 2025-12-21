@@ -95,7 +95,14 @@ export type ProfileSummaryResponse = {
     >;
   };
   stats: Record<string, number>;
-  computed_stats?: Record<string, number>;
+  computed_stats?: {
+    stats: Record<string, number>;
+    breakdown: Record<string, {
+      total: number;
+      base: number;
+      bonuses: { source: string; value: number }[];
+    }>;
+  };
   currencies: {
     purse: number;
     bank: {
@@ -132,6 +139,7 @@ export type AccessorySummary = {
   selected_power?: string | null;
   selected_power_label?: string | null;
   magical_power: number;
+  magical_power_max?: number;
   highest_magical_power: number;
   tuning: Record<string, number>;
   unlocked_powers: string[];

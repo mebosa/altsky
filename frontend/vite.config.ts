@@ -7,7 +7,7 @@ export default defineConfig({
 		// Allow cloudflared or other reverse proxies to reach the dev server
 		host: true,
 		port: Number(process.env.VITE_DEV_PORT ?? 5173),
-		allowedHosts: ['localhost', '127.0.0.1', '.trycloudflare.com', '.ngrok-free.dev', '.ngrok-free.app'],
+		allowedHosts: ['localhost', '127.0.0.1', 'altsky.info', 'www.altsky.info', '.trycloudflare.com', '.ngrok-free.dev', '.ngrok-free.app', 'frontend'],
 		proxy: {
 			'/api': {
 				target: 'http://localhost:8000',
