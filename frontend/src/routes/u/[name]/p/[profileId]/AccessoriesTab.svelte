@@ -72,11 +72,6 @@
       .join(' ');
   }
 
-  function normalizeRarity(value?: string | null) {
-    const normalized = normalizeIdentifier(value);
-    return normalized ? normalized.toUpperCase() : '';
-  }
-
   function raritySortKey(value?: string | null) {
     const key = normalizeRarity(value);
     return rarityPriority.get(key) ?? rarityPriority.size + 1;
@@ -130,13 +125,38 @@
   $: uniqueCount = accessories?.unique_count ?? sortedItems.length;
   $: missingAccessories = accessories?.missing ?? [];
   $: missingTotal = accessories?.missing_total ?? missingAccessories.length + sortedItems.length;
+  $: recommendations = accessories?.missing_recommendations ?? [];
+
   const MISSING_PREVIEW_LIMIT = 24;
-  $: missingPreview = missingAccessories.slice(0, MISSING_PREVIEW_LIMIT);
-  $: missingByRarity = missingAccessories.reduce<Map<string, number>>((acc, item) => {
+  const RECOMMENDATION_LIMIT = 8;
+  let showAllMissing = false;
+
+  $: missingDisplayList = (() => {
+    const source = recommendations.length ? recommendations : missingAccessories;
+    const withRatio = source.map((item) => {
+      const buy = item.upgrade_buy_price ?? item.price ?? 0;
+      const sell = item.upgrade_sell_price ?? 0;
+      const cost = Math.max(0, buy - sell);
+      const mpGain = item.upgrade_mp_gain ?? item.magical_power ?? 0;
+      const mp_per_coin = cost > 0 && mpGain > 0 ? mpGain / cost : null;
+      return { ...item, mp_per_coin, effective_cost: cost, mp_gain: mpGain };
+    });
+    return withRatio.sort((a, b) => {
+      const aHas = a.mp_per_coin !== null && a.mp_per_coin !== undefined && a.mp_per_coin > 0;
+      const bHas = b.mp_per_coin !== null && b.mp_per_coin !== undefined && b.mp_per_coin > 0;
+      if (aHas && bHas) return (b.mp_per_coin ?? 0) - (a.mp_per_coin ?? 0);
+      if (aHas) return -1;
+      if (bHas) return 1;
+      return 0;
+    });
+  })();
+  $: missingPreview = showAllMissing ? missingDisplayList : missingDisplayList.slice(0, MISSING_PREVIEW_LIMIT);
+  $: missingByRarity = missingDisplayList.reduce<Map<string, number>>((acc, item) => {
     const key = normalizeRarity(item.tier) || 'UNKNOWN';
     acc.set(key, (acc.get(key) ?? 0) + 1);
     return acc;
   }, new Map());
+  $: topRecommendations = recommendations.slice(0, RECOMMENDATION_LIMIT);
 </script>
 
 <section id="accessories" class="accessories-section">
@@ -342,19 +362,60 @@
 
         <div class="missing-grid">
           {#each missingPreview as missingItem}
+            {@const iconSrc =
+              missingItem.icon_variants?.[$texturePackStore] ??
+              missingItem.icon_variants?.furfsky ??
+              missingItem.icon_variants?.vanilla ??
+              missingItem.icon_url ??
+              null}
             <div class="missing-chip">
-              <span class="name">{missingItem.name ?? missingItem.id}</span>
-              <span class="rarity">{rarityLabel(missingItem.tier) ?? 'Unknown'}</span>
+              <div class="row top">
+                <div class="missing-icon">
+                  {#if iconSrc}
+                    <img src={iconSrc} alt="" loading="lazy" width="32" height="32" />
+                  {:else}
+                    <span class="initial">{(missingItem.name ?? missingItem.id).slice(0, 1)}</span>
+                  {/if}
+                </div>
+                <div class="missing-text">
+                  <span class="name">{missingItem.name ?? missingItem.id}</span>
+                  <span class="rarity">{rarityLabel(missingItem.tier) ?? 'Unknown'}</span>
+                </div>
+              </div>
+              <div class="row meta">
+                {#if missingItem.category}
+                  <span class="pill small">{missingItem.category}</span>
+                {/if}
+                {#if missingItem.category === 'upgrade' && missingItem.upgrade_sell_price !== null}
+                  <span class="price">
+                    Sell current: {formatNumber(missingItem.upgrade_sell_price ?? 0, 0)} coins
+                  </span>
+                {/if}
+                <span class="price">
+                  Buy target: {missingItem.upgrade_buy_price || missingItem.price ? formatNumber(missingItem.upgrade_buy_price ?? missingItem.price ?? 0, 0) : 'n/a'} coins
+                </span>
+                {#if missingItem.mp_gain}
+                  <span class="ppm">{formatNumber(missingItem.mp_gain, 0)} MP gain</span>
+                {:else if missingItem.magical_power}
+                  <span class="ppm">{formatNumber(missingItem.magical_power, 0)} MP</span>
+                {/if}
+              </div>
             </div>
           {/each}
         </div>
-        {#if missingAccessories.length > missingPreview.length}
-          <p class="muted more-note">
-            Showing first {missingPreview.length} of {missingAccessories.length} missing accessories.
-          </p>
+        {#if missingDisplayList.length > MISSING_PREVIEW_LIMIT}
+          {#if !showAllMissing}
+            <p class="muted more-note">
+              Showing first {missingPreview.length} of {missingDisplayList.length} missing accessories.
+            </p>
+            <button class="pill toggle" type="button" on:click={() => (showAllMissing = true)}>Show all</button>
+          {:else}
+            <button class="pill toggle" type="button" on:click={() => (showAllMissing = false)}>Show less</button>
+          {/if}
         {/if}
       {/if}
     </div>
+
   {/if}
 </section>
 
@@ -697,9 +758,8 @@
     border: 1px solid var(--theme-surface-border);
     background: rgba(148, 163, 184, 0.08);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .missing-chip .name {
@@ -713,6 +773,75 @@
 
   .more-note {
     margin: 4px 0 0;
+  }
+
+  .missing-chip .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .missing-chip .row.top {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .missing-chip .meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .missing-chip .price {
+    font-weight: 600;
+  }
+
+  .missing-chip .price.muted {
+    color: var(--theme-text-soft);
+    font-weight: 500;
+  }
+
+  .missing-chip .ppm {
+    color: var(--theme-text-soft);
+    font-size: 0.9rem;
+  }
+
+  .pill.toggle {
+    margin-top: 6px;
+    cursor: pointer;
+  }
+
+  .missing-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(148, 163, 184, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .missing-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+
+  .missing-icon .initial {
+    font-weight: 700;
+    color: var(--theme-text-primary);
+  }
+
+  .missing-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .missing-text .rarity {
+    color: var(--theme-text-soft);
+    font-size: 0.9rem;
   }
 
   .missing-meta {
@@ -737,4 +866,5 @@
     color: var(--theme-text-soft);
     font-weight: 600;
   }
+
 </style>

@@ -7,13 +7,11 @@ Hypixel API는 아이템 데이터를 base64로 인코딩된 NBT 형식으로 �
 
 import base64
 import gzip
+import io
 import logging
 from typing import Any, Dict, List, Optional
 
-try:
-    from nbt import nbt  # type: ignore
-except ImportError:
-    nbt = None
+import nbtlib
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,21 +26,31 @@ def decode_inventory_data(raw_data: Optional[str]) -> List[Dict[str, Any]]:
     Returns:
         아이템 딕셔너리 리스트
     """
-    if not raw_data or nbt is None:
+    if not raw_data:
         return []
     
     try:
         decoded = base64.b64decode(raw_data)
-        nbt_data = nbt.NBTFile(fileobj=gzip.GzipFile(fileobj=__import__('io').BytesIO(decoded)))
         
+        # Try to decompress gzip
+        try:
+            with gzip.GzipFile(fileobj=io.BytesIO(decoded)) as f:
+                unzipped = f.read()
+            nbt_file = nbtlib.File.from_fileobj(io.BytesIO(unzipped))
+        except OSError:
+            # Not gzipped or other error, try raw
+            nbt_file = nbtlib.File.from_fileobj(io.BytesIO(decoded))
+            
+        root = nbt_file
+        print(f"DEBUG: Root keys: {root.keys()}")
         items = []
-        if hasattr(nbt_data, 'tags') and nbt_data.tags:
-            for item_tag in nbt_data.tags:
-                if hasattr(item_tag, 'name') and item_tag.name == 'i':
-                    for slot in item_tag.tags:
-                        parsed = _parse_item_nbt(slot)
-                        if parsed:
-                            items.append(parsed)
+        
+        # Root is usually a Compound with "i" (List)
+        if 'i' in root:
+            for item_tag in root['i']:
+                parsed = _parse_item_nbt(item_tag)
+                if parsed:
+                    items.append(parsed)
         
         return items
     except Exception as e:
@@ -52,7 +60,7 @@ def decode_inventory_data(raw_data: Optional[str]) -> List[Dict[str, Any]]:
 
 def _parse_item_nbt(item_tag: Any) -> Optional[Dict[str, Any]]:
     """개별 아이템 NBT 태그를 파싱합니다."""
-    if not item_tag or not hasattr(item_tag, 'tags'):
+    if not item_tag:
         return None
     
     item_data: Dict[str, Any] = {
@@ -62,32 +70,28 @@ def _parse_item_nbt(item_tag: Any) -> Optional[Dict[str, Any]]:
         'extra_attributes': {}
     }
     
-    for tag in item_tag.tags:
-        if not hasattr(tag, 'name'):
-            continue
-            
-        tag_name = str(tag.name)
+    if 'Count' in item_tag:
+        item_data['count'] = int(item_tag['Count'])
         
-        if tag_name == 'Count':
-            item_data['count'] = int(tag.value) if hasattr(tag, 'value') else 1
-        elif tag_name == 'id':
-            item_data['minecraft_id'] = str(tag.value) if hasattr(tag, 'value') else None
-        elif tag_name == 'tag':
-            # ExtraAttributes 추출
-            extra_attrs = _parse_extra_attributes(tag)
-            if extra_attrs:
-                item_data['extra_attributes'] = extra_attrs
-                # Skyblock item ID
-                item_data['id'] = extra_attrs.get('id')
-                # Rarity 추출 (일부 아이템은 display.Lore에서 추출 필요)
-                item_data['rarity'] = _extract_rarity(tag)
+    if 'id' in item_tag:
+        item_data['minecraft_id'] = str(item_tag['id'])
+        
+    if 'tag' in item_tag:
+        tag_compound = item_tag['tag']
+        extra_attrs = _parse_extra_attributes(tag_compound)
+        if extra_attrs:
+            item_data['extra_attributes'] = extra_attrs
+            # Skyblock item ID
+            item_data['id'] = extra_attrs.get('id')
+            # Rarity 추출
+            item_data['rarity'] = _extract_rarity(tag_compound)
     
     # Skyblock item ID가 없으면 무시
     if not item_data.get('id'):
         return None
     
     # Recombobulated 처리 (Rarity 업그레이드)
-    if item_data.get('recombobulated'):
+    if item_data.get('extra_attributes', {}).get('recombobulated'):
         current_rarity = item_data.get('rarity')
         if current_rarity:
             item_data['rarity'] = _upgrade_rarity(current_rarity)
@@ -95,13 +99,87 @@ def _parse_item_nbt(item_tag: Any) -> Optional[Dict[str, Any]]:
     return item_data
 
 
+def _parse_extra_attributes(tag_compound: Any) -> Dict[str, Any]:
+    """아이템의 ExtraAttributes를 파싱합니다."""
+    result: Dict[str, Any] = {}
+    
+    if 'ExtraAttributes' not in tag_compound:
+        return result
+        
+    ea = tag_compound['ExtraAttributes']
+    
+    if 'id' in ea: result['id'] = str(ea['id'])
+    if 'modifier' in ea: result['reforge'] = str(ea['modifier'])
+    if 'enchantments' in ea: result['enchants'] = _parse_enchants(ea['enchantments'])
+    if 'hot_potato_count' in ea: result['hot_potato_count'] = int(ea['hot_potato_count'])
+    if 'gems' in ea: result['gems'] = _parse_gems(ea['gems'])
+    if 'runes' in ea: result['runes'] = _parse_runes(ea['runes'])
+    if 'upgrade_level' in ea: result['stars'] = int(ea['upgrade_level'])
+    elif 'dungeon_item_level' in ea: result['stars'] = int(ea['dungeon_item_level'])
+    if 'rarity_upgrades' in ea: result['recombobulated'] = int(ea['rarity_upgrades']) > 0
+    if 'talisman_enrichment' in ea: result['enrichment'] = str(ea['talisman_enrichment'])
+    if 'attributes' in ea: result['attributes'] = _parse_enchants(ea['attributes'])
+    if 'art_of_war_count' in ea: result['art_of_war_count'] = int(ea['art_of_war_count'])
+    if 'ethermerge' in ea: result['ethermerge'] = int(ea['ethermerge']) > 0
+    if 'abiphone_contacts' in ea: result['abiphone_contacts_count'] = len(ea['abiphone_contacts'])
+    
+    return result
+
+
+def _parse_enchants(enchants_tag: Any) -> Dict[str, int]:
+    """인챈트 데이터를 파싱합니다."""
+    enchants = {}
+    for k, v in enchants_tag.items():
+        enchants[str(k)] = int(v)
+    return enchants
+
+
+def _parse_gems(gems_tag: Any) -> Dict[str, Dict[str, str]]:
+    """젬 데이터를 파싱합니다."""
+    gems = {}
+    for k, v in gems_tag.items():
+        slot_name = str(k)
+        quality = str(v).upper()
+        gem_type = slot_name.split('_')[0] if '_' in slot_name else slot_name
+        gems[slot_name] = {'type': gem_type, 'quality': quality}
+    return gems
+
+
+def _parse_runes(runes_tag: Any) -> Dict[str, int]:
+    """룬 데이터를 파싱합니다."""
+    runes = {}
+    for k, v in runes_tag.items():
+        runes[str(k)] = int(v)
+    return runes
+
+
+def _extract_rarity(tag_compound: Any) -> Optional[str]:
+    """아이템의 레어리티를 추출합니다."""
+    # display.Lore에서 레어리티 추출 (색상 코드 기반)
+    if 'display' in tag_compound and 'Lore' in tag_compound['display']:
+        lore = tag_compound['display']['Lore']
+        for line in lore:
+            line_str = str(line)
+            if '§f§lCOMMON' in line_str: return 'COMMON'
+            if '§a§lUNCOMMON' in line_str: return 'UNCOMMON'
+            if '§9§lRARE' in line_str: return 'RARE'
+            if '§5§lEPIC' in line_str: return 'EPIC'
+            if '§6§lLEGENDARY' in line_str: return 'LEGENDARY'
+            if '§d§lMYTHIC' in line_str: return 'MYTHIC'
+            if '§b§lDIVINE' in line_str: return 'DIVINE'
+            if '§c§lSPECIAL' in line_str: return 'SPECIAL'
+            if '§c§lVERY SPECIAL' in line_str: return 'VERY_SPECIAL'
+            if '§4§lSUPREME' in line_str: return 'SUPREME'
+            
+    return None
+
+
 def _upgrade_rarity(rarity: str) -> str:
     """Recombobulator로 인한 레어리티 업그레이드를 적용합니다."""
     rarity_order = [
         'COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 
-        'MYTHIC', 'DIVINE', 'SPECIAL', 'VERY_SPECIAL'
+        'MYTHIC', 'DIVINE', 'SPECIAL', 'VERY_SPECIAL', 'SUPREME'
     ]
-    
     try:
         idx = rarity_order.index(rarity.upper())
         if idx < len(rarity_order) - 1:
@@ -112,158 +190,9 @@ def _upgrade_rarity(rarity: str) -> str:
     return rarity
 
 
-def _extract_rarity(tag_compound: Any) -> Optional[str]:
-    """아이템의 레어리티를 추출합니다."""
-    if not hasattr(tag_compound, 'tags'):
-        return None
-    
-    for subtag in tag_compound.tags:
-        if not hasattr(subtag, 'name'):
-            continue
-        
-        if str(subtag.name) == 'ExtraAttributes':
-            if hasattr(subtag, 'tags'):
-                for attr in subtag.tags:
-                    if hasattr(attr, 'name') and str(attr.name) == 'rarity' and hasattr(attr, 'value'):
-                        return str(attr.value).upper()
-        
-        # display.Lore에서 레어리티 추출 (색상 코드 기반)
-        if str(subtag.name) == 'display':
-            if hasattr(subtag, 'tags'):
-                for display_attr in subtag.tags:
-                    if hasattr(display_attr, 'name') and str(display_attr.name) == 'Lore':
-                        if hasattr(display_attr, 'tags'):
-                            for lore_line in display_attr.tags:
-                                if hasattr(lore_line, 'value'):
-                                    line = str(lore_line.value)
-                                    if '§f§lCOMMON' in line:
-                                        return 'COMMON'
-                                    elif '§a§lUNCOMMON' in line:
-                                        return 'UNCOMMON'
-                                    elif '§9§lRARE' in line:
-                                        return 'RARE'
-                                    elif '§5§lEPIC' in line:
-                                        return 'EPIC'
-                                    elif '§6§lLEGENDARY' in line:
-                                        return 'LEGENDARY'
-                                    elif '§d§lMYTHIC' in line:
-                                        return 'MYTHIC'
-    
-    return None
-
-
-def _parse_extra_attributes(tag_compound: Any) -> Dict[str, Any]:
-    """아이템의 ExtraAttributes를 파싱합니다."""
-    result: Dict[str, Any] = {}
-    
-    if not hasattr(tag_compound, 'tags'):
-        return result
-    
-    for subtag in tag_compound.tags:
-        if not hasattr(subtag, 'name'):
-            continue
-        
-        name = str(subtag.name)
-        
-        if name == 'ExtraAttributes':
-            if hasattr(subtag, 'tags'):
-                for attr in subtag.tags:
-                    if not hasattr(attr, 'name'):
-                        continue
-                    attr_name = str(attr.name)
-                    
-                    if attr_name == 'id':
-                        result['id'] = str(attr.value) if hasattr(attr, 'value') else None
-                    elif attr_name == 'modifier':
-                        result['reforge'] = str(attr.value) if hasattr(attr, 'value') else None
-                    elif attr_name == 'enchantments':
-                        result['enchants'] = _parse_enchants(attr)
-                    elif attr_name == 'hot_potato_count':
-                        result['hot_potato_count'] = int(attr.value) if hasattr(attr, 'value') else 0
-                    elif attr_name == 'gems':
-                        result['gems'] = _parse_gems(attr)
-                    elif attr_name == 'runes':
-                        result['runes'] = _parse_runes(attr)
-                    elif attr_name == 'upgrade_level':
-                        result['stars'] = int(attr.value) if hasattr(attr, 'value') else 0
-                    elif attr_name == 'dungeon_item_level':
-                        result['stars'] = int(attr.value) if hasattr(attr, 'value') else 0
-                    elif attr_name == 'rarity_upgrades':
-                        result['recombobulated'] = int(attr.value) > 0 if hasattr(attr, 'value') else False
-                    elif attr_name == 'talisman_enrichment':
-                        result['enrichment'] = str(attr.value) if hasattr(attr, 'value') else None
-    
-    return result
-
-
-def _parse_enchants(enchants_tag: Any) -> Dict[str, int]:
-    """인챈트 데이터를 파싱합니다."""
-    enchants = {}
-    if not hasattr(enchants_tag, 'tags'):
-        return enchants
-    
-    for enchant in enchants_tag.tags:
-        if hasattr(enchant, 'name') and hasattr(enchant, 'value'):
-            enchants[str(enchant.name)] = int(enchant.value)
-    
-    return enchants
-
-
-def _parse_gems(gems_tag: Any) -> Dict[str, Dict[str, str]]:
-    """젬 데이터를 파싱합니다 (타입과 품질 포함)."""
-    gems = {}
-    if not hasattr(gems_tag, 'tags'):
-        return gems
-    
-    for gem_slot in gems_tag.tags:
-        if not hasattr(gem_slot, 'name') or not hasattr(gem_slot, 'tags'):
-            continue
-        
-        slot_name = str(gem_slot.name)
-        gem_type = None
-        gem_quality = None
-        
-        for attr in gem_slot.tags:
-            if not hasattr(attr, 'name'):
-                continue
-            attr_name = str(attr.name)
-            
-            if attr_name == 'quality' and hasattr(attr, 'value'):
-                gem_type = str(attr.value).upper()
-            elif attr_name == 'uuid' or attr_name == 'unlocked_slots':
-                # 젬 메타데이터, 품질 추론에 사용 가능
-                pass
-        
-        # 품질 추론 (간략화 - 실제로는 아이템 레벨/강화 수준으로 판단)
-        # 현재는 기본적으로 PERFECT로 설정
-        if gem_type:
-            gems[slot_name] = {
-                'type': gem_type,
-                'quality': gem_quality or 'PERFECT'
-            }
-    
-    return gems
-
-
-def _parse_runes(runes_tag: Any) -> Dict[str, int]:
-    """룬 데이터를 파싱합니다."""
-    runes = {}
-    if not hasattr(runes_tag, 'tags'):
-        return runes
-    
-    for rune in runes_tag.tags:
-        if hasattr(rune, 'name') and hasattr(rune, 'value'):
-            runes[str(rune.name)] = int(rune.value)
-    
-    return runes
-
-
 def extract_equipment_from_profile(member_data: Dict[str, Any]) -> Dict[str, Optional[Dict[str, Any]]]:
     """
     프로필에서 현재 착용 중인 장비를 추출합니다.
-    
-    Returns:
-        helmet, chestplate, leggings, boots를 포함한 딕셔너리
     """
     equipment = {
         'helmet': None,
@@ -299,16 +228,18 @@ def extract_accessories_from_profile(member_data: Dict[str, Any]) -> List[Dict[s
     
     # talisman_bag 또는 bag_contents에서 악세서리 추출
     inventory = member_data.get('inventory', {})
-    bag_data = inventory.get('bag_contents', {})
+    bag_data = inventory.get('bag_contents', {}).get('talisman_bag', {}).get('data')
     
-    for bag_name, bag_info in bag_data.items():
-        if 'talisman' in bag_name.lower():
-            if isinstance(bag_info, dict):
-                raw = bag_info.get('data')
-                if raw:
-                    items = decode_inventory_data(raw)
-                    accessories.extend(items)
-    
+    if not bag_data:
+        # Fallback to old location or different structure
+        bag_data = inventory.get('talisman_bag', {}).get('data')
+        
+    if bag_data:
+        items = decode_inventory_data(bag_data)
+        for item in items:
+            if item:
+                accessories.append(item)
+                
     return accessories
 
 
@@ -332,10 +263,10 @@ def extract_pets_from_profile(member_data: Dict[str, Any]) -> List[Dict[str, Any
             'type': pet_raw.get('type'),
             'tier': pet_raw.get('tier'),
             'level': 0,
-            'xp': pet_raw.get('exp', 0),
+            'xp': int(pet_raw.get('exp', 0) or 0),
             'active': pet_raw.get('active', False),
             'held_item': pet_raw.get('heldItem'),
-            'candy_used': pet_raw.get('candyUsed', 0),
+            'candy_used': int(pet_raw.get('candyUsed', 0) or 0),
             'skin': pet_raw.get('skin'),
         }
         
@@ -474,8 +405,8 @@ def extract_dungeons_from_profile(member_data: Dict[str, Any]) -> Optional[Dict[
     if isinstance(dungeon_types, dict):
         catacombs = dungeon_types.get('catacombs', {})
         if isinstance(catacombs, dict):
-            result['catacombs']['level'] = catacombs.get('level', 0) or 0
-            result['catacombs']['xp'] = catacombs.get('experience', 0) or 0
+            result['catacombs']['level'] = int(catacombs.get('level', 0) or 0)
+            result['catacombs']['xp'] = int(catacombs.get('experience', 0) or 0)
     
     # 클래스 레벨
     player_classes = dungeons_data.get('player_classes', {})
@@ -483,8 +414,8 @@ def extract_dungeons_from_profile(member_data: Dict[str, Any]) -> Optional[Dict[
         for class_name in ['healer', 'mage', 'berserk', 'archer', 'tank']:
             class_data = player_classes.get(class_name, {})
             if isinstance(class_data, dict):
-                level = class_data.get('level', 0) or 0
-                xp = class_data.get('experience', 0) or 0
+                level = int(class_data.get('level', 0) or 0)
+                xp = int(class_data.get('experience', 0) or 0)
                 if level > 0 or xp > 0:
                     result['classes'][class_name] = {
                         'level': level,

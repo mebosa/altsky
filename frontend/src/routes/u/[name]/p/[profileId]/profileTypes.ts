@@ -49,6 +49,10 @@ export type MissingAccessory = {
   id: string;
   name: string;
   tier?: string | null;
+  mc_id?: string | null;
+  damage?: number | null;
+  icon_url?: string | null;
+  icon_variants?: Partial<Record<TexturePack, string>>;
 };
 
 export type ProfileSummaryResponse = {
@@ -135,4 +139,16 @@ export type AccessorySummary = {
   missing?: MissingAccessory[];
   missing_total?: number;
   missing_count?: number;
+  missing_recommendations?: (MissingAccessory & {
+    category?: 'new' | 'upgrade' | 'replace';
+    price?: number;
+    price_per_mp?: number | null;
+    mp_per_coin?: number | null;
+    magical_power?: number;
+    upgrade_from?: string | null;
+    upgrade_sell_price?: number | null;
+    upgrade_buy_price?: number | null;
+    upgrade_net_cost?: number | null;
+    upgrade_mp_gain?: number | null;
+  })[];
 };

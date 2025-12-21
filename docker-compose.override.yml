@@ -1,0 +1,28 @@
+services:
+  backend:
+    command: sh -c "python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DEBUG: 1
+      CORS_ALLOW_ALL_ORIGINS: 1
+      SECURE_SSL_REDIRECT: 0
+      SESSION_COOKIE_SECURE: 0
+      CSRF_COOKIE_SECURE: 0
+    volumes:
+      - ./backend:/app/backend
+      - ./furfsky_temp:/app/furfsky_temp
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app/frontend
+    command: sh -c "npm install && npm run dev -- --host --port 5173"
+    environment:
+      - VITE_API_BASE=http://localhost:8000
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend

@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
     const player = (await playerRes.json()) as PlayerResponse;
 
     const summaryRes = await fetch(
-      `${apiBase}/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(profileId)}`
+      `${apiBase}/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(profileId)}?skip_stats=true`
     );
 
     if (!summaryRes.ok) {

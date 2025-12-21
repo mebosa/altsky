@@ -41,6 +41,9 @@ type fileEnvelope struct {
 	HOTMPerks         map[string]HOTMPerk           `json:"perks"`
 	CatacombsBonuses  []LevelBonus                  `json:"catacombs_bonuses"`
 	ClassBonuses      map[string][]LevelBonus       `json:"class_bonuses"`
+	Powers            map[string]map[string]float64 `json:"powers"`
+	PowerMultipliers  map[string]float64            `json:"multipliers"`
+	Attributes        map[string]AttributeData      `json:"attributes"`
 }
 
 // NewLoader는 지정된 디렉터리에서 초기 데이터를 불러옵니다.
@@ -70,7 +73,8 @@ func NewLoader(dir string, interval time.Duration) (*Loader, error) {
 func (l *Loader) Current() Config {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
-	return l.cfg.Clone()
+	// fmt.Printf("DEBUG: Current config Powers count: %d\n", len(l.cfg.Powers))
+	return l.cfg
 }
 
 // StartWatch는 컨텍스트가 취소될 때까지 폴더를 주기적으로 확인합니다.
@@ -239,6 +243,21 @@ func (l *Loader) loadFile(path string, cfg *Config) error {
 	if len(env.ClassBonuses) > 0 {
 		for k, v := range env.ClassBonuses {
 			cfg.ClassBonuses[k] = v
+		}
+	}
+	if len(env.Powers) > 0 {
+		for k, v := range env.Powers {
+			cfg.Powers[k] = v
+		}
+	}
+	if len(env.PowerMultipliers) > 0 {
+		for k, v := range env.PowerMultipliers {
+			cfg.PowerMultipliers[k] = v
+		}
+	}
+	if len(env.Attributes) > 0 {
+		for k, v := range env.Attributes {
+			cfg.Attributes[k] = v
 		}
 	}
 	

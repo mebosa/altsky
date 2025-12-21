@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import gzip
 import logging
 import time
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
@@ -11,6 +12,7 @@ import requests
 from .item_textures import (
     TEXTURE_PACKS,
     get_item_resource,
+    resolve_item_icon_variants,
     resolve_item_icon_variants,
 )
 from .wardrobe import (
@@ -29,9 +31,102 @@ LOGGER = logging.getLogger(__name__)
 Identifier = Optional[str]
 
 HYPIXEL_ITEM_URL = "https://api.hypixel.net/resources/skyblock/items"
+LOWEST_BIN_URL = "https://moulberry.codes/lowestbin.json"
 _ACCESSORY_CATALOG: List[Dict[str, Any]] = []
 _ACCESSORY_CATALOG_FETCHED_AT = 0.0
 _ACCESSORY_CATALOG_TTL_SECONDS = 60 * 60  # 1 hour
+_LOWEST_BIN_CACHE: Dict[str, int] = {}
+_LOWEST_BIN_FETCHED_AT = 0.0
+_LOWEST_BIN_TTL_SECONDS = 10 * 60  # 10 minutes
+
+# Static upgrade chains (ported from SkyCrypt/SkyHelper + manual additions)
+ACCESSORY_UPGRADES: List[List[str]] = [
+    ["WOLF_TALISMAN", "WOLF_RING"],
+    ["POTION_AFFINITY_TALISMAN", "RING_POTION_AFFINITY", "ARTIFACT_POTION_AFFINITY"],
+    ["FEATHER_TALISMAN", "FEATHER_RING", "FEATHER_ARTIFACT"],
+    ["SEA_CREATURE_TALISMAN", "SEA_CREATURE_RING", "SEA_CREATURE_ARTIFACT"],
+    ["HEALING_TALISMAN", "HEALING_RING"],
+    ["CANDY_TALISMAN", "CANDY_RING", "CANDY_ARTIFACT", "CANDY_RELIC"],
+    ["INTIMIDATION_TALISMAN", "INTIMIDATION_RING", "INTIMIDATION_ARTIFACT", "INTIMIDATION_RELIC"],
+    ["SPIDER_TALISMAN", "SPIDER_RING", "SPIDER_ARTIFACT"],
+    ["RED_CLAW_TALISMAN", "RED_CLAW_RING", "RED_CLAW_ARTIFACT"],
+    ["HUNTER_TALISMAN", "HUNTER_RING"],
+    ["ZOMBIE_TALISMAN", "ZOMBIE_RING", "ZOMBIE_ARTIFACT"],
+    ["BAT_TALISMAN", "BAT_RING", "BAT_ARTIFACT"],
+    ["SPEED_TALISMAN", "SPEED_RING", "SPEED_ARTIFACT"],
+    ["PERSONAL_COMPACTOR_4000", "PERSONAL_COMPACTOR_5000", "PERSONAL_COMPACTOR_6000", "PERSONAL_COMPACTOR_7000"],
+    ["PERSONAL_DELETOR_4000", "PERSONAL_DELETOR_5000", "PERSONAL_DELETOR_6000", "PERSONAL_DELETOR_7000"],
+    ["SCARF_STUDIES", "SCARF_THESIS", "SCARF_GRIMOIRE"],
+    ["CAT_TALISMAN", "LYNX_TALISMAN", "CHEETAH_TALISMAN"],
+    ["SHADY_RING", "CROOKED_ARTIFACT", "SEAL_OF_THE_FAMILY"],
+    ["TREASURE_TALISMAN", "TREASURE_RING", "TREASURE_ARTIFACT"],
+    [
+        "BEASTMASTER_CREST_COMMON",
+        "BEASTMASTER_CREST_UNCOMMON",
+        "BEASTMASTER_CREST_RARE",
+        "BEASTMASTER_CREST_EPIC",
+        "BEASTMASTER_CREST_LEGENDARY",
+    ],
+    [
+        "RAGGEDY_SHARK_TOOTH_NECKLACE",
+        "DULL_SHARK_TOOTH_NECKLACE",
+        "HONED_SHARK_TOOTH_NECKLACE",
+        "SHARP_SHARK_TOOTH_NECKLACE",
+        "RAZOR_SHARP_SHARK_TOOTH_NECKLACE",
+    ],
+    ["BAT_PERSON_TALISMAN", "BAT_PERSON_RING", "BAT_PERSON_ARTIFACT"],
+    ["LUCKY_HOOF", "ETERNAL_HOOF"],
+    ["WITHER_ARTIFACT", "WITHER_RELIC"],
+    ["WEDDING_RING_0", "WEDDING_RING_2", "WEDDING_RING_4", "WEDDING_RING_7", "WEDDING_RING_9"],
+    ["CAMPFIRE_TALISMAN_1", "CAMPFIRE_TALISMAN_4", "CAMPFIRE_TALISMAN_8", "CAMPFIRE_TALISMAN_13", "CAMPFIRE_TALISMAN_21"],
+    ["JERRY_TALISMAN_GREEN", "JERRY_TALISMAN_BLUE", "JERRY_TALISMAN_PURPLE", "JERRY_TALISMAN_GOLDEN"],
+    ["TITANIUM_TALISMAN", "TITANIUM_RING", "TITANIUM_ARTIFACT", "TITANIUM_RELIC"],
+    ["BAIT_RING", "SPIKED_ATROCITY"],
+    [
+        "MASTER_SKULL_TIER_1",
+        "MASTER_SKULL_TIER_2",
+        "MASTER_SKULL_TIER_3",
+        "MASTER_SKULL_TIER_4",
+        "MASTER_SKULL_TIER_5",
+        "MASTER_SKULL_TIER_6",
+        "MASTER_SKULL_TIER_7",
+    ],
+    ["SOULFLOW_PILE", "SOULFLOW_BATTERY", "SOULFLOW_SUPERCELL"],
+    ["ENDER_ARTIFACT", "ENDER_RELIC"],
+    ["POWER_TALISMAN", "POWER_RING", "POWER_ARTIFACT", "POWER_RELIC"],
+    ["BINGO_TALISMAN", "BINGO_RING", "BINGO_ARTIFACT", "BINGO_RELIC"],
+    ["BURSTSTOPPER_TALISMAN", "BURSTSTOPPER_ARTIFACT"],
+    ["ODGERS_BRONZE_TOOTH", "ODGERS_SILVER_TOOTH", "ODGERS_GOLD_TOOTH", "ODGERS_DIAMOND_TOOTH"],
+    ["GREAT_SPOOK_TALISMAN", "GREAT_SPOOK_RING", "GREAT_SPOOK_ARTIFACT"],
+    ["DRACONIC_TALISMAN", "DRACONIC_RING", "DRACONIC_ARTIFACT"],
+    ["BURNING_KUUDRA_CORE", "FIERY_KUUDRA_CORE", "INFERNAL_KUUDRA_CORE"],
+    ["VACCINE_TALISMAN", "VACCINE_RING", "VACCINE_ARTIFACT"],
+    ["WHITE_GIFT_TALISMAN", "GREEN_GIFT_TALISMAN", "BLUE_GIFT_TALISMAN", "PURPLE_GIFT_TALISMAN", "GOLD_GIFT_TALISMAN"],
+    ["GLACIAL_TALISMAN", "GLACIAL_RING", "GLACIAL_ARTIFACT"],
+    ["CROPIE_TALISMAN", "SQUASH_RING", "FERMENTO_ARTIFACT"],
+    ["KUUDRA_FOLLOWER_ARTIFACT", "KUUDRA_FOLLOWER_RELIC"],
+    ["AGARIMOO_TALISMAN", "AGARIMOO_RING", "AGARIMOO_ARTIFACT"],
+    ["BLOOD_DONOR_TALISMAN", "BLOOD_DONOR_RING", "BLOOD_DONOR_ARTIFACT"],
+    ["LUSH_TALISMAN", "LUSH_RING", "LUSH_ARTIFACT"],
+    ["ANITA_TALISMAN", "ANITA_RING", "ANITA_ARTIFACT"],
+    # Seasonal chocolate upgrades (single chain)
+    ["SMOOTH_CHOCOLATE_BAR", "RICH_CHOCOLATE_CHUNK", "GANACHE_CHOCOLATE_SLAB", "SUPREME_CHOCOLATE_BAR", "PRESTIGE_CHOCOLATE_REALM"],
+    # Aquarium bowls
+    ["SMALL_FISH_BOWL", "MEDIUM_FISH_BOWL", "LARGE_FISH_BOWL", "MINI_FISH_BOWL"],
+    # Anguish line
+    ["ANGUISH_TALISMAN", "ANGUISH_RING", "ANGUISH_ARTIFACT"],
+    # Haste line
+    ["HASTE_RING", "HASTE_ARTIFACT"],
+    # Moonglade line
+    ["MOONGLADE_RING", "MOONGLADE_ARTIFACT"],
+]
+
+# Items that should NOT be treated as upgrade chains (variants are equivalent)
+EXCLUDED_CHAIN_IDS: Set[str] = {
+    "PIGGY_BANK",
+    "CRACKED_PIGGY_BANK",
+    "BROKEN_PIGGY_BANK",
+}
 
 RARITY_ORDER = (
     "DIVINE",
@@ -253,14 +348,14 @@ def _load_accessory_catalog() -> List[Dict[str, Any]]:
     return _ACCESSORY_CATALOG
 
 
-def _compute_missing_accessories(accessories: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], int]:
+def _compute_missing_accessories(accessories: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], int, Set[str]]:
     """
     Determine which accessories from the Hypixel catalog are not present in the
-    player's bag. Returns the missing list and the total catalog size.
+    player's bag. Returns the missing list, total catalog size, and owned ids set.
     """
     catalog = _load_accessory_catalog()
     if not catalog:
-        return [], 0
+        return [], 0, set()
 
     owned_ids: Set[str] = set()
     for accessory in accessories:
@@ -277,7 +372,181 @@ def _compute_missing_accessories(accessories: List[Dict[str, Any]]) -> Tuple[Lis
         )
     )
 
-    return missing, len(catalog)
+    # Enrich with icon hints from item resources
+    enriched: List[Dict[str, Any]] = []
+    for item in missing:
+        resource = get_item_resource(item.get("id"))
+        mc_id = None
+        damage = None
+        if isinstance(resource, dict):
+            mc_id = resource.get("material")
+            damage = resource.get("durability")
+
+        icon_variants = resolve_item_icon_variants(item.get("id"), mc_id, damage)
+        icon_url = next(
+            (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
+            None,
+        )
+
+        enriched.append(
+            {
+                **item,
+                "mc_id": mc_id,
+                "damage": damage,
+                "icon_variants": icon_variants,
+                "icon_url": icon_url,
+            }
+        )
+
+    return enriched, len(catalog), owned_ids
+
+
+def _collapse_missing_by_chain(
+    missing: List[Dict[str, Any]],
+    owned_ids: Set[str],
+) -> List[Dict[str, Any]]:
+    """
+    From each upgrade chain, keep only the highest tier that is not owned.
+    If a higher tier is owned, lower tiers are dropped.
+    """
+    upgrade_index = _build_upgrade_index()
+    missing_map = {str(item.get("id") or "").upper(): item for item in missing}
+    chains_seen: Set[Tuple[str, ...]] = set()
+    output: List[Dict[str, Any]] = []
+
+    for item_id, item in list(missing_map.items()):
+        chain = None if item_id in EXCLUDED_CHAIN_IDS else upgrade_index.get(item_id)
+        if not chain:
+            output.append(item)
+            continue
+
+        chain_key = tuple(chain)
+        if chain_key in chains_seen:
+            continue
+        chains_seen.add(chain_key)
+
+        # Determine highest missing tier in this chain
+        target_id = None
+        for cid in reversed(chain):
+            cid_upper = cid.upper()
+            if cid_upper in owned_ids:
+                continue
+            if cid_upper in missing_map:
+                target_id = cid_upper
+                break
+        if target_id and target_id in missing_map:
+            output.append(missing_map[target_id])
+
+    return output
+
+
+def _load_lowest_bin_prices() -> Dict[str, int]:
+    """
+    Fetches lowest BIN prices (community cache) with a short TTL.
+    """
+    global _LOWEST_BIN_CACHE, _LOWEST_BIN_FETCHED_AT
+    now = time.time()
+    if _LOWEST_BIN_CACHE and now - _LOWEST_BIN_FETCHED_AT < _LOWEST_BIN_TTL_SECONDS:
+        return _LOWEST_BIN_CACHE
+
+    try:
+        response = requests.get(LOWEST_BIN_URL, timeout=6)
+        response.raise_for_status()
+        data = response.json()
+        if isinstance(data, dict):
+            # Normalize keys to upper for matching
+            _LOWEST_BIN_CACHE = {str(k).upper(): int(v) for k, v in data.items() if isinstance(v, (int, float))}
+            _LOWEST_BIN_FETCHED_AT = now
+            return _LOWEST_BIN_CACHE
+    except requests.RequestException as exc:
+        LOGGER.warning("Failed to fetch lowest BIN prices: %s", exc)
+    except ValueError:
+        LOGGER.warning("Failed to parse lowest BIN prices")
+
+    return _LOWEST_BIN_CACHE
+
+
+def _build_upgrade_index() -> Dict[str, List[str]]:
+    """
+    Creates a mapping of accessory id -> its upgrade chain.
+    """
+    index: Dict[str, List[str]] = {}
+    for chain in ACCESSORY_UPGRADES:
+        for item_id in chain:
+            index[item_id] = chain
+    return index
+
+
+def _classify_missing_accessories(
+    missing: List[Dict[str, Any]],
+    owned_ids: Set[str],
+) -> Tuple[List[Dict[str, Any]], int]:
+    """
+    Adds classification and price/MP ratio to missing accessories.
+    """
+    prices = _load_lowest_bin_prices()
+    upgrade_index = _build_upgrade_index()
+
+    enriched: List[Dict[str, Any]] = []
+
+    for item in missing:
+        item_id = item.get("id") or ""
+        rarity = item.get("tier")
+        base_id = str(item_id).upper()
+        chain = None if base_id in EXCLUDED_CHAIN_IDS else upgrade_index.get(base_id)
+
+        category = "new"
+        upgrade_from: Optional[str] = None
+        if chain:
+            # If any lower tier exists in inventory, treat as upgrade
+            chain_pos = chain.index(base_id)
+            lower_tiers = [cid for cid in chain[:chain_pos] if cid.upper() in owned_ids]
+            if lower_tiers:
+                category = "upgrade"
+                upgrade_from = lower_tiers[-1].upper()
+            # If a higher tier is already owned, skip recommending this lower tier
+            higher_tiers = set(chain[chain_pos + 1 :])
+            if owned_ids.intersection(higher_tiers):
+                continue
+
+        price = prices.get(base_id, 0)
+        mp = MAGICAL_POWER_BY_RARITY.get(_normalize_rarity(rarity) or "", 0)
+        price_per_mp: Optional[float] = None
+        mp_per_coin: Optional[float] = None
+        upgrade_from_price = prices.get(upgrade_from, 0) if upgrade_from else 0
+        upgrade_mp_gain = mp
+        effective_cost = price
+        if upgrade_from:
+            effective_cost = max(0, price - upgrade_from_price)
+        if effective_cost and mp:
+            price_per_mp = effective_cost / mp
+            mp_per_coin = mp / effective_cost
+
+        enriched.append(
+            {
+                **item,
+                "category": category,
+                "price": price,
+                "magical_power": mp,
+                "price_per_mp": price_per_mp,
+                "mp_per_coin": mp_per_coin,
+                "upgrade_from": upgrade_from,
+                "upgrade_sell_price": upgrade_from_price if upgrade_from else None,
+                "upgrade_buy_price": price if price else None,
+                "upgrade_net_cost": effective_cost if upgrade_from else price,
+                "upgrade_mp_gain": upgrade_mp_gain if upgrade_from else mp,
+            }
+        )
+
+    enriched.sort(
+        key=lambda item: (
+            1 if item.get("mp_per_coin") in (None, 0) else 0,
+            -(item.get("mp_per_coin") or 0),
+            item.get("price") or float("inf"),
+        )
+    )
+
+    return enriched, len(enriched)
 
 
 def _magical_power_for_item(item_id: Optional[str], rarity: Optional[str]) -> int:
@@ -307,7 +576,7 @@ def _parse_accessory_items(
         return [], {}, set(), 0
 
     try:
-        file = nbtlib.File.parse(io.BytesIO(payload))
+        file = nbtlib.File.from_fileobj(io.BytesIO(payload))
     except Exception:
         return [], {}, set(), 0
 
@@ -455,6 +724,12 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
 
     encoded = _resolve_bag_payload(sources)
     items, rarity_counts, unique_ids, calculated_magical_power = _parse_accessory_items(encoded)
+    owned_ids: Set[str] = set()
+    for acc in items:
+        for key in ("id", "mc_id"):
+            raw = acc.get(key)
+            if raw:
+                owned_ids.add(str(raw).upper())
 
     bag_upgrades = storage.get("bag_upgrades") if isinstance(storage, dict) else None
     total_slots = 0
@@ -488,7 +763,11 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
 
     tuning = _normalize_tuning(storage.get("tuning") if isinstance(storage, dict) else None)
     power_stones = _normalize_power_stones(storage.get("power_stones") if isinstance(storage, dict) else None)
-    missing, missing_total = _compute_missing_accessories(items)
+    missing, missing_total, _ = _compute_missing_accessories(items)
+    # Drop lower tiers if higher tiers are already owned, for both missing display and recommendations
+    missing = _collapse_missing_by_chain(missing, owned_ids)
+    missing_total = len(missing)
+    missing_enriched, missing_count = _classify_missing_accessories(missing, set(owned_ids))
 
     return {
         "items": items,
@@ -504,5 +783,6 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
         "power_stones": power_stones,
         "missing": missing,
         "missing_total": missing_total,
-        "missing_count": len(missing),
+        "missing_count": missing_count,
+        "missing_recommendations": missing_enriched,
     }

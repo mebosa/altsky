@@ -98,6 +98,9 @@
   onMount(() => {
     if (!summary && !errorMsg) {
       fetchProfile();
+    } else if (summary && !summary.computed_stats) {
+      // If summary is loaded but stats are missing (SSR optimization), fetch full profile
+      fetchProfile();
     }
   });
 

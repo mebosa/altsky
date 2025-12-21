@@ -76,65 +76,7 @@
       }
     }
   },
-  "reforges": {
-    "fierce": {
-      "strength": 4,
-      "crit_damage": 8,
-      "crit_chance": 1
-    },
-    "titanic": {
-      "health": 15,
-      "defense": 5
-    },
-    "renowned": {
-      "health": 12,
-      "defense": 12,
-      "strength": 6,
-      "crit_damage": 6,
-      "crit_chance": 1,
-      "intelligence": 6,
-      "attack_speed": 1
-    },
-    "ancient": {
-      "health": 7,
-      "defense": 7,
-      "strength": 4,
-      "crit_damage": 4,
-      "crit_chance": 1,
-      "intelligence": 4,
-      "speed": 1
-    }
-  },
-  "gems": {
-    "comment": "젬 타입별 스탯 (티어별 추가 가능)",
-    "RUBY": {
-      "health": 8
-    },
-    "AMETHYST": {
-      "defense": 6
-    },
-    "JASPER": {
-      "strength": 6
-    },
-    "SAPPHIRE": {
-      "intelligence": 6
-    },
-    "AMBER": {
-      "mining_speed": 10,
-      "mining_fortune": 5
-    },
-    "TOPAZ": {
-      "ferocity": 5
-    },
-    "JADE": {
-      "farming_fortune": 10
-    },
-    "OPAL": {
-      "combat_wisdom": 5
-    }
-  },
   "enchants": {
-    "comment": "인챈트별 레벨당 스탯 (일부 예시)",
     "protection": {
       "per_level": {
         "defense": 3

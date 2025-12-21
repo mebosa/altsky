@@ -21,6 +21,9 @@ type Config struct {
 	HOTMPerks         map[string]HOTMPerk                 // perk -> data
 	CatacombsBonuses  []LevelBonus                        // catacombs level -> stats
 	ClassBonuses      map[string][]LevelBonus             // class name -> level -> stats
+	Powers            map[string]map[string]float64       // power_name -> base_stats
+	PowerMultipliers  map[string]float64                  // stat -> multiplier
+	Attributes        map[string]AttributeData            // attribute -> data
 }
 
 type ArmorSet struct {
@@ -39,6 +42,10 @@ type GemQualityData struct {
 }
 
 type EnchantData struct {
+	PerLevel map[string]float64 `json:"per_level"`
+}
+
+type AttributeData struct {
 	PerLevel map[string]float64 `json:"per_level"`
 }
 
@@ -76,6 +83,9 @@ func newConfig() Config {
 		HOTMPerks:        make(map[string]HOTMPerk),
 		CatacombsBonuses: []LevelBonus{},
 		ClassBonuses:     make(map[string][]LevelBonus),
+		Powers:           make(map[string]map[string]float64),
+		PowerMultipliers: make(map[string]float64),
+		Attributes:       make(map[string]AttributeData),
 	}
 }
 

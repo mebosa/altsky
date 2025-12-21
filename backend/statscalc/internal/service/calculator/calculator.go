@@ -2,6 +2,7 @@ package calculator
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 
@@ -32,6 +33,7 @@ func (c *Calculator) Calculate(profile model.PlayerProfile) model.StatBlock {
 	applySkillBonuses(out, profile, config)
 	applySlayerBonuses(out, profile, config)
 	applyDungeonBonuses(out, profile, config)
+	applySkyBlockLevelBonuses(out, profile)
 	
 	multipliers := make(map[string]float64)
 	applyEquipmentBonuses(out, multipliers, profile, config)
@@ -57,7 +59,6 @@ func applySpecialItemEffects(stats model.StatBlock, multipliers map[string]float
 		stats["crit_chance"] /= 4
 	}
 
-	// Final Destination Armor Scaling & Set Bonus
 	items := []*model.Item{
 		profile.Equipment.Helmet,
 		profile.Equipment.Chestplate,
@@ -70,11 +71,18 @@ func applySpecialItemEffects(stats model.StatBlock, multipliers map[string]float
 		if item == nil {
 			continue
 		}
+		// Final Destination
 		if strings.HasPrefix(item.ID, "FINAL_DESTINATION_") {
 			fdPieces++
-			// Calculate defense bonus from kills
 			if kills, ok := getIntAttribute(item, "enderman_kills"); ok {
 				bonus := calculateFDBonus(kills)
+				stats["defense"] += bonus
+			}
+		}
+		// Reaper Armor
+		if strings.HasPrefix(item.ID, "REAPER_") {
+			if kills, ok := getIntAttribute(item, "zombie_kills"); ok {
+				bonus := calculateReaperBonus(kills)
 				stats["defense"] += bonus
 			}
 		}
@@ -126,6 +134,26 @@ func calculateFDBonus(kills int) float64 {
 	return 0
 }
 
+func calculateReaperBonus(kills int) float64 {
+	// Table from Wiki
+	thresholds := []struct {
+		kills int
+		bonus float64
+	}{
+		{500000, 315}, {200000, 310}, {100000, 300}, {50000, 280},
+		{25000, 260}, {15000, 240}, {10000, 220}, {7500, 200},
+		{5000, 180}, {3000, 150}, {2000, 120}, {1000, 90},
+		{300, 50}, {50, 20},
+	}
+
+	for _, t := range thresholds {
+		if kills >= t.kills {
+			return t.bonus
+		}
+	}
+	return 0
+}
+
 func applySkillBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
 	for name, skill := range profile.Skills {
 		if skill.Level <= 0 {
@@ -144,6 +172,22 @@ func applySlayerBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg 
 		key := fmt.Sprintf("slayer_%s", name)
 		applyLevelBonuses(stats, key, slayer.Level, cfg.LevelBonuses)
 	}
+}
+
+// applySkyBlockLevelBonuses applies stats based on SkyBlock Level.
+// +5 Health per level
+// +1 Strength every 5 levels
+func applySkyBlockLevelBonuses(stats model.StatBlock, profile model.PlayerProfile) {
+	if profile.SkyBlockLevel <= 0 {
+		return
+	}
+
+	// Health: +5 per level
+	stats["health"] += float64(profile.SkyBlockLevel) * 5.0
+
+	// Strength: +1 every 5 levels
+	strengthBonus := float64(profile.SkyBlockLevel / 5)
+	stats["strength"] += strengthBonus
 }
 
 // applyDungeonBonuses는 Catacombs 및 클래스 레벨 보너스를 적용합니다.
@@ -257,17 +301,20 @@ func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64
 			}
 		}
 		
-		// 젬 스탯 (품질 고려)
+		// 젬 스탯 (품질 및 레어리티 고려)
 		for _, gem := range item.Gems {
 			if gemData, ok := cfg.Gems[gem.Type]; ok {
-				// 품질이 있으면 해당 품질 사용, 없으면 PERFECT 사용
 				quality := gem.Quality
 				if quality == "" {
 					quality = "PERFECT"
 				}
-				if gemStats, ok := gemData[quality]; ok {
-					for stat, value := range gemStats {
-						stats[stat] += value
+				if qualityData, ok := gemData[quality]; ok {
+					rarity := item.Rarity
+					if rarity == "" {
+						rarity = "COMMON"
+					}
+					if val, ok := qualityData.Values[rarity]; ok {
+						stats[qualityData.Stat] += val
 					}
 				}
 			}
@@ -287,6 +334,23 @@ func applyEquipmentBonuses(stats model.StatBlock, multipliers map[string]float64
 			hpbBonus := float64(item.HotPotatoCount) * 2.0
 			stats["health"] += hpbBonus
 			stats["defense"] += hpbBonus
+		}
+
+		// Attributes (Crimson Isle)
+		if item.ExtraAttributes != nil {
+			if attrs, ok := item.ExtraAttributes["attributes"].(map[string]any); ok {
+				applyAttributeBonuses(stats, attrs, cfg)
+			}
+			
+			// Art of War (+5 Strength)
+			if aow, ok := item.ExtraAttributes["art_of_war_count"].(float64); ok && aow > 0 {
+				stats["strength"] += 5 * aow
+			}
+			
+			// Etherwarp Conduit (+180 Intelligence)
+			if merged, ok := item.ExtraAttributes["ethermerge"].(bool); ok && merged {
+				stats["intelligence"] += 180
+			}
 		}
 		
 		// 세트 보너스 감지
@@ -330,6 +394,28 @@ func detectArmorSet(itemID string) string {
 	return ""
 }
 
+func applyAttributeBonuses(stats model.StatBlock, attributes map[string]any, cfg data.Config) {
+	for name, levelVal := range attributes {
+		level := 0
+		switch v := levelVal.(type) {
+		case float64:
+			level = int(v)
+		case int:
+			level = v
+		}
+
+		if level <= 0 {
+			continue
+		}
+
+		if attrData, ok := cfg.Attributes[name]; ok {
+			for stat, valPerLevel := range attrData.PerLevel {
+				stats[stat] += valPerLevel * float64(level)
+			}
+		}
+	}
+}
+
 // applyAccessoryBonuses는 악세서리 스탯을 계산합니다.
 func applyAccessoryBonuses(stats model.StatBlock, profile model.PlayerProfile, cfg data.Config) {
 	totalMagicalPower := 0.0
@@ -371,11 +457,25 @@ func applyAccessoryBonuses(stats model.StatBlock, profile model.PlayerProfile, c
 		if rarity == "" {
 			rarity = "EPIC"
 		}
-		totalMagicalPower += getMagicalPowerForRarity(rarity)
+		mp := getMagicalPowerForRarity(rarity)
+
+		// Abiphone (Contacts / 2)
+		if strings.Contains(acc.ID, "ABIPHONE") {
+			if contacts, ok := acc.ExtraAttributes["abiphone_contacts_count"].(float64); ok {
+				mp += math.Floor(contacts / 2.0)
+			}
+		}
+		
+		// Hegemony Artifact (Double MP)
+		if acc.ID == "HEGEMONY_ARTIFACT" {
+			mp *= 2
+		}
+
+		totalMagicalPower += mp
 	}
 	
-	// Magical Power 티어 보너스 적용
-	applyMagicalPowerBonus(stats, totalMagicalPower)
+	// Magical Power 티어 보너스 적용 (Selected Power)
+	applyPowerBonuses(stats, totalMagicalPower, profile.SelectedPower, cfg)
 }
 
 // getMagicalPowerForRarity는 레어리티별 Magical Power 값을 반환합니다.
@@ -402,39 +502,34 @@ func getMagicalPowerForRarity(rarity string) float64 {
 	}
 }
 
-// applyMagicalPowerBonus는 Magical Power 총합에 따른 티어 보너스를 적용합니다.
-func applyMagicalPowerBonus(stats model.StatBlock, totalMP float64) {
-	// Magical Power 티어 정의 (간략화된 버전)
-	type MPTier struct {
-		Required int
-		Strength float64
-		CritDmg  float64
+// applyPowerBonuses applies stats based on Magical Power and Selected Power.
+func applyPowerBonuses(stats model.StatBlock, totalMP float64, selectedPower string, cfg data.Config) {
+	if selectedPower == "" {
+		return
 	}
-	
-	tiers := []MPTier{
-		{0, 0, 0},
-		{75, 2, 5},
-		{150, 2, 5},
-		{250, 2, 5},
-		{350, 3, 5},
-		{500, 3, 5},
-		{650, 3, 5},
-		{800, 3, 5},
-		{1000, 4, 6},
-		{1200, 4, 6},
-		{1400, 4, 6},
-		{1600, 4, 6},
-		{1800, 4, 6},
-		{2000, 5, 7},
+
+	// Normalize power name (lowercase)
+	selectedPower = strings.ToLower(selectedPower)
+
+	powerStats, ok := cfg.Powers[selectedPower]
+	if !ok {
+		return
 	}
-	
-	for _, tier := range tiers {
-		if totalMP >= float64(tier.Required) {
-			stats["strength"] += tier.Strength
-			stats["crit_damage"] += tier.CritDmg
-		} else {
-			break
+
+	// Calculate the multiplier from Magical Power
+	// Formula: 719.28 * (ln(1 + 0.0019 * MP))^1.2
+	mpMultiplier := 719.28 * math.Pow(math.Log(1.0+(0.0019*totalMP)), 1.2)
+
+	for stat, baseValue := range powerStats {
+		// Get the specific multiplier for this stat
+		statMultiplier := 1.0
+		if val, ok := cfg.PowerMultipliers[stat]; ok {
+			statMultiplier = val
 		}
+
+		// Final Value = (BasePower / 100) * StatMultiplier * mpMultiplier
+		finalValue := (baseValue / 100.0) * statMultiplier * mpMultiplier
+		stats[stat] += finalValue
 	}
 }
 

@@ -396,9 +396,14 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     computed_stats = None
     # 원본 member 데이터를 함께 전달
     member_data = target.get('members', {}).get(normalized_member_uuid)
-    stats_payload = _build_statscalc_payload(summary, normalized_member_uuid, profile_id, member_data)
-    if stats_payload:
-        computed_stats = statscalc_client.calculate_stats(stats_payload)
+    
+    # skip_stats 파라미터 확인
+    skip_stats = _is_truthy(request.query_params.get('skip_stats'))
+    
+    if not skip_stats:
+        stats_payload = _build_statscalc_payload(summary, normalized_member_uuid, profile_id, member_data)
+        if stats_payload:
+            computed_stats = statscalc_client.calculate_stats(stats_payload)
 
     response_body = {
         'ok': True,
@@ -579,6 +584,12 @@ def _build_statscalc_payload(
         if accessories:
             payload['accessories'] = [_serialize_accessory(acc) for acc in accessories]
         
+        # Selected Power (from summary if available, as nbt_parser doesn't extract it yet)
+        if summary.get('accessories') and isinstance(summary['accessories'], dict):
+            selected_power = summary['accessories'].get('selected_power')
+            if selected_power:
+                payload['selected_power'] = selected_power
+
         # 펫
         pets = extract_pets_from_profile(member_data)
         if pets:
@@ -588,6 +599,14 @@ def _build_statscalc_payload(
         hotm = extract_hotm_from_profile(member_data)
         if hotm:
             payload['hotm'] = hotm
+            
+        # SkyBlock Level
+        leveling = member_data.get('leveling', {})
+        if isinstance(leveling, dict):
+            sb_xp = leveling.get('experience', 0)
+            if sb_xp > 0:
+                # Level = XP / 100
+                payload['skyblock_level'] = int(sb_xp / 100)
         
         # Dungeons
         dungeons = extract_dungeons_from_profile(member_data)

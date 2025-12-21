@@ -339,7 +339,7 @@ def _parse_inventory_items(data: Optional[Dict[str, Any]]) -> List[Optional[Dict
         return []
 
     try:
-        file = nbtlib.File.parse(io.BytesIO(payload))
+        file = nbtlib.File.from_fileobj(io.BytesIO(payload))
     except Exception:
         return []
 

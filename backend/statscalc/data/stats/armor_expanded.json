@@ -76,10 +76,10 @@
     "DIVAN_LEGGINGS": { "health": 145, "defense": 105, "mining_speed": 100, "mining_fortune": 50 },
     "DIVAN_BOOTS": { "health": 100, "defense": 70, "mining_speed": 100, "mining_fortune": 50 },
     
-    "SORROW_HELMET": { "health": 205, "defense": 55, "intelligence": 280 },
-    "SORROW_CHESTPLATE": { "health": 370, "defense": 110, "intelligence": 280 },
-    "SORROW_LEGGINGS": { "health": 305, "defense": 90, "intelligence": 280 },
-    "SORROW_BOOTS": { "health": 205, "defense": 55, "intelligence": 280 },
+    "SORROW_HELMET": { "magic_find": 5, "true_defense": 60, "mining_speed": 50, "mining_fortune": 20 },
+    "SORROW_CHESTPLATE": { "magic_find": 5, "true_defense": 60, "mining_speed": 50, "mining_fortune": 20 },
+    "SORROW_LEGGINGS": { "magic_find": 5, "true_defense": 60, "mining_speed": 50, "mining_fortune": 20 },
+    "SORROW_BOOTS": { "magic_find": 5, "true_defense": 60, "mining_speed": 50, "mining_fortune": 20 },
     
     "SHADOW_ASSASSIN_HELMET": { "health": 160, "defense": 75, "strength": 25, "crit_damage": 15, "speed": 7 },
     "SHADOW_ASSASSIN_CHESTPLATE": { "health": 260, "defense": 120, "strength": 25, "crit_damage": 15, "speed": 7 },

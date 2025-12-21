@@ -1,0 +1,61 @@
+{
+  "attributes": {
+    "mana_pool": {
+      "per_level": {
+        "intelligence": 20
+      }
+    },
+    "dominance": {
+      "per_level": {}
+    },
+    "veteran": {
+      "per_level": {
+        "combat_wisdom": 1.5
+      }
+    },
+    "vitality": {
+      "per_level": {
+        "vitality": 3
+      }
+    },
+    "breeze": {
+      "per_level": {}
+    },
+    "life_regeneration": {
+      "per_level": {
+        "health_regen": 3
+      }
+    },
+    "magic_find": {
+      "per_level": {
+        "magic_find": 1
+      }
+    },
+    "speed": {
+      "per_level": {
+        "speed": 1
+      }
+    },
+    "fortitude": {
+      "per_level": {
+        "defense": 1,
+        "health": 1
+      }
+    },
+    "arachno_resistance": {
+      "per_level": {}
+    },
+    "blazing_resistance": {
+      "per_level": {}
+    },
+    "ender_resistance": {
+      "per_level": {}
+    },
+    "undead_resistance": {
+      "per_level": {}
+    },
+    "experience": {
+      "per_level": {}
+    }
+  }
+}

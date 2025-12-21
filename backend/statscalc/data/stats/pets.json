@@ -1,5 +1,4 @@
 {
-  "comment": "펫 타입별 레벨당 스탯 정의",
   "pets": {
     "ENDERMAN": {
       "COMMON": {
@@ -118,23 +117,9 @@
           "speed": 10
         }
       }
-    },
-    "GDRAG": {
-      "comment": "GOLDEN_DRAGON의 별칭",
-      "alias": "GOLDEN_DRAGON"
-    },
-    "EDRAG": {
-      "comment": "ENDER_DRAGON의 별칭",
-      "alias": "ENDER_DRAGON"
     }
   },
   "pet_items": {
-    "PET_ITEM_TIER_BOOST": {
-      "comment": "펫 티어 부스트 (레어리티 1단계 상승 효과)"
-    },
-    "PET_ITEM_COMBAT_SKILL_BOOST_COMMON": {
-      "comment": "펫 스킬 부스트 아이템들 (특정 보너스)"
-    },
     "MINOS_RELIC": {
       "strength": 5,
       "crit_damage": 5

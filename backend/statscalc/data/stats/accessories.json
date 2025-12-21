@@ -1,5 +1,4 @@
 {
-  "comment": "악세서리 아이템별 스탯 정의 (Magical Power는 별도 계산)",
   "accessories": {
     "SPEED_RING": {
       "speed": 1
@@ -8,7 +7,6 @@
       "speed": 3
     },
     "PERSONAL_COMPACTOR_4000": {
-      "comment": "스탯 없는 유틸리티 악세서리"
     },
     "PIGGY_BANK": {
       "defense": 5
@@ -34,7 +32,6 @@
     }
   },
   "enrichments": {
-    "comment": "악세서리 강화별 추가 스탯",
     "attack_speed": {
       "attack_speed": 2
     },
