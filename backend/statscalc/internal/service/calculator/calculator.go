@@ -76,10 +76,12 @@ func (c *Calculator) Calculate(profile model.PlayerProfile) model.CalculationRes
 	applySlayerBonuses(ctx, profile, config)
 	applyDungeonBonuses(ctx, profile, config)
 	applySkyBlockLevelBonuses(ctx, profile)
+	applyFairySoulBonuses(ctx, profile)
 
 	applyEquipmentBonuses(ctx, profile, config)
 
 	applyAccessoryBonuses(ctx, profile, config)
+	applyTuningBonuses(ctx, profile)
 	applyPetBonuses(ctx, profile, config)
 	applyHOTMBonuses(ctx, profile, config)
 
@@ -309,6 +311,10 @@ func applyEquipmentBonuses(ctx *Context, profile model.PlayerProfile, cfg data.C
 		profile.Equipment.Chestplate,
 		profile.Equipment.Leggings,
 		profile.Equipment.Boots,
+		profile.Equipment.Necklace,
+		profile.Equipment.Cloak,
+		profile.Equipment.Belt,
+		profile.Equipment.Gloves,
 		profile.Equipment.Weapon, // 무기 추가
 	}
 

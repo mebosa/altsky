@@ -22,7 +22,6 @@ export type SlayerBoss = {
   level: number;
   xp: number;
   kills?: SlayerKills;
-  drops?: Record<string, number>;
 };
 
 export type WardrobeItem = {

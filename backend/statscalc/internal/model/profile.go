@@ -12,6 +12,8 @@ type PlayerProfile struct {
 	Accessories    []Accessory       `json:"accessories,omitempty"`
 	SelectedPower  string            `json:"selected_power,omitempty"` // 추가: 선택된 파워 (예: "itchy")
 	MagicalPower   float64           `json:"magical_power,omitempty"`  // 추가: 외부에서 계산된 Magical Power
+	Tuning         map[string]int    `json:"tuning,omitempty"`         // 추가: Tuning Points allocation
+	FairySouls     int               `json:"fairy_souls,omitempty"`    // 추가: 수집한 Fairy Souls 수
 	Pets           []Pet             `json:"pets,omitempty"`
 	HOTM           *HOTM             `json:"hotm,omitempty"`
 	CustomMetadata map[string]any    `json:"meta,omitempty"`
@@ -44,6 +46,12 @@ type Equipment struct {
 	Chestplate *Item `json:"chestplate,omitempty"`
 	Leggings   *Item `json:"leggings,omitempty"`
 	Boots      *Item `json:"boots,omitempty"`
+
+	Necklace *Item `json:"necklace,omitempty"`
+	Cloak    *Item `json:"cloak,omitempty"`
+	Belt     *Item `json:"belt,omitempty"`
+	Gloves   *Item `json:"gloves,omitempty"`
+
 	// 장비 슬롯 (낚시대, 곡괭이 등)
 	Weapon    *Item `json:"weapon,omitempty"`
 	Equipment *Item `json:"equipment_item,omitempty"`

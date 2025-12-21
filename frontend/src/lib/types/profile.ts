@@ -30,7 +30,6 @@ export type ProfileSummaryResponse = {
       level: number;
       xp: number;
       kills?: { total: number; tiers: Record<string, number> };
-      drops?: Record<string, number>;
     }
   > & { total_xp: number };
   dungeons: {

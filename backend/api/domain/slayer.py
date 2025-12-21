@@ -60,28 +60,6 @@ def _extract_kills(boss_data: Dict[str, Any]) -> Dict[str, Any]:
     return {"total": total, "tiers": tiers}
 
 
-def _extract_drops(boss_data: Dict[str, Any]) -> Dict[str, int]:
-    drops: Dict[str, int] = {}
-    raw = boss_data.get("drops")
-    if isinstance(raw, dict):
-        for key, value in raw.items():
-            count = _safe_int(value)
-            if count > 0:
-                drops[str(key)] = count
-
-    for key, value in boss_data.items():
-        key_str = str(key)
-        if key_str in {"xp", "claimed_levels", "drops"}:
-            continue
-        if key_str.startswith("boss_kills_") or key_str.startswith("boss_attempts_"):
-            continue
-        if not (key_str.startswith("drop_") or key_str.startswith("drops_") or key_str.endswith("_drop") or key_str.endswith("_drops")):
-            continue
-        count = _safe_int(value)
-        if count > 0:
-            drops.setdefault(key_str, count)
-
-    return drops
 
 
 def level_from_claimed(claimed: Dict[str, Any]) -> Optional[int]:
@@ -135,7 +113,6 @@ def extract_slayer(data: Dict[str, Any]) -> Dict[str, Any]:
             "xp": xp,
             "level": lvl,
             "kills": _extract_kills(boss_data),
-            "drops": _extract_drops(boss_data),
         }
         total_xp += xp
 

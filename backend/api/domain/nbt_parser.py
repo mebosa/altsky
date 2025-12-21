@@ -199,6 +199,10 @@ def extract_equipment_from_profile(member_data: Dict[str, Any]) -> Dict[str, Opt
         'chestplate': None,
         'leggings': None,
         'boots': None,
+        'necklace': None,
+        'cloak': None,
+        'belt': None,
+        'gloves': None,
     }
     
     # inv_armor에서 방어구 추출
@@ -216,6 +220,20 @@ def extract_equipment_from_profile(member_data: Dict[str, Any]) -> Dict[str, Opt
             equipment['chestplate'] = items[2]
         if len(items) > 3 and items[3]:
             equipment['helmet'] = items[3]
+
+    # equipment_contents에서 장신구(Necklace, Cloak, Belt, Gloves) 추출
+    equipment_data = inventory.get('equipment_contents', {}).get('data')
+    if equipment_data:
+        items = decode_inventory_data(equipment_data)
+        # 슬롯 순서: [necklace, cloak, belt, gloves]
+        if len(items) > 0 and items[0]:
+            equipment['necklace'] = items[0]
+        if len(items) > 1 and items[1]:
+            equipment['cloak'] = items[1]
+        if len(items) > 2 and items[2]:
+            equipment['belt'] = items[2]
+        if len(items) > 3 and items[3]:
+            equipment['gloves'] = items[3]
     
     return equipment
 

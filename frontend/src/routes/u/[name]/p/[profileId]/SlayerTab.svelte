@@ -6,9 +6,6 @@
   export let summary: ProfileSummaryResponse;
   export let slayerLabels: Record<string, string>;
 
-  const formatDropLabel = (value: string) =>
-    value.replace(/^drops?_/, '').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-
   const sortTierEntries = (tiers: Record<string, number>) =>
     Object.entries(tiers).sort((a, b) => Number(a[0]) - Number(b[0]));
 </script>
@@ -19,7 +16,6 @@
       {@const slayerInfo = info as SlayerBoss}
       {@const killsTotal = slayerInfo.kills?.total ?? 0}
       {@const killEntries = slayerInfo.kills ? sortTierEntries(slayerInfo.kills.tiers ?? {}) : []}
-      {@const dropEntries = slayerInfo.drops ? Object.entries(slayerInfo.drops).sort((a, b) => Number(b[1]) - Number(a[1]) || a[0].localeCompare(b[0])) : []}
       <div class="card slayer-card">
         <div class="skill-header">
           <span class="skill-icon" aria-hidden="true">
@@ -48,21 +44,6 @@
             {/each}
           </div>
         {/if}
-        <div class="slayer-drops">
-          <span class="metric-label">Drops</span>
-          {#if dropEntries.length}
-            <div class="slayer-drop-list">
-              {#each dropEntries as [drop, count]}
-                <span class="drop-chip">
-                  {formatDropLabel(drop)}
-                  <span class="drop-count">{formatNumber(count)}</span>
-                </span>
-              {/each}
-            </div>
-          {:else}
-            <span class="slayer-drop-empty">No drop data available</span>
-          {/if}
-        </div>
       </div>
     {/if}
   {/each}
@@ -138,15 +119,13 @@
     letter-spacing: 0.02em;
   }
 
-  .slayer-kill-tiers,
-  .slayer-drop-list {
+  .slayer-kill-tiers {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
 
-  .tier-chip,
-  .drop-chip {
+  .tier-chip {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -156,22 +135,5 @@
     background: rgba(148, 163, 184, 0.08);
     font-size: 0.75rem;
     color: var(--theme-text-secondary);
-  }
-
-  .drop-count {
-    font-weight: 600;
-    color: var(--theme-text-primary);
-  }
-
-  .slayer-drops {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .slayer-drop-empty {
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
-    opacity: 0.75;
   }
 </style>

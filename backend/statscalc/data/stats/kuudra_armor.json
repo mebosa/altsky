@@ -1,0 +1,409 @@
+{
+  "comment": "Kuudra armor tiers (Hot/Burning/Fiery/Infernal) aligned to Hypixel wiki stats.",
+  "armor_stats": {
+    "BURNING_AURORA_BOOTS": {
+      "defense": 64,
+      "health": 206,
+      "intelligence": 278
+    },
+    "BURNING_AURORA_CHESTPLATE": {
+      "defense": 103,
+      "health": 365,
+      "intelligence": 278
+    },
+    "BURNING_AURORA_HELMET": {
+      "defense": 79,
+      "health": 254,
+      "intelligence": 437,
+      "ability_damage": 25
+    },
+    "BURNING_AURORA_LEGGINGS": {
+      "defense": 87,
+      "health": 325,
+      "intelligence": 278
+    },
+    "BURNING_CRIMSON_BOOTS": {
+      "defense": 64,
+      "health": 206,
+      "strength": 48,
+      "crit_damage": 32,
+      "intelligence": 8
+    },
+    "BURNING_CRIMSON_CHESTPLATE": {
+      "defense": 103,
+      "health": 365,
+      "strength": 48,
+      "crit_damage": 32,
+      "intelligence": 8
+    },
+    "BURNING_CRIMSON_HELMET": {
+      "defense": 79,
+      "health": 254,
+      "strength": 48,
+      "crit_damage": 32,
+      "intelligence": 24
+    },
+    "BURNING_CRIMSON_LEGGINGS": {
+      "defense": 87,
+      "health": 325,
+      "strength": 48,
+      "crit_damage": 32,
+      "intelligence": 8
+    },
+    "BURNING_FERVOR_BOOTS": {
+      "defense": 135,
+      "health": 254,
+      "intelligence": 8,
+      "true_defense": 8
+    },
+    "BURNING_FERVOR_CHESTPLATE": {
+      "defense": 222,
+      "health": 421,
+      "intelligence": 8,
+      "true_defense": 8
+    },
+    "BURNING_FERVOR_HELMET": {
+      "defense": 159,
+      "health": 286,
+      "intelligence": 24,
+      "true_defense": 8
+    },
+    "BURNING_FERVOR_LEGGINGS": {
+      "defense": 183,
+      "health": 333,
+      "intelligence": 8,
+      "true_defense": 8
+    },
+    "BURNING_TERROR_BOOTS": {
+      "speed": 19,
+      "defense": 64,
+      "health": 206,
+      "crit_damage": 79,
+      "intelligence": 8
+    },
+    "BURNING_TERROR_CHESTPLATE": {
+      "speed": 19,
+      "defense": 103,
+      "health": 365,
+      "crit_damage": 79,
+      "intelligence": 8
+    },
+    "BURNING_TERROR_HELMET": {
+      "speed": 19,
+      "defense": 79,
+      "health": 254,
+      "crit_damage": 79,
+      "intelligence": 24
+    },
+    "BURNING_TERROR_LEGGINGS": {
+      "speed": 19,
+      "defense": 87,
+      "health": 325,
+      "crit_damage": 79,
+      "intelligence": 8
+    },
+    "FIERY_AURORA_BOOTS": {
+      "defense": 80,
+      "health": 260,
+      "intelligence": 350
+    },
+    "FIERY_AURORA_CHESTPLATE": {
+      "defense": 130,
+      "health": 460,
+      "intelligence": 350
+    },
+    "FIERY_AURORA_HELMET": {
+      "defense": 100,
+      "health": 320,
+      "intelligence": 550,
+      "ability_damage": 32
+    },
+    "FIERY_AURORA_LEGGINGS": {
+      "defense": 110,
+      "health": 410,
+      "intelligence": 350
+    },
+    "FIERY_CRIMSON_BOOTS": {
+      "defense": 80,
+      "health": 260,
+      "strength": 60,
+      "crit_damage": 40,
+      "intelligence": 10
+    },
+    "FIERY_CRIMSON_CHESTPLATE": {
+      "defense": 130,
+      "health": 460,
+      "strength": 60,
+      "crit_damage": 40,
+      "intelligence": 10
+    },
+    "FIERY_CRIMSON_HELMET": {
+      "defense": 100,
+      "health": 320,
+      "strength": 60,
+      "crit_damage": 40,
+      "intelligence": 30
+    },
+    "FIERY_CRIMSON_LEGGINGS": {
+      "defense": 110,
+      "health": 410,
+      "strength": 60,
+      "crit_damage": 40,
+      "intelligence": 10
+    },
+    "FIERY_FERVOR_BOOTS": {
+      "defense": 170,
+      "health": 320,
+      "intelligence": 10,
+      "true_defense": 10
+    },
+    "FIERY_FERVOR_CHESTPLATE": {
+      "defense": 280,
+      "health": 530,
+      "intelligence": 10,
+      "true_defense": 10
+    },
+    "FIERY_FERVOR_HELMET": {
+      "defense": 200,
+      "health": 360,
+      "intelligence": 30,
+      "true_defense": 10
+    },
+    "FIERY_FERVOR_LEGGINGS": {
+      "defense": 230,
+      "health": 420,
+      "intelligence": 10,
+      "true_defense": 10
+    },
+    "FIERY_TERROR_BOOTS": {
+      "speed": 24,
+      "defense": 80,
+      "health": 260,
+      "crit_damage": 100,
+      "intelligence": 10
+    },
+    "FIERY_TERROR_CHESTPLATE": {
+      "speed": 24,
+      "defense": 130,
+      "health": 460,
+      "crit_damage": 100,
+      "intelligence": 10
+    },
+    "FIERY_TERROR_HELMET": {
+      "speed": 24,
+      "defense": 100,
+      "health": 320,
+      "crit_damage": 100,
+      "intelligence": 30
+    },
+    "FIERY_TERROR_LEGGINGS": {
+      "speed": 24,
+      "defense": 110,
+      "health": 410,
+      "crit_damage": 100,
+      "intelligence": 10
+    },
+    "HOT_AURORA_BOOTS": {
+      "defense": 50,
+      "health": 164,
+      "intelligence": 221
+    },
+    "HOT_AURORA_CHESTPLATE": {
+      "defense": 82,
+      "health": 290,
+      "intelligence": 221
+    },
+    "HOT_AURORA_HELMET": {
+      "defense": 63,
+      "health": 202,
+      "intelligence": 347,
+      "ability_damage": 20
+    },
+    "HOT_AURORA_LEGGINGS": {
+      "defense": 69,
+      "health": 258,
+      "intelligence": 221
+    },
+    "HOT_CRIMSON_BOOTS": {
+      "defense": 50,
+      "health": 164,
+      "strength": 38,
+      "crit_damage": 25,
+      "intelligence": 6
+    },
+    "HOT_CRIMSON_CHESTPLATE": {
+      "defense": 82,
+      "health": 290,
+      "strength": 38,
+      "crit_damage": 25,
+      "intelligence": 6
+    },
+    "HOT_CRIMSON_HELMET": {
+      "defense": 63,
+      "health": 202,
+      "strength": 38,
+      "crit_damage": 25,
+      "intelligence": 19
+    },
+    "HOT_CRIMSON_LEGGINGS": {
+      "defense": 69,
+      "health": 258,
+      "strength": 38,
+      "crit_damage": 25,
+      "intelligence": 6
+    },
+    "HOT_FERVOR_BOOTS": {
+      "defense": 107,
+      "health": 202,
+      "intelligence": 6,
+      "true_defense": 6
+    },
+    "HOT_FERVOR_CHESTPLATE": {
+      "defense": 176,
+      "health": 334,
+      "intelligence": 6,
+      "true_defense": 6
+    },
+    "HOT_FERVOR_HELMET": {
+      "defense": 126,
+      "health": 227,
+      "intelligence": 19,
+      "true_defense": 6
+    },
+    "HOT_FERVOR_LEGGINGS": {
+      "defense": 145,
+      "health": 265,
+      "intelligence": 6,
+      "true_defense": 6
+    },
+    "HOT_TERROR_BOOTS": {
+      "speed": 15,
+      "defense": 50,
+      "health": 164,
+      "crit_damage": 63,
+      "intelligence": 6
+    },
+    "HOT_TERROR_CHESTPLATE": {
+      "speed": 15,
+      "defense": 82,
+      "health": 290,
+      "crit_damage": 63,
+      "intelligence": 6
+    },
+    "HOT_TERROR_HELMET": {
+      "speed": 15,
+      "defense": 63,
+      "health": 202,
+      "crit_damage": 63,
+      "intelligence": 19
+    },
+    "HOT_TERROR_LEGGINGS": {
+      "speed": 15,
+      "defense": 69,
+      "health": 258,
+      "crit_damage": 63,
+      "intelligence": 6
+    },
+    "INFERNAL_AURORA_BOOTS": {
+      "defense": 101,
+      "health": 328,
+      "intelligence": 441
+    },
+    "INFERNAL_AURORA_CHESTPLATE": {
+      "defense": 164,
+      "health": 580,
+      "intelligence": 441
+    },
+    "INFERNAL_AURORA_HELMET": {
+      "defense": 126,
+      "health": 403,
+      "intelligence": 693,
+      "ability_damage": 40
+    },
+    "INFERNAL_AURORA_LEGGINGS": {
+      "defense": 139,
+      "health": 517,
+      "intelligence": 441
+    },
+    "INFERNAL_CRIMSON_BOOTS": {
+      "defense": 101,
+      "health": 328,
+      "strength": 76,
+      "crit_damage": 50,
+      "intelligence": 13
+    },
+    "INFERNAL_CRIMSON_CHESTPLATE": {
+      "defense": 164,
+      "health": 580,
+      "strength": 76,
+      "crit_damage": 50,
+      "intelligence": 13
+    },
+    "INFERNAL_CRIMSON_HELMET": {
+      "defense": 126,
+      "health": 403,
+      "strength": 76,
+      "crit_damage": 50,
+      "intelligence": 38
+    },
+    "INFERNAL_CRIMSON_LEGGINGS": {
+      "defense": 139,
+      "health": 517,
+      "strength": 76,
+      "crit_damage": 50,
+      "intelligence": 13
+    },
+    "INFERNAL_FERVOR_BOOTS": {
+      "defense": 214,
+      "health": 403,
+      "intelligence": 13,
+      "true_defense": 12
+    },
+    "INFERNAL_FERVOR_CHESTPLATE": {
+      "defense": 353,
+      "health": 668,
+      "intelligence": 13,
+      "true_defense": 12
+    },
+    "INFERNAL_FERVOR_HELMET": {
+      "defense": 252,
+      "health": 454,
+      "intelligence": 38,
+      "true_defense": 12
+    },
+    "INFERNAL_FERVOR_LEGGINGS": {
+      "defense": 290,
+      "health": 529,
+      "intelligence": 13,
+      "true_defense": 12
+    },
+    "INFERNAL_TERROR_BOOTS": {
+      "speed": 30,
+      "defense": 101,
+      "health": 328,
+      "crit_damage": 126,
+      "intelligence": 13
+    },
+    "INFERNAL_TERROR_CHESTPLATE": {
+      "speed": 30,
+      "defense": 164,
+      "health": 580,
+      "crit_damage": 126,
+      "intelligence": 13
+    },
+    "INFERNAL_TERROR_HELMET": {
+      "speed": 30,
+      "defense": 126,
+      "health": 403,
+      "crit_damage": 126,
+      "intelligence": 38
+    },
+    "INFERNAL_TERROR_LEGGINGS": {
+      "speed": 30,
+      "defense": 139,
+      "health": 517,
+      "crit_damage": 126,
+      "intelligence": 13
+    }
+  }
+}

@@ -264,12 +264,11 @@
             item.icon_variants?.vanilla ??
             item.icon_url ??
             null}
-        {@const isFallbackIcon =
-          iconSrcRaw?.includes('/block/stone') || iconSrcRaw?.includes('/item/barrier')}
-        {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
+            {@const isFallbackIcon =
+              iconSrcRaw?.includes('/block/stone') || iconSrcRaw?.includes('/item/barrier')}
+            {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
         {@const isBlockIcon = iconSrc?.includes('/block/')}
-        {@const isBlockFace = iconSrc ? /_(front|side|top)\.png$/i.test(iconSrc) : false}
-        {@const isIsometric = isBlockIcon && !isBlockFace}
+        {@const isIsometric = isBlockIcon}
         <div class="accessory-slot">
           <button
             type="button"
@@ -381,6 +380,7 @@
             {@const iconSrc = isFallbackIcon ? null : iconSrcRaw}
             {@const vanillaBlock = missingItem.icon_variants?.vanilla?.includes('/block/')}
             {@const isBlockIcon = vanillaBlock || iconSrc?.includes('/block/')}
+            {@const buyPrice = missingItem.upgrade_buy_price ?? missingItem.price}
             <div class="missing-chip">
               <div class="row top">
                 <div class="missing-icon {isBlockIcon ? 'isometric' : ''}">
@@ -404,9 +404,11 @@
                     Sell current: {formatNumber(missingItem.upgrade_sell_price ?? 0, 0)} coins
                   </span>
                 {/if}
-                <span class="price">
-                  Buy target: {missingItem.upgrade_buy_price || missingItem.price ? formatNumber(missingItem.upgrade_buy_price ?? missingItem.price ?? 0, 0) : 'n/a'} coins
-                </span>
+                {#if typeof buyPrice === 'number' && buyPrice > 0}
+                  <span class="price">
+                    Buy target: {formatNumber(buyPrice, 0)} coins
+                  </span>
+                {/if}
                 {#if missingItem.mp_gain}
                   <span class="ppm">{formatNumber(missingItem.mp_gain, 0)} MP gain</span>
                 {:else if missingItem.magical_power}

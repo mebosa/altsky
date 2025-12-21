@@ -1,6 +1,7 @@
-<script lang="ts">
+﻿<script lang="ts">
   import { formatNumber } from '$lib/utils';
   import type { ProfileSummaryResponse } from './profileTypes';
+  import { slide } from 'svelte/transition';
 
   export let summary: ProfileSummaryResponse;
   $: computed = summary.computed_stats?.stats || null;
@@ -16,17 +17,17 @@
   }
 
   const primaryStatOrder = [
-    'speed',
-    'strength',
-    'defense',
-    'crit_damage',
-    'crit_chance',
     'health',
-    'intelligence'
+    'defense',
+    'strength',
+    'speed',
+    'crit_chance',
+    'crit_damage',
+    'intelligence',
+    'bonus_attack_speed'
   ] as const;
 
   const additionalStatOrder = [
-    'bonus_attack_speed',
     'ferocity',
     'magic_find',
     'pet_luck',
@@ -66,43 +67,69 @@
     'sea_creature_chance',
     'ability_damage'
   ]);
+
+  const statColors: Partial<Record<KnownStatKey, string>> = {
+    health: '#ef4444',      // Red
+    defense: '#22c55e',     // Green
+    strength: '#f97316',    // Orange
+    speed: '#f0f9ff',       // White/Blueish
+    crit_chance: '#3b82f6', // Blue
+    crit_damage: '#6366f1', // Indigo
+    intelligence: '#06b6d4',// Cyan
+    bonus_attack_speed: '#eab308', // Yellow
+    magic_find: '#fcd34d',
+    pet_luck: '#d8b4fe',
+    ferocity: '#f472b6',
+    true_defense: '#cbd5e1'
+  };
+
+  const statIcons: Partial<Record<KnownStatKey, string>> = {
+    health: '',
+    defense: '',
+    strength: '',
+    speed: '',
+    crit_chance: '',
+    crit_damage: '',
+    intelligence: '',
+    bonus_attack_speed: '',
+    ferocity: '',
+    magic_find: '',
+    pet_luck: '',
+    true_defense: '',
+    sea_creature_chance: 'α',
+    mining_speed: '',
+    mining_fortune: '',
+    farming_fortune: '',
+    foraging_fortune: '',
+    pristine: ''
+  };
+
   const precisionMap: Partial<Record<KnownStatKey, number>> = {
-    speed: 2,
-    strength: 2,
-    defense: 2,
-    crit_damage: 2,
-    crit_chance: 2,
-    health: 2,
-    intelligence: 2,
-    bonus_attack_speed: 2,
-    ferocity: 2,
-    magic_find: 2,
-    pet_luck: 2,
-    true_defense: 2,
-    sea_creature_chance: 2,
-    ability_damage: 2,
-    mining_speed: 2,
-    mining_fortune: 2,
-    farming_fortune: 2,
-    foraging_fortune: 2,
-    pristine: 2,
-    fishing_speed: 2,
-    health_regen: 2,
-    vitality: 2,
-    mending: 2,
-    mana_regen: 2,
-    alchemy_wisdom: 2,
-    carpentry_wisdom: 2,
-    combat_wisdom: 2,
-    enchanting_wisdom: 2,
-    farming_wisdom: 2,
-    fishing_wisdom: 2,
-    foraging_wisdom: 2,
-    mining_wisdom: 2,
-    runecrafting_wisdom: 2,
-    social_wisdom: 2,
-    taming_wisdom: 2,
-    rift_time: 2
+    speed: 0,
+    strength: 0,
+    defense: 0,
+    crit_damage: 0,
+    crit_chance: 0,
+    health: 0,
+    intelligence: 0,
+    bonus_attack_speed: 0,
+    ferocity: 0,
+    magic_find: 0,
+    pet_luck: 0,
+    true_defense: 0,
+    sea_creature_chance: 0,
+    ability_damage: 0,
+    mining_speed: 0,
+    mining_fortune: 0,
+    farming_fortune: 0,
+    foraging_fortune: 0,
+    pristine: 1,
+    fishing_speed: 0,
+    health_regen: 1,
+    vitality: 0,
+    mending: 0,
+    mana_regen: 1,
+    rift_time: 0
   };
 
   const prettifyKey = (value: string) =>
@@ -131,7 +158,7 @@
       return '-';
     }
 
-    const fraction = precisionMap[key] ?? (Number.isInteger(numericValue) ? 0 : 2);
+    const fraction = precisionMap[key] ?? (Number.isInteger(numericValue) ? 0 : 1);
     const formatted = formatNumber(numericValue, fraction);
     return percentStats.has(key) ? `${formatted}%` : formatted;
   };
@@ -149,429 +176,381 @@
     }
     
     const diff = Number(calculated) - Number(original);
-    return Math.abs(diff) > 0.01 ? diff : null;
-  };
-
-  const getDiffClass = (diff: number | null) => {
-    if (diff === null) return '';
-    return diff > 0 ? 'positive' : 'negative';
+    return Math.abs(diff) > 0.1 ? diff : null;
   };
 
 </script>
 
-<section id="stats" class="grid stats-grid">
-  <div class="card stat-panel">
-    <div class="stat-panel-head">
-      <p class="stat-panel-title">Your SkyBlock Profile</p>
-      <p class="stat-panel-sub">
-        View your equipment, stats, and more!
-        {#if computed}
-          <span class="pill">Server-calculated</span>
-        {/if}
-      </p>
+<div class="stats-container">
+  <!-- Header -->
+  <div class="section-header">
+    <div class="title-group">
+      <h2>Profile Stats</h2>
+      {#if computed}
+        <span class="badge-calculated">Server Calculated</span>
+      {/if}
     </div>
-    <div class="stat-panel-body">
-      {#each primaryStatOrder as key}
-        {@const diff = getDifference(key)}
-        {@const hasBreakdown = !!breakdown[key]}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div 
-          class="stat-row" 
-          data-stat={key} 
-          class:clickable={hasBreakdown}
-          class:expanded={expandedStat === key}
-          on:click={() => toggleBreakdown(key)}
-        >
-          <span class="stat-row-label">{getStatLabel(key)}</span>
-          <span class="stat-row-value">{formatStatValue(key, getStatValue(key))}</span>
-          {#if computed?.[key] !== undefined}
-            <span class="stat-row-computed">
-              <span class="computed-label">Calculated:</span>
-              <span class="computed-value">{formatStatValue(key, computed?.[key])}</span>
+    <p class="subtitle">Your equipment, skills, and accessory stats combined.</p>
+  </div>
+
+  <!-- Primary Stats Grid -->
+  <div class="primary-grid">
+    {#each primaryStatOrder as key}
+      {@const value = getStatValue(key)}
+      {@const calcValue = getComputedValue(key)}
+      {@const diff = getDifference(key)}
+      {@const hasBreakdown = !!breakdown[key]}
+      {@const color = statColors[key] || '#fff'}
+      {@const icon = statIcons[key] || ''}
+      
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div 
+        class="stat-card" 
+        class:interactive={hasBreakdown}
+        class:expanded={expandedStat === key}
+        style="--stat-color: {color}"
+        on:click={() => toggleBreakdown(key)}
+      >
+        <div class="stat-main">
+          <div class="icon-box">
+            <span class="stat-icon">{icon}</span>
+          </div>
+          <div class="info-box">
+            <span class="stat-label">{getStatLabel(key)}</span>
+            <div class="value-row">
+              <span class="stat-value">
+                {formatStatValue(key, calcValue ?? value)}
+              </span>
               {#if diff !== null}
-                <span class="diff {getDiffClass(diff)}">
-                  ({diff > 0 ? '+' : ''}{formatStatValue(key, diff)})
+                <span class="diff-badge" class:positive={diff > 0} class:negative={diff < 0}>
+                  {diff > 0 ? '+' : ''}{formatStatValue(key, diff)}
                 </span>
               {/if}
-            </span>
-          {/if}
+            </div>
+          </div>
           {#if hasBreakdown}
-            <span class="expand-icon">{expandedStat === key ? '▼' : '▶'}</span>
+            <div class="chevron">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
           {/if}
         </div>
+
         {#if expandedStat === key && hasBreakdown}
-          <div class="breakdown-container">
-            <div class="breakdown-row base">
-              <span class="source">Base Stats</span>
-              <span class="value">{formatStatValue(key, breakdown[key].base)}</span>
-            </div>
-            {#each breakdown[key].bonuses as bonus}
-              <div class="breakdown-row">
-                <span class="source">{bonus.source}</span>
-                <span class="value">+{formatStatValue(key, bonus.value)}</span>
+          <div class="breakdown" transition:slide={{ duration: 200 }}>
+            <div class="breakdown-content">
+              <div class="bd-row base">
+                <span>Base</span>
+                <span>{formatStatValue(key, breakdown[key].base)}</span>
               </div>
-            {/each}
-            <div class="breakdown-row total">
-              <span class="source">Total Calculated</span>
-              <span class="value">{formatStatValue(key, breakdown[key].total)}</span>
+              {#each breakdown[key].bonuses as bonus}
+                <div class="bd-row">
+                  <span class="bd-source">{bonus.source}</span>
+                  <span class="bd-val">+{formatStatValue(key, bonus.value)}</span>
+                </div>
+              {/each}
             </div>
           </div>
         {/if}
-      {/each}
-      <p class="stat-panel-foot">Also accessible via /stats</p>
-    </div>
+      </div>
+    {/each}
   </div>
 
-  <div class="card extra-stats">
-    <h3>Additional Stats</h3>
-    <p class="stat-note">Every SkyBlock stat beyond the highlights.</p>
-    <div class="stat-list">
+  <!-- Secondary Stats -->
+  <div class="secondary-section">
+    <h3>Misc Stats</h3>
+    <div class="secondary-grid">
       {#each additionalStatOrder as key}
-        {@const diff = getDifference(key)}
-        <div class="stat-chip" data-stat={key}>
-          <span class="label">{getStatLabel(key)}</span>
-          <span class="value">{formatStatValue(key, getStatValue(key))}</span>
-          {#if computed?.[key] !== undefined}
-            <span class="computed">
-              calc: {formatStatValue(key, computed?.[key])}
-              {#if diff !== null}
-                <span class="diff-small {getDiffClass(diff)}">
-                  ({diff > 0 ? '+' : ''}{formatStatValue(key, diff)})
-                </span>
-              {/if}
+        {@const value = getStatValue(key)}
+        {@const calcValue = getComputedValue(key)}
+        {@const displayValue = calcValue ?? value}
+        
+        {#if displayValue && Number(displayValue) !== 0}
+          <div class="mini-stat">
+            <span class="mini-label">{getStatLabel(key)}</span>
+            <span class="mini-value" style="color: {statColors[key] || 'var(--theme-text-primary)'}">
+              {formatStatValue(key, displayValue)}
             </span>
-          {/if}
-        </div>
+          </div>
+        {/if}
       {/each}
     </div>
   </div>
 
-  <div class="card essence-card">
-    <h3>Essence</h3>
-    <div class="essence-grid">
-      {#each Object.entries(summary.currencies.essence) as [key, value]}
-        <div>
-          <span class="label">{key}</span>
-          <span class="value">{formatNumber(value, 0)}</span>
-        </div>
-      {/each}
+  <!-- Essence -->
+  {#if summary.currencies.essence}
+    <div class="essence-section">
+      <h3>Essence</h3>
+      <div class="essence-list">
+        {#each Object.entries(summary.currencies.essence) as [key, value]}
+          {#if Number(value) > 0}
+            <div class="essence-item">
+              <span class="ess-name">{key}</span>
+              <span class="ess-val">{formatNumber(Number(value), 0)}</span>
+            </div>
+          {/if}
+        {/each}
+      </div>
     </div>
-  </div>
-</section>
+  {/if}
+</div>
 
 <style>
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
-
-  .stat-panel {
-    grid-column: 1 / -1;
-    padding: 0;
-    background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.4), rgba(2, 6, 23, 0.95));
-    border: 1px solid rgba(99, 102, 241, 0.4);
-    box-shadow: 0 18px 34px rgba(2, 6, 23, 0.65);
-    color: #fff;
-  }
-
-  .stat-panel-head {
-    padding: 16px 24px 4px;
-  }
-
-  .stat-panel-title {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #a6ff77;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
-  }
-
-  .stat-panel-sub {
-    margin: 4px 0 0;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .stat-panel-body {
-    padding: 4px 24px 12px;
-  }
-
-  .stat-row {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .stat-row:last-of-type {
-    border-bottom: none;
-  }
-
-  .stat-row::before {
-    content: '';
-    display: inline-block;
-    flex: none;
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
-    margin-right: 12px;
-    background: rgba(255, 255, 255, 0.7);
-  }
-
-  .stat-row-label {
-    color: rgba(255, 255, 255, 0.75);
-  }
-
-  .stat-row-value {
-    font-weight: 600;
-    font-size: 1.15rem;
-    color: #fff;
-  }
-
-  .stat-row-computed {
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-    padding: 2px 8px;
-    background: rgba(255, 255, 255, 0.04);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .computed-label {
-    font-size: 0.8rem;
-    opacity: 0.7;
-  }
-
-  .computed-value {
-    font-weight: 600;
-  }
-
-  .diff {
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 6px;
-  }
-
-  .diff.positive {
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.1);
-  }
-
-  .diff.negative {
-    color: #fb7185;
-    background: rgba(251, 113, 133, 0.1);
-  }
-
-  .stat-row[data-stat='speed']::before {
-    background: #f8fafc;
-  }
-
-  .stat-row[data-stat='strength']::before {
-    background: #fb7185;
-  }
-
-  .stat-row[data-stat='defense']::before {
-    background: #4ade80;
-  }
-
-  .stat-row[data-stat='crit_damage']::before {
-    background: #60a5fa;
-  }
-
-  .stat-row[data-stat='crit_chance']::before {
-    background: #38bdf8;
-  }
-
-  .stat-row[data-stat='health']::before {
-    background: #f472b6;
-  }
-
-  .stat-row[data-stat='intelligence']::before {
-    background: #2dd4bf;
-  }
-
-  .stat-panel-foot {
-    margin: 8px 0 0;
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .extra-stats h3 {
-    margin-top: 0;
-    font-size: 1rem;
-    color: var(--theme-text-primary);
-  }
-
-  .stat-note {
-    margin: 0 0 8px;
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
-  }
-
-  .extra-stats .stat-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
-  }
-
-  .stat-chip {
-    border: 1px solid var(--theme-surface-border);
-    border-radius: 12px;
-    padding: 8px 12px;
+  .stats-container {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    background: var(--theme-surface);
+    gap: 24px;
+    padding: 8px 0;
   }
 
-  .stat-chip .label {
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+  .section-header {
+    margin-bottom: 8px;
   }
 
-  .stat-chip .value {
-    font-size: 1.1rem;
-    font-weight: 600;
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
     color: var(--theme-text-primary);
   }
 
-  .stat-chip .computed {
-    font-size: 0.85rem;
+  .subtitle {
+    margin: 0;
     color: var(--theme-text-soft);
+    font-size: 0.95rem;
+  }
+
+  .badge-calculated {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+  }
+
+  /* Primary Grid */
+  .primary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+  }
+
+  .stat-card.interactive {
+    cursor: pointer;
+  }
+
+  .stat-card.interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .stat-card.expanded {
+    border-color: var(--stat-color);
+    background: linear-gradient(to bottom, var(--theme-surface), rgba(15, 23, 42, 0.95));
+  }
+
+  .stat-main {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--stat-color) 15%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stat-icon {
+    font-size: 1.2rem;
+    color: var(--stat-color);
+  }
+
+  .info-box {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
 
-  .diff-small {
+  .stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-soft);
+    font-weight: 600;
+  }
+
+  .value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--theme-text-primary);
+    line-height: 1;
+  }
+
+  .diff-badge {
     font-size: 0.75rem;
     font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
   }
 
-  .diff-small.positive {
+  .diff-badge.positive {
     color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
   }
 
-  .diff-small.negative {
+  .diff-badge.negative {
     color: #fb7185;
+    background: rgba(251, 113, 133, 0.1);
   }
 
-  .stat-chip[data-stat='bonus_attack_speed'] .value {
-    color: var(--theme-accent);
+  .chevron {
+    color: var(--theme-text-soft);
+    opacity: 0.5;
+    transition: transform 0.2s ease;
   }
 
-  .stat-chip[data-stat='ferocity'] .value {
-    color: #e879f9;
+  .stat-card.expanded .chevron {
+    transform: rotate(180deg);
+    opacity: 1;
   }
 
-  .stat-chip[data-stat='magic_find'] .value {
-    color: #fcd34d;
+  /* Breakdown */
+  .breakdown {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.2);
   }
 
-  .stat-chip[data-stat='pet_luck'] .value {
-    color: #7dd3fc;
-  }
-
-  .stat-chip[data-stat='true_defense'] .value {
-    color: #38bdf8;
-  }
-
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 8px;
-    margin-left: 8px;
-    font-size: 0.8rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    color: #fff;
-  }
-
-  .essence-card {
-    grid-column: 1 / -1;
+  .breakdown-content {
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 6px;
   }
 
-  .essence-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 14px;
-  }
-
-  .essence-grid .label {
-    font-size: 0.85rem;
-    color: var(--theme-text-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .essence-grid .value {
-    font-weight: 600;
-    color: var(--theme-text-primary);
-  }
-
-  .stat-row.clickable {
-    cursor: pointer;
-  }
-  
-  .stat-row.clickable:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-
-  .expand-icon {
-    margin-left: auto;
-    color: var(--theme-text-soft);
-    font-size: 0.8rem;
-  }
-
-  .breakdown-container {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 8px 16px;
-    border-radius: 0 0 8px 8px;
-    margin-top: -1px;
-    margin-bottom: 8px;
-    border: 1px solid var(--theme-surface-border);
-    border-top: none;
-  }
-
-  .breakdown-row {
+  .bd-row {
     display: flex;
     justify-content: space-between;
-    padding: 4px 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--theme-text-secondary);
   }
 
-  .breakdown-row.base {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 4px;
-    padding-bottom: 8px;
+  .bd-row.base {
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-weight: 500;
   }
 
-  .breakdown-row.total {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 4px;
-    padding-top: 8px;
-    font-weight: bold;
+  .bd-val {
+    font-family: 'Space Grotesk', monospace;
     color: var(--theme-text-primary);
   }
 
-  .breakdown-row .source {
-    flex: 1;
+  /* Secondary Stats */
+  .secondary-section h3,
+  .essence-section h3 {
+    font-size: 1.1rem;
+    color: var(--theme-text-primary);
+    margin: 0 0 16px;
   }
 
-  .breakdown-row .value {
-    font-family: monospace;
+  .secondary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .mini-stat {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mini-label {
+    font-size: 0.75rem;
+    color: var(--theme-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .mini-value {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  /* Essence */
+  .essence-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .essence-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+  }
+
+  .ess-name {
+    font-size: 0.85rem;
+    color: var(--theme-text-secondary);
+    text-transform: capitalize;
+  }
+
+  .ess-val {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fbbf24; /* Amber */
+  }
+
+  @media (max-width: 640px) {
+    .primary-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

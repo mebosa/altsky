@@ -600,6 +600,11 @@ def _build_statscalc_payload(
             magical_power = summary['accessories'].get('magical_power')
             if magical_power:
                 payload['magical_power'] = magical_power
+            
+            # Tuning Points
+            tuning = summary['accessories'].get('tuning')
+            if tuning:
+                payload['tuning'] = tuning
 
         # 펫
         pets = extract_pets_from_profile(member_data)
@@ -619,6 +624,11 @@ def _build_statscalc_payload(
                 # Level = XP / 100
                 payload['skyblock_level'] = int(sb_xp / 100)
         
+        # Fairy Souls
+        fairy_souls = member_data.get('fairy_souls_collected', 0)
+        if fairy_souls:
+            payload['fairy_souls'] = fairy_souls
+
         # Dungeons
         dungeons = extract_dungeons_from_profile(member_data)
         if dungeons:

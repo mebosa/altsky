@@ -48,6 +48,7 @@ ACCESSORY_UPGRADES: List[List[str]] = [
     ["CANDY_TALISMAN", "CANDY_RING", "CANDY_ARTIFACT", "CANDY_RELIC"],
     ["INTIMIDATION_TALISMAN", "INTIMIDATION_RING", "INTIMIDATION_ARTIFACT", "INTIMIDATION_RELIC"],
     ["SPIDER_TALISMAN", "SPIDER_RING", "SPIDER_ARTIFACT"],
+    ["RUNEBLADE_TALISMAN", "RUNEBLADE_RING", "RUNEBLADE_ARTIFACT"],
     ["RED_CLAW_TALISMAN", "RED_CLAW_RING", "RED_CLAW_ARTIFACT"],
     ["HUNTER_TALISMAN", "HUNTER_RING"],
     ["ZOMBIE_TALISMAN", "ZOMBIE_RING", "ZOMBIE_ARTIFACT"],
@@ -353,7 +354,10 @@ def _normalize_rarity(rarity: Optional[str]) -> Optional[str]:
 def _normalize_accessory_id(item_id: Optional[str]) -> Optional[str]:
     if not item_id:
         return None
-    normalized = str(item_id).upper()
+    normalized = str(item_id).strip().upper()
+    normalized = normalized.replace("-", "_").replace(" ", "_")
+    while "__" in normalized:
+        normalized = normalized.replace("__", "_")
     return ACCESSORY_ALIAS_TO_CANONICAL.get(normalized, normalized)
 
 
@@ -486,6 +490,11 @@ def _collapse_missing_by_chain(
             continue
         chains_seen.add(chain_key)
 
+        # If the highest tier is already owned, nothing in this chain is missing.
+        owned_positions = [idx for idx, cid in enumerate(chain) if cid.upper() in owned_ids]
+        if owned_positions and max(owned_positions) == len(chain) - 1:
+            continue
+
         # Determine highest missing tier in this chain
         target_id = None
         for cid in reversed(chain):
@@ -606,15 +615,24 @@ def _classify_missing_accessories(
             if owned_ids.intersection(higher_tiers):
                 continue
 
-        price = prices.get(base_id, 0)
+        raw_price = prices.get(base_id)
+        price = int(raw_price) if isinstance(raw_price, (int, float)) and raw_price > 0 else None
         mp = MAGICAL_POWER_BY_RARITY.get(_normalize_rarity(rarity) or "", 0)
         price_per_mp: Optional[float] = None
         mp_per_coin: Optional[float] = None
-        upgrade_from_price = prices.get(upgrade_from, 0) if upgrade_from else 0
+        raw_upgrade_price = prices.get(upgrade_from) if upgrade_from else None
+        upgrade_from_price = (
+            int(raw_upgrade_price)
+            if isinstance(raw_upgrade_price, (int, float)) and raw_upgrade_price > 0
+            else None
+        )
         upgrade_mp_gain = mp
-        effective_cost = price
-        if upgrade_from:
-            effective_cost = max(0, price - upgrade_from_price)
+        effective_cost: Optional[int] = None
+        if price is not None:
+            if upgrade_from and upgrade_from_price is not None:
+                effective_cost = max(0, price - upgrade_from_price)
+            else:
+                effective_cost = price
         if effective_cost and mp:
             price_per_mp = effective_cost / mp
             mp_per_coin = mp / effective_cost
@@ -825,8 +843,9 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
     for acc in items:
         for key in ("id", "mc_id"):
             raw = acc.get(key)
-            if raw:
-                owned_ids.add(str(raw).upper())
+            normalized = _normalize_accessory_id(raw) if raw else None
+            if normalized:
+                owned_ids.add(normalized)
 
     bag_upgrades = storage.get("bag_upgrades") if isinstance(storage, dict) else None
     total_slots = 0
