@@ -47,9 +47,11 @@ def decode_inventory_data(raw_data: Optional[str]) -> List[Dict[str, Any]]:
         
         # Root is usually a Compound with "i" (List)
         if 'i' in root:
-            for item_tag in root['i']:
+            for index, item_tag in enumerate(root['i']):
                 parsed = _parse_item_nbt(item_tag)
                 if parsed:
+                    if 'slot' not in parsed:
+                        parsed['slot'] = index
                     items.append(parsed)
         
         return items
@@ -72,6 +74,8 @@ def _parse_item_nbt(item_tag: Any) -> Optional[Dict[str, Any]]:
     
     if 'Count' in item_tag:
         item_data['count'] = int(item_tag['Count'])
+    if 'Slot' in item_tag:
+        item_data['slot'] = int(item_tag['Slot'])
         
     if 'id' in item_tag:
         item_data['minecraft_id'] = str(item_tag['id'])
@@ -122,6 +126,8 @@ def _parse_extra_attributes(tag_compound: Any) -> Dict[str, Any]:
     if 'art_of_war_count' in ea: result['art_of_war_count'] = int(ea['art_of_war_count'])
     if 'ethermerge' in ea: result['ethermerge'] = int(ea['ethermerge']) > 0
     if 'abiphone_contacts' in ea: result['abiphone_contacts_count'] = len(ea['abiphone_contacts'])
+    if 'enderman_kills' in ea: result['enderman_kills'] = int(ea['enderman_kills'])
+    if 'zombie_kills' in ea: result['zombie_kills'] = int(ea['zombie_kills'])
     
     return result
 
@@ -236,6 +242,84 @@ def extract_equipment_from_profile(member_data: Dict[str, Any]) -> Dict[str, Opt
             equipment['gloves'] = items[3]
     
     return equipment
+
+
+def _format_weapon_label(item_id: Optional[str]) -> Optional[str]:
+    if not item_id:
+        return None
+    normalized = str(item_id).strip().replace("_", " ").strip()
+    if not normalized:
+        return None
+    return " ".join(part[:1].upper() + part[1:].lower() for part in normalized.split())
+
+
+def extract_weapon_candidates_from_profile(member_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    핫바(0~8) 무기 후보를 반환합니다.
+    """
+    inventory = member_data.get('inventory', {})
+    inv_data = inventory.get('inv_contents', {}).get('data')
+    if not inv_data:
+        return []
+
+    items = decode_inventory_data(inv_data)
+    if not items:
+        return []
+
+    hotbar_items = [
+        item for item in items
+        if isinstance(item, dict)
+        and isinstance(item.get('slot'), int)
+        and 0 <= item.get('slot') <= 8
+        and item.get('id')
+    ]
+    hotbar_items.sort(key=lambda item: item.get('slot', 0))
+
+    candidates = []
+    for item in hotbar_items:
+        item_id = item.get('id')
+        candidates.append({
+            'slot': item.get('slot'),
+            'id': item_id,
+            'name': _format_weapon_label(item_id) or item_id,
+            'rarity': item.get('rarity'),
+        })
+    return candidates
+
+
+def extract_weapon_from_profile(
+    member_data: Dict[str, Any],
+    preferred_slot: Optional[int] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    인벤토리 핫바에서 첫 번째 아이템을 무기로 간주합니다.
+    (선택 슬롯 정보가 없어서 가장 안정적인 휴리스틱)
+    """
+    inventory = member_data.get('inventory', {})
+    inv_data = inventory.get('inv_contents', {}).get('data')
+    if not inv_data:
+        return None
+
+    items = decode_inventory_data(inv_data)
+    if not items:
+        return None
+
+    hotbar_items = [
+        item for item in items
+        if isinstance(item, dict)
+        and isinstance(item.get('slot'), int)
+        and 0 <= item.get('slot') <= 8
+        and item.get('id')
+    ]
+    if hotbar_items:
+        if preferred_slot is not None:
+            for item in hotbar_items:
+                if item.get('slot') == preferred_slot:
+                    return item
+        hotbar_items.sort(key=lambda item: item.get('slot', 0))
+        return hotbar_items[0]
+
+    return items[0]
 
 
 def extract_accessories_from_profile(member_data: Dict[str, Any]) -> List[Dict[str, Any]]:

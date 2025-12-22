@@ -84,6 +84,32 @@ export type ProfileSummaryResponse = {
   };
   skills: Record<string, SkillStat> & { average_level: number };
   slayer: Record<string, SlayerBoss> & { total_xp: number };
+  minions: {
+    categories: Record<string, {
+      minions: {
+        id: string;
+        name: string;
+        tiers: number[];
+        tier: number;
+        maxTier: number;
+        unlockedTiers: number;
+        isMaxed: boolean;
+      }[];
+      totalMinions: number;
+      maxedMinions: number;
+      unlockedTiers: number;
+      unlockableTiers: number;
+    }>;
+    totalMinions: number;
+    maxedMinions: number;
+    unlockedTiers: number;
+    unlockableTiers: number;
+    slots: {
+      current: number;
+      next_threshold: number | null;
+      tiers_until_next: number | null;
+    };
+  };
   dungeons: {
     catacombs: {
       level: number;
@@ -133,6 +159,18 @@ export type ProfileSummaryResponse = {
     equipped_items?: (WardrobeItem | null)[];
   };
   accessories: AccessorySummary;
+  weapon_candidates?: {
+    slot: number;
+    id: string;
+    name?: string | null;
+    rarity?: string | null;
+  }[];
+  weapon_selected_slot?: number | null;
+  weapon_catalog?: {
+    id: string;
+    name?: string | null;
+  }[];
+  weapon_selected_id?: string | null;
 };
 
 export type AggregatedStat = {

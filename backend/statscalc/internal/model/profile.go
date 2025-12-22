@@ -15,6 +15,8 @@ type PlayerProfile struct {
 	Tuning         map[string]int    `json:"tuning,omitempty"`         // 추가: Tuning Points allocation
 	FairySouls     int               `json:"fairy_souls,omitempty"`    // 추가: 수집한 Fairy Souls 수
 	Pets           []Pet             `json:"pets,omitempty"`
+	PetScore       int               `json:"pet_score,omitempty"`      // 추가: 펫 점수
+	Collections    map[string]int    `json:"collections,omitempty"`    // 추가: 컬렉션 (예: "GOLD_INGOT": 10000)
 	HOTM           *HOTM             `json:"hotm,omitempty"`
 	CustomMetadata map[string]any    `json:"meta,omitempty"`
 }

@@ -9,6 +9,7 @@ from .skills import extract_skills
 from .slayer import extract_slayer
 from .wardrobe import parse_wardrobe
 from .accessories import parse_accessories
+from .minions import parse_minions
 
 
 @dataclass
@@ -290,4 +291,5 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
             **wardrobe,
         },
         "accessories": parse_accessories(member),
+        "minions": parse_minions(member),
     }

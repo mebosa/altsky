@@ -278,9 +278,9 @@
             null}
         {@const itemId = (item.id ?? '').toUpperCase()}
         {@const forcedIcon =
-          itemId.startsWith('PERSONAL_COMPACTOR')
+          $texturePackStore !== 'furfsky' && itemId.startsWith('PERSONAL_COMPACTOR')
             ? '/icons/accessories/dropper_iso.png'
-            : itemId.startsWith('PERSONAL_DELETOR')
+            : $texturePackStore !== 'furfsky' && itemId.startsWith('PERSONAL_DELETOR')
               ? '/icons/accessories/dispenser_iso.png'
               : null}
         {@const iconCandidate = forcedIcon ?? iconSrcRaw}
@@ -296,13 +296,14 @@
                 ? item.icon_variants?.furfsky ?? item.icon_url ?? null
                 : item.icon_url ?? item.icon_variants?.furfsky ?? item.icon_variants?.vanilla ?? null}
         {@const isBlockIcon = iconSrc?.includes('/block/')}
-        {@const isIsometric = isBlockIcon}
+        {@const isIsometric = isBlockIcon && $texturePackStore !== 'furfsky'}
         <div class="accessory-slot">
           <button
             type="button"
             class="accessory-icon"
             class:placeholder={!iconSrc}
             class:isometric={isIsometric}
+            class:furfsky={$texturePackStore === 'furfsky'}
             style={rarityColor ? `--rarity-color:${rarityColor}` : undefined}
             aria-label={item.name}
           >
@@ -406,9 +407,9 @@
               null}
             {@const missingId = (missingItem.id ?? '').toUpperCase()}
             {@const forcedIcon =
-              missingId.startsWith('PERSONAL_COMPACTOR')
+              $texturePackStore !== 'furfsky' && missingId.startsWith('PERSONAL_COMPACTOR')
                 ? '/icons/accessories/dropper_iso.png'
-                : missingId.startsWith('PERSONAL_DELETOR')
+                : $texturePackStore !== 'furfsky' && missingId.startsWith('PERSONAL_DELETOR')
                   ? '/icons/accessories/dispenser_iso.png'
                   : null}
             {@const iconCandidate = forcedIcon ?? iconSrcRaw}
@@ -427,11 +428,11 @@
                       missingItem.icon_variants?.vanilla ??
                       null}
             {@const isBlockIcon = iconSrc?.includes('/block/')}
-            {@const isIsometric = isBlockIcon}
+            {@const isIsometric = isBlockIcon && $texturePackStore !== 'furfsky'}
             {@const buyPrice = missingItem.upgrade_buy_price ?? missingItem.price}
             <div class="missing-chip">
               <div class="row top">
-                <div class="missing-icon {isIsometric ? 'isometric' : ''}">
+                <div class="missing-icon {isIsometric ? 'isometric' : ''} {$texturePackStore === 'furfsky' ? 'furfsky' : ''}">
                   {#if iconSrc}
                     <img
                       src={iconSrc}
@@ -638,6 +639,12 @@
     object-fit: contain;
   }
 
+  .accessory-icon.furfsky img {
+    animation: furfsky-float 3.6s ease-in-out infinite;
+    transform-origin: 50% 60%;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.28));
+  }
+
   .accessory-icon.isometric img {
     transform: rotateX(55deg) rotateZ(45deg) scale(1.08);
     transform-origin: 50% 50%;
@@ -751,6 +758,16 @@
     }
     100% {
       filter: blur(0.6px);
+    }
+  }
+
+  @keyframes furfsky-float {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-2px) scale(1.03);
     }
   }
 
@@ -905,6 +922,12 @@
     width: 32px;
     height: 32px;
     object-fit: contain;
+  }
+
+  .missing-icon.furfsky img {
+    animation: furfsky-float 3.6s ease-in-out infinite;
+    transform-origin: 50% 60%;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
   }
 
 

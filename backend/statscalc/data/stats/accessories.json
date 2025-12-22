@@ -29,6 +29,18 @@
     },
     "CANDY_ARTIFACT": {
       "intelligence": 5
+    },
+    "ANGUISH_TALISMAN": {
+      "magic_find": 1,
+      "true_defense": 0.5
+    },
+    "ANGUISH_RING": {
+      "magic_find": 2,
+      "true_defense": 1
+    },
+    "ANGUISH_ARTIFACT": {
+      "magic_find": 3,
+      "true_defense": 1.5
     }
   },
   "enrichments": {

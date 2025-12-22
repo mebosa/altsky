@@ -435,19 +435,64 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     skip_stats = _is_truthy(request.query_params.get('skip_stats'))
     
     stat_breakdown = None
+    weapon_slot = None
+    raw_weapon_slot = request.query_params.get('weapon_slot')
+    if raw_weapon_slot is not None:
+        try:
+            weapon_slot = int(raw_weapon_slot)
+        except (TypeError, ValueError):
+            weapon_slot = None
+        else:
+            if weapon_slot < 0 or weapon_slot > 8:
+                weapon_slot = None
+    raw_weapon_id = request.query_params.get('weapon_id')
+    weapon_id = raw_weapon_id.strip() if isinstance(raw_weapon_id, str) else None
+    if weapon_id == "":
+        weapon_id = None
+    if weapon_id:
+        weapon_id = weapon_id.strip().upper().replace(" ", "_").replace("-", "_")
+        while "__" in weapon_id:
+            weapon_id = weapon_id.replace("__", "_")
     if not skip_stats:
-        stats_payload = _build_statscalc_payload(summary, normalized_member_uuid, profile_id, member_data)
+        stats_payload = _build_statscalc_payload(
+            summary,
+            normalized_member_uuid,
+            profile_id,
+            member_data,
+            weapon_slot=weapon_slot,
+            weapon_id=weapon_id,
+        )
         if stats_payload:
             calc_result = statscalc_client.calculate_stats(stats_payload)
             if calc_result:
-                computed_stats = calc_result.get('stats')
-                stat_breakdown = calc_result.get('breakdown')
+                stats_block = calc_result.get('stats')
+                if isinstance(stats_block, dict) and 'stats' in stats_block:
+                    computed_stats = stats_block
+                else:
+                    computed_stats = {
+                        'stats': stats_block or {},
+                        'breakdown': calc_result.get('breakdown') or {},
+                    }
+                stat_breakdown = computed_stats.get('breakdown')
 
     response_body = {
         'ok': True,
         'last_updated': body.get('last_updated') or body.get('lastUpdated'),
         **summary,
     }
+    if member_data:
+        from .domain.nbt_parser import extract_weapon_candidates_from_profile, extract_weapon_from_profile
+
+        weapon_candidates = extract_weapon_candidates_from_profile(member_data)
+        if weapon_candidates:
+            response_body['weapon_candidates'] = weapon_candidates
+            selected_weapon = extract_weapon_from_profile(member_data, preferred_slot=weapon_slot)
+            if selected_weapon:
+                response_body['weapon_selected_slot'] = selected_weapon.get('slot')
+        else:
+            response_body['weapon_catalog'] = _load_weapon_catalog()
+            if weapon_id:
+                response_body['weapon_selected_id'] = weapon_id
     if computed_stats:
         response_body['computed_stats'] = computed_stats
     if stat_breakdown:
@@ -551,6 +596,50 @@ def _format_last_updated(value: Optional[Any]) -> str:
             return f'Cache: {sample}'
 
     return 'Cache: n/a'
+
+
+_WEAPON_CATALOG: Optional[List[Dict[str, str]]] = None
+
+
+def _format_weapon_name(item_id: str) -> str:
+    normalized = item_id.strip().replace("_", " ").strip()
+    if not normalized:
+        return item_id
+    return " ".join(part[:1].upper() + part[1:].lower() for part in normalized.split())
+
+
+def _load_weapon_catalog() -> List[Dict[str, str]]:
+    global _WEAPON_CATALOG
+    if _WEAPON_CATALOG is not None:
+        return _WEAPON_CATALOG
+
+    stats_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "statscalc", "data", "stats")
+    )
+    candidates: Dict[str, str] = {}
+    for filename in ("weapons_wiki.json", "weapons.json"):
+        path = os.path.join(stats_dir, filename)
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                data = json.load(handle)
+        except (OSError, ValueError):
+            continue
+        weapon_stats = data.get("weapon_stats")
+        if not isinstance(weapon_stats, dict):
+            continue
+        for item_id in weapon_stats.keys():
+            if not isinstance(item_id, str):
+                continue
+            candidates[item_id] = _format_weapon_name(item_id)
+
+    catalog = [
+        {"id": item_id, "name": name}
+        for item_id, name in sorted(candidates.items(), key=lambda item: item[1])
+    ]
+    _WEAPON_CATALOG = catalog
+    return catalog
 
 
 def _normalize_tuning_map(raw: Any) -> Dict[str, int]:
@@ -682,11 +771,37 @@ def _extract_accessory_tuning(member_data: Dict[str, Any]) -> Dict[str, int]:
     return {}
 
 
+def _calculate_pet_score(pets: List[Dict[str, Any]]) -> int:
+    highest_rarity: Dict[str, int] = {}
+    rarity_score = {
+        'COMMON': 1,
+        'UNCOMMON': 2,
+        'RARE': 3,
+        'EPIC': 4,
+        'LEGENDARY': 5,
+        'MYTHIC': 6
+    }
+    
+    for pet in pets:
+        pet_type = pet.get('type')
+        rarity = pet.get('tier')
+        if not pet_type or not rarity:
+            continue
+            
+        score = rarity_score.get(rarity, 0)
+        if score > highest_rarity.get(pet_type, 0):
+            highest_rarity[pet_type] = score
+            
+    return sum(highest_rarity.values())
+
+
 def _build_statscalc_payload(
     summary: Dict[str, Any], 
     uuid: str, 
     profile_id: str,
-    member_data: Optional[Dict[str, Any]] = None
+    member_data: Optional[Dict[str, Any]] = None,
+    weapon_slot: Optional[int] = None,
+    weapon_id: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     if not summary:
         return None
@@ -733,6 +848,7 @@ def _build_statscalc_payload(
         from .domain.nbt_parser import (
             extract_equipment_from_profile,
             extract_accessories_from_profile,
+            extract_weapon_from_profile,
             extract_pets_from_profile,
             extract_hotm_from_profile,
             extract_dungeons_from_profile,
@@ -740,13 +856,19 @@ def _build_statscalc_payload(
         
         # 장비 (방어구)
         equipment_data = extract_equipment_from_profile(member_data)
-        if any(equipment_data.values()):
-            equipment_payload = {}
-            for slot, item in equipment_data.items():
-                if item:
-                    equipment_payload[slot] = _serialize_item(item)
-            if equipment_payload:
-                payload['equipment'] = equipment_payload
+        equipment_payload = {}
+        for slot, item in equipment_data.items():
+            if item:
+                equipment_payload[slot] = _serialize_item(item)
+        weapon_item = None
+        if weapon_id:
+            weapon_item = {'id': weapon_id}
+        else:
+            weapon_item = extract_weapon_from_profile(member_data, preferred_slot=weapon_slot)
+        if weapon_item:
+            equipment_payload['weapon'] = _serialize_item(weapon_item)
+        if equipment_payload:
+            payload['equipment'] = equipment_payload
         
         # 악세서리
         accessories = extract_accessories_from_profile(member_data)
@@ -775,6 +897,12 @@ def _build_statscalc_payload(
         pets = extract_pets_from_profile(member_data)
         if pets:
             payload['pets'] = pets
+            payload['pet_score'] = _calculate_pet_score(pets)
+        
+        # Collections
+        collections = member_data.get('collection', {})
+        if collections:
+            payload['collections'] = collections
         
         # HOTM
         hotm = extract_hotm_from_profile(member_data)
@@ -828,6 +956,20 @@ def _serialize_item(item: Dict[str, Any]) -> Dict[str, Any]:
         result['stars'] = extra['stars']
     if extra.get('recombobulated'):
         result['recombobulated'] = extra['recombobulated']
+
+    extra_payload = {}
+    for key in (
+        'attributes',
+        'art_of_war_count',
+        'ethermerge',
+        'abiphone_contacts_count',
+        'enderman_kills',
+        'zombie_kills',
+    ):
+        if key in extra:
+            extra_payload[key] = extra[key]
+    if extra_payload:
+        result['extra_attributes'] = extra_payload
     
     return result
 

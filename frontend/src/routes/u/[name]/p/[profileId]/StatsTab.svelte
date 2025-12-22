@@ -1,4 +1,5 @@
 ﻿<script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import { formatNumber } from '$lib/utils';
   import type { ProfileSummaryResponse } from './profileTypes';
   import { slide } from 'svelte/transition';
@@ -7,6 +8,16 @@
   $: computed = summary.computed_stats?.stats || null;
   $: breakdown = summary.computed_stats?.breakdown || {};
   export let statLabels: Record<string, string>;
+
+  const dispatch = createEventDispatcher<{ weaponchange: { slot: number | null; id: string | null } }>();
+
+  let weaponSlot = '';
+  $: weaponSlot =
+    summary?.weapon_selected_slot !== undefined && summary?.weapon_selected_slot !== null
+      ? String(summary.weapon_selected_slot)
+      : '';
+  let weaponId = '';
+  $: weaponId = summary?.weapon_selected_id ?? '';
 
   let expandedStat: string | null = null;
 
@@ -55,7 +66,21 @@
     'runecrafting_wisdom',
     'social_wisdom',
     'taming_wisdom',
-    'rift_time'
+    'rift_time',
+    'damage',
+    'swing_range',
+    'weapon_ability_damage',
+    'treasure_chance',
+    'trophy_fish_chance',
+    'rift_damage',
+    'rift_health',
+    'rift_intelligence',
+    'rift_mana_regen',
+    'rift_walk_speed',
+    'cold_resistance',
+    'heat_resistance',
+    'pressure_resistance',
+    'respiration'
   ] as const;
 
   type KnownStatKey = (typeof primaryStatOrder)[number] | (typeof additionalStatOrder)[number];
@@ -65,7 +90,9 @@
     'crit_chance',
     'bonus_attack_speed',
     'sea_creature_chance',
-    'ability_damage'
+    'ability_damage',
+    'treasure_chance',
+    'trophy_fish_chance'
   ]);
 
   const statColors: Partial<Record<KnownStatKey, string>> = {
@@ -129,7 +156,12 @@
     vitality: 0,
     mending: 0,
     mana_regen: 1,
-    rift_time: 0
+    rift_time: 0,
+    swing_range: 1,
+    damage: 0,
+    weapon_ability_damage: 0,
+    treasure_chance: 1,
+    trophy_fish_chance: 1
   };
 
   const prettifyKey = (value: string) =>
@@ -192,6 +224,31 @@
     return Math.abs(diff) > 0.1 ? diff : null;
   };
 
+  const handleWeaponChange = (event: Event) => {
+    const target = event.target as HTMLSelectElement;
+    const value = target?.value ?? '';
+    if (!value) {
+      dispatch('weaponchange', { slot: null, id: null });
+      return;
+    }
+    const slot = Number(value);
+    if (!Number.isFinite(slot)) {
+      return;
+    }
+    dispatch('weaponchange', { slot, id: null });
+  };
+
+  const handleWeaponIdChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const value = target?.value ?? '';
+    const trimmed = value.trim();
+    if (!trimmed) {
+      dispatch('weaponchange', { slot: null, id: null });
+      return;
+    }
+    dispatch('weaponchange', { slot: null, id: trimmed });
+  };
+
 </script>
 
 <div class="stats-container">
@@ -204,6 +261,35 @@
       {/if}
     </div>
     <p class="subtitle">Your equipment, skills, and accessory stats combined.</p>
+    {#if summary?.weapon_candidates?.length}
+      <div class="weapon-select">
+        <label for="weapon-select">Weapon</label>
+        <select id="weapon-select" bind:value={weaponSlot} on:change={handleWeaponChange}>
+          <option value="">Auto</option>
+          {#each summary.weapon_candidates as weapon}
+            <option value={weapon.slot}>
+              {weapon.name ?? weapon.id} (Slot {weapon.slot + 1})
+            </option>
+          {/each}
+        </select>
+      </div>
+    {:else if summary?.weapon_catalog?.length}
+      <div class="weapon-select">
+        <label for="weapon-input">Weapon</label>
+        <input
+          id="weapon-input"
+          list="weapon-catalog"
+          placeholder="Type weapon ID or name"
+          bind:value={weaponId}
+          on:change={handleWeaponIdChange}
+        />
+        <datalist id="weapon-catalog">
+          {#each summary.weapon_catalog as weapon}
+            <option value={weapon.id}>{weapon.name ?? weapon.id}</option>
+          {/each}
+        </datalist>
+      </div>
+    {/if}
   </div>
 
   <!-- Primary Stats Grid -->
@@ -320,6 +406,9 @@
 
   .section-header {
     margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .title-group {
@@ -352,6 +441,30 @@
     background: rgba(99, 102, 241, 0.15);
     color: #818cf8;
     border: 1px solid rgba(99, 102, 241, 0.25);
+  }
+
+  .weapon-select {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 280px;
+  }
+
+  .weapon-select label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-soft);
+    font-weight: 600;
+  }
+
+  .weapon-select select,
+  .weapon-select input {
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: var(--theme-text-primary);
   }
 
   /* Primary Grid */

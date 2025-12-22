@@ -48,7 +48,21 @@ export const statLabels: Record<string, string> = {
   runecrafting_wisdom: 'Runecrafting Wisdom',
   social_wisdom: 'Social Wisdom',
   taming_wisdom: 'Taming Wisdom',
-  rift_time: 'Rift Time'
+  rift_time: 'Rift Time',
+  damage: 'Damage',
+  swing_range: 'Swing Range',
+  weapon_ability_damage: 'Weapon Ability Damage',
+  treasure_chance: 'Treasure Chance',
+  trophy_fish_chance: 'Trophy Fish Chance',
+  rift_damage: 'Rift Damage',
+  rift_health: 'Rift Health',
+  rift_intelligence: 'Rift Intelligence',
+  rift_mana_regen: 'Rift Mana Regen',
+  rift_walk_speed: 'Rift Speed',
+  cold_resistance: 'Cold Resistance',
+  heat_resistance: 'Heat Resistance',
+  pressure_resistance: 'Pressure Resistance',
+  respiration: 'Respiration'
 };
 
 export const slayerLabels: Record<string, string> = {

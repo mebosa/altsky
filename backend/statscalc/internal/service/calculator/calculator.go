@@ -83,6 +83,7 @@ func (c *Calculator) Calculate(profile model.PlayerProfile) model.CalculationRes
 	applyAccessoryBonuses(ctx, profile, config)
 	applyTuningBonuses(ctx, profile)
 	applyPetBonuses(ctx, profile, config)
+	applyPetScoreBonuses(ctx, profile)
 	applyHOTMBonuses(ctx, profile, config)
 
 	// Special effects that modify base stats or multipliers
@@ -328,9 +329,13 @@ func applyEquipmentBonuses(ctx *Context, profile model.PlayerProfile, cfg data.C
 		itemName := item.ID
 
 		// 기본 아이템 스탯
+		isWeapon := false
 		itemStats, ok := cfg.ArmorStats[item.ID]
 		if !ok {
 			itemStats, ok = cfg.WeaponStats[item.ID]
+			if ok {
+				isWeapon = true
+			}
 		}
 
 		if ok {
@@ -389,11 +394,16 @@ func applyEquipmentBonuses(ctx *Context, profile model.PlayerProfile, cfg data.C
 			}
 		}
 
-		// Hot Potato Books (Armor)
+		// Hot Potato Books
 		if item.HotPotatoCount > 0 {
 			hpbBonus := float64(item.HotPotatoCount) * 2.0
-			ctx.Add("health", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
-			ctx.Add("defense", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
+			if isWeapon {
+				ctx.Add("damage", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
+				ctx.Add("strength", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
+			} else {
+				ctx.Add("health", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
+				ctx.Add("defense", fmt.Sprintf("HPB on %s", itemName), hpbBonus)
+			}
 		}
 
 		// Attributes (Crimson Isle)
@@ -734,6 +744,52 @@ func applyPetBonuses(ctx *Context, profile model.PlayerProfile, cfg data.Config)
 				ctx.Add(stat, fmt.Sprintf("Pet Item: %s", activePet.HeldItem), value)
 			}
 		}
+	}
+
+	// Golden Dragon Special Logic
+	if activePet.Type == "GOLDEN_DRAGON" {
+		goldColl := 0
+		if val, ok := profile.Collections["GOLD_INGOT"]; ok {
+			goldColl = val
+		}
+
+		if goldColl > 0 {
+			digits := len(fmt.Sprintf("%d", goldColl))
+			// Perk 2: Shining Scales (+10 Str, +2 MF per digit)
+			mfBonus := float64(digits * 2)
+			ctx.Add("magic_find", "Pet: Golden Dragon (Gold Coll)", mfBonus)
+
+			strBonus := float64(digits * 10)
+			ctx.Add("strength", "Pet: Golden Dragon (Gold Coll)", strBonus)
+		}
+	}
+}
+
+func applyPetScoreBonuses(ctx *Context, profile model.PlayerProfile) {
+	if profile.PetScore <= 0 {
+		return
+	}
+
+	score := profile.PetScore
+	mf := 0.0
+
+	// Thresholds based on Wiki
+	if score >= 10 { mf = 1 }
+	if score >= 25 { mf = 2 }
+	if score >= 50 { mf = 3 }
+	if score >= 75 { mf = 4 }
+	if score >= 100 { mf = 5 }
+	if score >= 130 { mf = 6 }
+	if score >= 175 { mf = 7 }
+	if score >= 225 { mf = 8 }
+	if score >= 275 { mf = 9 }
+	if score >= 325 { mf = 10 }
+	if score >= 375 { mf = 11 }
+	if score >= 450 { mf = 12 }
+	if score >= 500 { mf = 13 }
+
+	if mf > 0 {
+		ctx.Add("magic_find", "Pet Score", mf)
 	}
 }
 

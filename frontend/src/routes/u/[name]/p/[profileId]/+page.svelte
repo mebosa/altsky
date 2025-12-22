@@ -10,6 +10,7 @@
   import DungeonsTab from './DungeonsTab.svelte';
   import WardrobeTab from './WardrobeTab.svelte';
   import AccessoriesTab from './AccessoriesTab.svelte';
+  import MinionsTab from './MinionsTab.svelte';
   import { skillOrder, statLabels, slayerLabels, dungeonClassLabels } from './profileConstants';
   import type { Player, ProfileSummaryResponse } from './profileTypes';
 
@@ -28,6 +29,7 @@
     { id: 'stats', label: 'Stats' },
     { id: 'slayer', label: 'Slayer' },
     { id: 'dungeons', label: 'Dungeons' },
+    { id: 'minions', label: 'Minions' },
     { id: 'accessories', label: 'Accessories' },
     { id: 'wardrobe', label: 'Wardrobe' }
   ] as const;
@@ -42,6 +44,8 @@
   let loading = !summary && !errorMsg;
   let refreshing = false;
   let activeTab: TabId = 'summary';
+  let selectedWeaponSlot: number | null = null;
+  let selectedWeaponId: string | null = null;
 
   function scrollToTab(tab: TabId) {
     if (typeof window !== 'undefined') {
@@ -58,7 +62,11 @@
     scrollToTab(activeTab);
   }
 
-  async function fetchProfile(force = false) {
+  async function fetchProfile(
+    force = false,
+    weaponSlot: number | null = selectedWeaponSlot,
+    weaponId: string | null = selectedWeaponId
+  ) {
     if (!player) {
       try {
         player = await get<Player>(`/api/player/${encodeURIComponent(params.name)}`);
@@ -79,9 +87,18 @@
     errorMsg = '';
 
     try {
+      const query: Record<string, string | number> = {};
+      if (force) {
+        query.refresh = 1;
+      }
+      if (weaponId) {
+        query.weapon_id = weaponId;
+      } else if (weaponSlot !== null && weaponSlot !== undefined) {
+        query.weapon_slot = weaponSlot;
+      }
       summary = await get<ProfileSummaryResponse>(
         `/api/hypixel/profile/${encodeURIComponent(resolvedPlayer.uuid)}/${encodeURIComponent(params.profileId)}`,
-        { query: force ? { refresh: 1 } : undefined }
+        { query: Object.keys(query).length ? query : undefined }
       );
     } catch (err) {
       errorMsg = `Error while loading: ${(err as Error).message}`;
@@ -92,7 +109,7 @@
   }
 
   function refresh() {
-    if (!refreshing) fetchProfile(true);
+    if (!refreshing) fetchProfile(true, selectedWeaponSlot, selectedWeaponId);
   }
 
   onMount(() => {
@@ -100,7 +117,7 @@
       fetchProfile();
     } else if (summary && !summary.computed_stats) {
       // If summary is loaded but stats are missing (SSR optimization), fetch full profile
-      fetchProfile();
+      fetchProfile(false, selectedWeaponSlot, selectedWeaponId);
     }
   });
 
@@ -114,6 +131,23 @@
     : 'Inspect Hypixel SkyBlock stats with AltSky.';
 
   $: shareImage = `${SITE_BASE}/api/og/player/${encodeURIComponent(params.name)}.png?v=${summary?.last_updated ?? Date.now()}`;
+  $: if (summary) {
+    if (summary.weapon_selected_id !== undefined) {
+      selectedWeaponId = summary.weapon_selected_id ?? null;
+      if (selectedWeaponId) {
+        selectedWeaponSlot = null;
+      }
+    }
+    if (summary.weapon_selected_slot !== undefined && !selectedWeaponId) {
+      selectedWeaponSlot = summary.weapon_selected_slot ?? null;
+    }
+  }
+
+  function handleWeaponChange(event: CustomEvent<{ slot: number | null; id: string | null }>) {
+    selectedWeaponSlot = event.detail.slot;
+    selectedWeaponId = event.detail.id;
+    fetchProfile(false, selectedWeaponSlot, selectedWeaponId);
+  }
 
   const canonicalUrl = `${SITE_BASE}/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(
     params.profileId
@@ -188,11 +222,13 @@
     {:else if activeTab === 'skills'}
       <SkillsTab {summary} {skillOrder} />
     {:else if activeTab === 'stats'}
-      <StatsTab {summary} {statLabels} />
+      <StatsTab {summary} {statLabels} on:weaponchange={handleWeaponChange} />
     {:else if activeTab === 'slayer'}
       <SlayerTab {summary} {slayerLabels} />
     {:else if activeTab === 'dungeons'}
       <DungeonsTab {summary} {dungeonClassLabels} />
+    {:else if activeTab === 'minions'}
+      <MinionsTab {summary} />
     {:else if activeTab === 'accessories'}
       <AccessoriesTab {summary} />
     {:else if activeTab === 'wardrobe'}

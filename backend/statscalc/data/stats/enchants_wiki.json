@@ -5,6 +5,31 @@
       "per_level": {
         "health_regen": 2
       }
+    },
+    "growth": {
+      "per_level": {
+        "health": 15
+      }
+    },
+    "protection": {
+      "per_level": {
+        "defense": 3
+      }
+    },
+    "true_protection": {
+      "per_level": {
+        "true_defense": 5
+      }
+    },
+    "sugar_rush": {
+      "per_level": {
+        "speed": 2
+      }
+    },
+    "smarty_pants": {
+      "per_level": {
+        "intelligence": 5
+      }
     }
   }
 }
