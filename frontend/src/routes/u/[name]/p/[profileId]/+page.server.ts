@@ -12,10 +12,27 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
     const playerRes = await fetch(`${apiBase}/api/player/${encodeURIComponent(name)}`);
 
     if (!playerRes.ok) {
+      let message = `Failed to resolve player: ${playerRes.status}`;
+      try {
+        const body = (await playerRes.json()) as {
+          message?: unknown;
+          error?: unknown;
+          detail?: unknown;
+        };
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        } else if (typeof body?.error === 'string' && body.error) {
+          message = body.error;
+        } else if (typeof body?.detail === 'string' && body.detail) {
+          message = body.detail;
+        }
+      } catch {
+        // ignore json parse errors
+      }
       return {
         player: null,
         summary: null,
-        errorMsg: `Failed to resolve player: ${playerRes.status}`
+        errorMsg: message
       };
     }
 
@@ -28,8 +45,18 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
     if (!summaryRes.ok) {
       let message = `Failed to load profile summary: ${summaryRes.status}`;
       try {
-        const body = await summaryRes.json();
-        if (body?.error) message = body.error;
+        const body = (await summaryRes.json()) as {
+          message?: unknown;
+          detail?: unknown;
+          error?: unknown;
+        };
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        } else if (typeof body?.detail === 'string' && body.detail) {
+          message = body.detail;
+        } else if (typeof body?.error === 'string' && body.error) {
+          message = body.error;
+        }
       } catch {
         // ignore json parse errors
       }

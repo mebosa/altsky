@@ -239,13 +239,23 @@ export async function get<T>(path: string, opts: GetOpts = {}): Promise<T> {
       }
     });
     
-    const data = await r.json();
-    
+    const data: unknown = await r.json();
+
     if (!r.ok) {
-      throw new Error(data.error || `HTTP error! status: ${r.status}`);
+      const body = (data ?? {}) as {
+        message?: unknown;
+        detail?: unknown;
+        error?: unknown;
+      };
+      const message =
+        (typeof body.message === 'string' && body.message.trim()) ||
+        (typeof body.detail === 'string' && body.detail.trim()) ||
+        (typeof body.error === 'string' && body.error.trim()) ||
+        `HTTP error! status: ${r.status}`;
+      throw new Error(message);
     }
-    
-    return data;
+
+    return data as T;
   } catch (error) {
     console.error('API request failed:', error);
     throw error;

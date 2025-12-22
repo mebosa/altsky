@@ -550,6 +550,76 @@ func applyAccessoryBonuses(ctx *Context, profile model.PlayerProfile, cfg data.C
 	applyPowerBonuses(ctx, totalMagicalPower, profile.SelectedPower, cfg)
 }
 
+// applyTuningBonuses applies Accessory Tuning points as flat stat bonuses.
+func applyTuningBonuses(ctx *Context, profile model.PlayerProfile) {
+	if len(profile.Tuning) == 0 {
+		return
+	}
+
+	availablePoints := 0.0
+	if profile.MagicalPower != 0 {
+		availablePoints = math.Floor(math.Abs(profile.MagicalPower) / 10.0)
+	}
+
+	totalPoints := 0.0
+	for key, value := range profile.Tuning {
+		if value == 0 {
+			continue
+		}
+		stat := normalizeTuningStat(key)
+		if stat == "" {
+			continue
+		}
+		if value > 0 {
+			totalPoints += float64(value)
+		}
+	}
+
+	scale := 1.0
+	if availablePoints > 0 && totalPoints > 0 && math.Abs(totalPoints-availablePoints) > 0.01 {
+		scale = availablePoints / totalPoints
+	}
+
+	for key, value := range profile.Tuning {
+		if value == 0 {
+			continue
+		}
+		stat := normalizeTuningStat(key)
+		if stat == "" {
+			continue
+		}
+		adjusted := float64(value) * scale
+		ctx.Add(stat, fmt.Sprintf("Tuning: %s", key), adjusted)
+	}
+}
+
+func normalizeTuningStat(key string) string {
+	normalized := strings.ToLower(strings.TrimSpace(key))
+	normalized = strings.ReplaceAll(normalized, " ", "_")
+	normalized = strings.ReplaceAll(normalized, "-", "_")
+
+	switch normalized {
+	case "health":
+		return "health"
+	case "defense":
+		return "defense"
+	case "strength":
+		return "strength"
+	case "walk_speed", "speed":
+		return "speed"
+	case "critical_damage", "crit_damage":
+		return "crit_damage"
+	case "critical_chance", "crit_chance":
+		return "crit_chance"
+	case "attack_speed", "bonus_attack_speed":
+		return "bonus_attack_speed"
+	case "intelligence":
+		return "intelligence"
+	default:
+		return ""
+	}
+}
+
 // getMagicalPowerForRarity는 레어리티별 Magical Power 값을 반환합니다.
 func getMagicalPowerForRarity(rarity string) float64 {
 	switch rarity {

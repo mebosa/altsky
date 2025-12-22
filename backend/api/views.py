@@ -154,11 +154,45 @@ def _fetch_hypixel_profiles(
     if response.status_code == 429:
         return None, {'error': 'rate_limited', 'status': 429, 'fatal': False}
 
+    if response.status_code == 403:
+        cause: Optional[str] = None
+        try:
+            data = response.json()
+            if isinstance(data, dict):
+                raw_cause = data.get('cause') or data.get('message')
+                if isinstance(raw_cause, str) and raw_cause.strip():
+                    cause = raw_cause.strip()
+        except ValueError:
+            cause = None
+
+        return None, {
+            'error': 'hypixel_forbidden',
+            'status': 503,
+            'detail': cause
+            or 'Hypixel API rejected the configured API key. Check HYPIXEL_API_KEY and Hypixel API access.',
+            'fatal': True,
+        }
+
     if response.status_code != 200:
+        detail: str
+        try:
+            body = response.json()
+            if isinstance(body, dict):
+                detail = (
+                    str(body.get('cause') or body.get('message') or body)
+                )
+            else:
+                detail = str(body)
+        except ValueError:
+            detail = response.text
+
+        if len(detail) > 2000:
+            detail = detail[:2000] + '…'
+
         return None, {
             'error': 'hypixel_http_error',
             'status': response.status_code,
-            'detail': response.text,
+            'detail': detail,
             'fatal': True,
         }
 
@@ -519,6 +553,135 @@ def _format_last_updated(value: Optional[Any]) -> str:
     return 'Cache: n/a'
 
 
+def _normalize_tuning_map(raw: Any) -> Dict[str, int]:
+    result: Dict[str, int] = {}
+    allowed_stats = {
+        "health",
+        "defense",
+        "walk_speed",
+        "speed",
+        "strength",
+        "critical_damage",
+        "crit_damage",
+        "critical_chance",
+        "crit_chance",
+        "attack_speed",
+        "bonus_attack_speed",
+        "intelligence",
+    }
+    if isinstance(raw, dict):
+        slot_entries = {
+            int(key.split("_", 1)[1]): value
+            for key, value in raw.items()
+            if isinstance(key, str)
+            and key.startswith("slot_")
+            and key.split("_", 1)[1].isdigit()
+            and isinstance(value, dict)
+        }
+        if slot_entries:
+            selected = raw.get("selected_slot") or raw.get("selected") or raw.get("active_slot") or raw.get("current_slot") or raw.get("slot")
+            selected_slot = None
+            if selected is not None:
+                try:
+                    selected_slot = int(float(selected))
+                except (TypeError, ValueError):
+                    selected_slot = None
+            if selected_slot is not None and selected_slot in slot_entries:
+                chosen = slot_entries[selected_slot]
+            else:
+                non_zero_slots = []
+                for slot_id, entry in slot_entries.items():
+                    for _, value in entry.items():
+                        try:
+                            parsed = int(float(value))
+                        except (TypeError, ValueError):
+                            continue
+                        if parsed != 0:
+                            non_zero_slots.append(slot_id)
+                            break
+                if len(non_zero_slots) == 1:
+                    chosen = slot_entries[non_zero_slots[0]]
+                else:
+                    chosen = slot_entries.get(0) or next(iter(slot_entries.values()))
+
+            for key, value in chosen.items():
+                if str(key) not in allowed_stats:
+                    continue
+                try:
+                    parsed = int(float(value))
+                except (TypeError, ValueError):
+                    continue
+                if parsed != 0:
+                    result[str(key)] = result.get(str(key), 0) + parsed
+            return result
+        for key, value in raw.items():
+            if str(key) not in allowed_stats:
+                continue
+            try:
+                parsed = int(float(value))
+            except (TypeError, ValueError):
+                continue
+            if parsed != 0:
+                result[str(key)] = parsed
+        return result
+    if isinstance(raw, list):
+        for entry in raw:
+            if not isinstance(entry, dict):
+                continue
+            key = entry.get("stat") or entry.get("key") or entry.get("name")
+            if not key:
+                continue
+            if str(key) not in allowed_stats:
+                continue
+            value = entry.get("value") if "value" in entry else entry.get("points")
+            try:
+                parsed = int(float(value))
+            except (TypeError, ValueError):
+                continue
+            if parsed != 0:
+                result[str(key)] = parsed
+    return result
+
+
+def _find_tuning_map(container: Any) -> Optional[Dict[str, Any]]:
+    if not isinstance(container, dict):
+        return None
+    tuning = container.get("tuning")
+    if isinstance(tuning, dict):
+        return tuning
+    for key in ("bag_data", "bag", "inventory", "contents"):
+        nested = container.get(key)
+        if isinstance(nested, dict):
+            nested_tuning = nested.get("tuning")
+            if isinstance(nested_tuning, dict):
+                return nested_tuning
+    return None
+
+
+def _extract_accessory_tuning(member_data: Dict[str, Any]) -> Dict[str, int]:
+    if not isinstance(member_data, dict):
+        return {}
+    inventory = member_data.get("inventory") or {}
+    bag_contents = inventory.get("bag_contents") if isinstance(inventory, dict) else None
+    candidates = [
+        member_data.get("accessory_bag_storage"),
+        member_data.get("talisman_bag_storage"),
+        inventory.get("accessory_bag_storage") if isinstance(inventory, dict) else None,
+        inventory.get("talisman_bag_storage") if isinstance(inventory, dict) else None,
+        bag_contents.get("talisman_bag") if isinstance(bag_contents, dict) else None,
+        inventory.get("accessory_bag") if isinstance(inventory, dict) else None,
+        inventory.get("talisman_bag") if isinstance(inventory, dict) else None,
+        member_data.get("accessory_bag"),
+        member_data.get("talisman_bag"),
+    ]
+    for candidate in candidates:
+        tuning = _find_tuning_map(candidate)
+        normalized = _normalize_tuning_map(tuning)
+        if normalized:
+            return normalized
+    return {}
+
+
 def _build_statscalc_payload(
     summary: Dict[str, Any], 
     uuid: str, 
@@ -603,6 +766,8 @@ def _build_statscalc_payload(
             
             # Tuning Points
             tuning = summary['accessories'].get('tuning')
+            if not tuning and member_data:
+                tuning = _extract_accessory_tuning(member_data)
             if tuning:
                 payload['tuning'] = tuning
 

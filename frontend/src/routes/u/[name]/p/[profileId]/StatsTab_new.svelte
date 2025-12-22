@@ -245,7 +245,7 @@
       {#each additionalStatOrder as key}
         <div class="misc-item">
           <span class="misc-label">{getStatLabel(key)}</span>
-          <span class="misc-value">{formatStatValue(key, getStatValue(key))}</span>
+          <span class="misc-value">{formatStatValue(key, computed?.[key] ?? getStatValue(key))}</span>
         </div>
       {/each}
     </div>

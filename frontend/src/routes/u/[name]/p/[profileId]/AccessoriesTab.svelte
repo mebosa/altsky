@@ -277,26 +277,25 @@
             item.icon_url ??
             null}
         {@const itemId = (item.id ?? '').toUpperCase()}
-        {@const vanillaBlockSrc =
-          item.icon_variants?.vanilla?.includes('/block/') ? item.icon_variants?.vanilla : null}
-        {@const forceBlockIcon =
-          itemId.startsWith('PERSONAL_COMPACTOR') || itemId.startsWith('PERSONAL_DELETOR')}
-        {@const preferVanillaBlock =
-          forceBlockIcon && $texturePackStore === 'vanilla' && vanillaBlockSrc}
-        {@const iconCandidate =
-          preferVanillaBlock
-            ? vanillaBlockSrc
-            : iconSrcRaw ?? (forceBlockIcon ? vanillaBlockSrc : null)}
+        {@const forcedIcon =
+          itemId.startsWith('PERSONAL_COMPACTOR')
+            ? '/icons/accessories/dropper_iso.png'
+            : itemId.startsWith('PERSONAL_DELETOR')
+              ? '/icons/accessories/dispenser_iso.png'
+              : null}
+        {@const iconCandidate = forcedIcon ?? iconSrcRaw}
         {@const isFallbackIcon =
           iconCandidate?.includes('/block/stone') || iconCandidate?.includes('/item/barrier')}
         {@const iconSrc = isFallbackIcon ? null : iconCandidate}
         {@const fallbackIcon =
-          iconSrc === item.icon_variants?.furfsky
-            ? item.icon_variants?.vanilla ?? item.icon_url ?? null
-            : iconSrc === item.icon_variants?.vanilla
-              ? item.icon_variants?.furfsky ?? item.icon_url ?? null
-              : item.icon_url ?? item.icon_variants?.furfsky ?? item.icon_variants?.vanilla ?? null}
-        {@const isBlockIcon = iconSrc?.includes('/api/vanilla/block/')}
+          forcedIcon && iconSrcRaw && iconSrcRaw !== forcedIcon
+            ? iconSrcRaw
+            : iconSrc === item.icon_variants?.furfsky
+              ? item.icon_variants?.vanilla ?? item.icon_url ?? null
+              : iconSrc === item.icon_variants?.vanilla
+                ? item.icon_variants?.furfsky ?? item.icon_url ?? null
+                : item.icon_url ?? item.icon_variants?.furfsky ?? item.icon_variants?.vanilla ?? null}
+        {@const isBlockIcon = iconSrc?.includes('/block/')}
         {@const isIsometric = isBlockIcon}
         <div class="accessory-slot">
           <button
@@ -406,35 +405,33 @@
               missingItem.icon_url ??
               null}
             {@const missingId = (missingItem.id ?? '').toUpperCase()}
-            {@const vanillaBlockSrc =
-              missingItem.icon_variants?.vanilla?.includes('/block/')
-                ? missingItem.icon_variants?.vanilla
-                : null}
-            {@const forceBlockIcon =
-              missingId.startsWith('PERSONAL_COMPACTOR') || missingId.startsWith('PERSONAL_DELETOR')}
-            {@const preferVanillaBlock =
-              forceBlockIcon && $texturePackStore === 'vanilla' && vanillaBlockSrc}
-            {@const iconCandidate =
-              preferVanillaBlock
-                ? vanillaBlockSrc
-                : iconSrcRaw ?? (forceBlockIcon ? vanillaBlockSrc : null)}
+            {@const forcedIcon =
+              missingId.startsWith('PERSONAL_COMPACTOR')
+                ? '/icons/accessories/dropper_iso.png'
+                : missingId.startsWith('PERSONAL_DELETOR')
+                  ? '/icons/accessories/dispenser_iso.png'
+                  : null}
+            {@const iconCandidate = forcedIcon ?? iconSrcRaw}
             {@const isFallbackIcon =
               iconCandidate?.includes('/block/stone') || iconCandidate?.includes('/item/barrier')}
             {@const iconSrc = isFallbackIcon ? null : iconCandidate}
             {@const fallbackIcon =
-              iconSrc === missingItem.icon_variants?.furfsky
-                ? missingItem.icon_variants?.vanilla ?? missingItem.icon_url ?? null
-                : iconSrc === missingItem.icon_variants?.vanilla
-                  ? missingItem.icon_variants?.furfsky ?? missingItem.icon_url ?? null
-                  : missingItem.icon_url ??
-                    missingItem.icon_variants?.furfsky ??
-                    missingItem.icon_variants?.vanilla ??
-                    null}
-            {@const isBlockIcon = iconSrc?.includes('/api/vanilla/block/')}
+              forcedIcon && iconSrcRaw && iconSrcRaw !== forcedIcon
+                ? iconSrcRaw
+                : iconSrc === missingItem.icon_variants?.furfsky
+                  ? missingItem.icon_variants?.vanilla ?? missingItem.icon_url ?? null
+                  : iconSrc === missingItem.icon_variants?.vanilla
+                    ? missingItem.icon_variants?.furfsky ?? missingItem.icon_url ?? null
+                    : missingItem.icon_url ??
+                      missingItem.icon_variants?.furfsky ??
+                      missingItem.icon_variants?.vanilla ??
+                      null}
+            {@const isBlockIcon = iconSrc?.includes('/block/')}
+            {@const isIsometric = isBlockIcon}
             {@const buyPrice = missingItem.upgrade_buy_price ?? missingItem.price}
             <div class="missing-chip">
               <div class="row top">
-                <div class="missing-icon {isBlockIcon ? 'isometric' : ''}">
+                <div class="missing-icon {isIsometric ? 'isometric' : ''}">
                   {#if iconSrc}
                     <img
                       src={iconSrc}
@@ -646,6 +643,7 @@
     transform-origin: 50% 50%;
     filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
   }
+
 
   .initial {
     font-size: 1.2rem;
@@ -908,6 +906,7 @@
     height: 32px;
     object-fit: contain;
   }
+
 
   .missing-icon.isometric img {
     transform: rotateX(55deg) rotateZ(45deg) scale(1.1);

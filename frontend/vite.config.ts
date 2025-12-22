@@ -1,6 +1,11 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
+const proxyTarget =
+	process.env.VITE_INTERNAL_API_BASE ??
+	process.env.VITE_API_BASE ??
+	'http://localhost:8000';
+
 export default defineConfig({
 	plugins: [sveltekit()],
 	server: {
@@ -10,7 +15,7 @@ export default defineConfig({
 		allowedHosts: ['localhost', '127.0.0.1', 'altsky.info', 'www.altsky.info', '.trycloudflare.com', '.ngrok-free.dev', '.ngrok-free.app', 'frontend'],
 		proxy: {
 			'/api': {
-				target: 'http://localhost:8000',
+				target: proxyTarget,
 				changeOrigin: true,
 				secure: false,
 				ws: true,

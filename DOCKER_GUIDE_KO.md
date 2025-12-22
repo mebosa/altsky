@@ -22,7 +22,7 @@ Copy-Item .env.docker .env
 
 # 또는 PowerShell에서 직접 설정
 $env:DJANGO_SECRET="your-secure-secret-key-here"
-$env:HYPIXEL_API_KEY="44906786-2f9e-4a1f-a15e-85f88d65f54a"
+$env:HYPIXEL_API_KEY="your-hypixel-api-key-here"  # in-game: /api new
 $env:DB_PASSWORD="your-secure-password"
 ```
 

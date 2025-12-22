@@ -141,11 +141,21 @@
 
   const getStatLabel = (key: KnownStatKey) => statLabels[key] ?? prettifyKey(key);
 
-  const getStatValue = (key: KnownStatKey) => {
+  const getOriginalStatValue = (key: KnownStatKey) => {
     if (key === 'bonus_attack_speed') {
       return summary.stats?.bonus_attack_speed ?? summary.stats?.attack_speed;
     }
     return summary.stats?.[key];
+  };
+
+  const getStatValue = (key: KnownStatKey) => {
+    if (computed && computed[key] !== undefined) {
+      if (key === 'bonus_attack_speed') {
+        return computed.bonus_attack_speed ?? computed.attack_speed;
+      }
+      return computed[key];
+    }
+    return getOriginalStatValue(key);
   };
 
   const formatStatValue = (key: KnownStatKey, rawValue?: number | string | null) => {
@@ -164,11 +174,14 @@
   };
 
   const getComputedValue = (key: string) => {
+    if (key === 'bonus_attack_speed') {
+      return computed?.bonus_attack_speed ?? computed?.attack_speed;
+    }
     return computed?.[key];
   };
 
   const getDifference = (key: KnownStatKey) => {
-    const original = getStatValue(key);
+    const original = getOriginalStatValue(key);
     const calculated = getComputedValue(key);
     
     if (original === undefined || calculated === undefined) {

@@ -22,10 +22,11 @@ services:
       dockerfile: Dockerfile
       target: backend
     container_name: altsky-api
+    env_file:
+      - ./backend/.env
     environment:
       DEBUG: ${DEBUG:-0}
       DJANGO_SECRET: ${DJANGO_SECRET:-change-this-to-secure-random-key-in-production}
-      HYPIXEL_API_KEY: ${HYPIXEL_API_KEY}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,altsky.info,www.altsky.info}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-0}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://altsky.info,https://www.altsky.info}
