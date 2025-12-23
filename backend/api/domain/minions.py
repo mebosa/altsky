@@ -187,7 +187,9 @@ def get_minion_slots(unlocked_tiers: int, community_upgrades: int = 0) -> Dict[s
 
 
 def parse_minions(member: Dict[str, Any], profile: Dict[str, Any] = None) -> Dict[str, Any]:
-    crafted_generators = member.get("crafted_generators", [])
+    # crafted_generators is nested under player_data in Hypixel API v2
+    player_data = member.get("player_data", {})
+    crafted_generators = player_data.get("crafted_generators", [])
     
     # Parse crafted generators into minion ID -> list of tiers
     minion_tiers: Dict[str, List[int]] = {}
@@ -302,12 +304,8 @@ def parse_minions(member: Dict[str, Any], profile: Dict[str, Any] = None) -> Dic
                 # Calculate upgrade cost for next tier
                 next_tier = minion["tier"] + 1 if minion["tier"] < minion["maxTier"] else None
                 upgrade_cost = None
-                if next_tier and next_tier <= minion["maxTier"]:
-                    # Try to get price from lowest BIN
-                    minion_item_id = f"{minion['id']}_GENERATOR_{next_tier}"
-                    prices = _load_lowest_bin_prices()
-                    if minion_item_id in prices:
-                        upgrade_cost = prices[minion_item_id]
+                # Note: Minions are not tradeable on AH, so no price lookup available
+                # Could add bazaar-based crafting cost calculation in future
                 
                 missing_minions.append({
                     **minion,

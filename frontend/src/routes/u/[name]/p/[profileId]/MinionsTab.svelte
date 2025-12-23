@@ -174,7 +174,7 @@
 
             <div class="missing-upgrade">
               <div class="missing-tier-info">
-                <span class="missing-current">{toRoman(item.minion.tier)}</span>
+                <span class="missing-current">{item.minion.tier > 0 ? toRoman(item.minion.tier) : '—'}</span>
                 <span class="missing-arrow">→</span>
                 <span class="missing-next">{toRoman(item.nextTier)}</span>
                 <span class="missing-max">/{toRoman(item.minion.maxTier)}</span>
@@ -185,7 +185,7 @@
               </div>
 
               <div class="missing-tier-status">
-                {item.minion.unlockedTiers} tier remaining
+                {item.minion.maxTier - item.minion.tier} tier{item.minion.maxTier - item.minion.tier !== 1 ? 's' : ''} remaining
               </div>
             </div>
 
@@ -238,7 +238,7 @@
                     alt="{minion.name}" 
                     class="minion-icon"
                     loading="lazy"
-                    on:error={(e) => { const target = e.currentTarget; if (target) target.style.display = 'none'; }}
+                    on:error={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                   />
                 {:else}
                   <div class="minion-icon-placeholder">{meta.icon}</div>
