@@ -4,18 +4,44 @@
   import Tabs from '$lib/ui/Tabs.svelte';
   import { timeAgo, formatNumber, formatLargeNumber } from '$lib/utils';
   import SummaryTab from './SummaryTab.svelte';
-  import SkillsTab from './SkillsTab.svelte';
-  import StatsTab from './StatsTab.svelte';
-  import SlayerTab from './SlayerTab.svelte';
-  import DungeonsTab from './DungeonsTab.svelte';
-  import WardrobeTab from './WardrobeTab.svelte';
-  import AccessoriesTab from './AccessoriesTab.svelte';
-  import MinionsTab from './MinionsTab.svelte';
-  import PetsTab from './PetsTab.svelte';
-  import AuctionsTab from './AuctionsTab.svelte';
-  import DropCalcTab from './DropCalcTab.svelte';
   import { skillOrder, statLabels, slayerLabels, dungeonClassLabels } from './profileConstants';
   import type { Player, ProfileSummaryResponse } from './profileTypes';
+
+  // Lazy load other tabs
+  const lazyTabs = {
+    skills: () => import('./SkillsTab.svelte'),
+    stats: () => import('./StatsTab.svelte'),
+    slayer: () => import('./SlayerTab.svelte'),
+    dungeons: () => import('./DungeonsTab.svelte'),
+    minions: () => import('./MinionsTab.svelte'),
+    pets: () => import('./PetsTab.svelte'),
+    accessories: () => import('./AccessoriesTab.svelte'),
+    wardrobe: () => import('./WardrobeTab.svelte'),
+    museum: () => import('./MuseumTab.svelte'),
+    auctions: () => import('./AuctionsTab.svelte'),
+    dropcalc: () => import('./DropCalcTab.svelte')
+  };
+
+  // Cache loaded components
+  let loadedTabs: Record<string, any> = {};
+  let tabLoading = false;
+
+  async function loadTab(tabId: string) {
+    if (tabId === 'summary' || loadedTabs[tabId]) return;
+    
+    const loader = lazyTabs[tabId as keyof typeof lazyTabs];
+    if (loader) {
+      tabLoading = true;
+      try {
+        const module = await loader();
+        loadedTabs[tabId] = module.default;
+        loadedTabs = loadedTabs; // trigger reactivity
+      } catch (e) {
+        console.error(`Failed to load tab ${tabId}:`, e);
+      }
+      tabLoading = false;
+    }
+  }
 
   export let params: { name: string; profileId: string };
   export let data: {
@@ -36,6 +62,7 @@
     { id: 'pets', label: 'Pets' },
     { id: 'accessories', label: 'Accessories' },
     { id: 'wardrobe', label: 'Wardrobe' },
+    { id: 'museum', label: 'Museum' },
     { id: 'auctions', label: 'Auctions' },
     { id: 'dropcalc', label: 'Drop Calc' }
   ] as const;
@@ -64,7 +91,9 @@
     }
   }
 
+  // Load tab when activeTab changes
   $: if (activeTab && !loading) {
+    loadTab(activeTab);
     scrollToTab(activeTab);
   }
 
@@ -225,26 +254,34 @@
 
     {#if activeTab === 'summary'}
       <SummaryTab {summary} {player} />
-    {:else if activeTab === 'skills'}
-      <SkillsTab {summary} {skillOrder} />
-    {:else if activeTab === 'stats'}
-      <StatsTab {summary} {statLabels} on:weaponchange={handleWeaponChange} />
-    {:else if activeTab === 'slayer'}
-      <SlayerTab {summary} {slayerLabels} />
-    {:else if activeTab === 'dungeons'}
-      <DungeonsTab {summary} {dungeonClassLabels} />
-    {:else if activeTab === 'minions'}
-      <MinionsTab {summary} />
-    {:else if activeTab === 'pets'}
-      <PetsTab {summary} />
-    {:else if activeTab === 'accessories'}
-      <AccessoriesTab {summary} />
-    {:else if activeTab === 'wardrobe'}
-      <WardrobeTab {summary} />
-    {:else if activeTab === 'auctions'}
-      <AuctionsTab {summary} {player} />
-    {:else if activeTab === 'dropcalc'}
-      <DropCalcTab {summary} />
+    {:else if tabLoading}
+      <div class="card skeleton">
+        <div class="bar wide"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    {:else if activeTab === 'skills' && loadedTabs.skills}
+      <svelte:component this={loadedTabs.skills} {summary} {skillOrder} />
+    {:else if activeTab === 'stats' && loadedTabs.stats}
+      <svelte:component this={loadedTabs.stats} {summary} {statLabels} on:weaponchange={handleWeaponChange} />
+    {:else if activeTab === 'slayer' && loadedTabs.slayer}
+      <svelte:component this={loadedTabs.slayer} {summary} {slayerLabels} />
+    {:else if activeTab === 'dungeons' && loadedTabs.dungeons}
+      <svelte:component this={loadedTabs.dungeons} {summary} {dungeonClassLabels} />
+    {:else if activeTab === 'minions' && loadedTabs.minions}
+      <svelte:component this={loadedTabs.minions} {summary} />
+    {:else if activeTab === 'pets' && loadedTabs.pets}
+      <svelte:component this={loadedTabs.pets} {summary} />
+    {:else if activeTab === 'accessories' && loadedTabs.accessories}
+      <svelte:component this={loadedTabs.accessories} {summary} />
+    {:else if activeTab === 'wardrobe' && loadedTabs.wardrobe}
+      <svelte:component this={loadedTabs.wardrobe} {summary} />
+    {:else if activeTab === 'museum' && loadedTabs.museum}
+      <svelte:component this={loadedTabs.museum} museum={summary.museum} />
+    {:else if activeTab === 'auctions' && loadedTabs.auctions}
+      <svelte:component this={loadedTabs.auctions} {summary} {player} />
+    {:else if activeTab === 'dropcalc' && loadedTabs.dropcalc}
+      <svelte:component this={loadedTabs.dropcalc} {summary} />
     {/if}
   {/if}
 </div>

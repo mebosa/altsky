@@ -87,9 +87,11 @@
     'rift_time',
     'damage',
     'swing_range',
+    'sweep',
     'weapon_ability_damage',
     'treasure_chance',
     'trophy_fish_chance',
+    'double_hook_chance',
     'rift_damage',
     'rift_health',
     'rift_intelligence',
@@ -110,7 +112,8 @@
     'sea_creature_chance',
     'ability_damage',
     'treasure_chance',
-    'trophy_fish_chance'
+    'trophy_fish_chance',
+    'double_hook_chance'
   ]);
 
   const statColors: Partial<Record<KnownStatKey, string>> = {
@@ -167,9 +170,11 @@
     rift_time: '\u0444',
     damage: '\u2741',
     swing_range: '\u24C8',
+    sweep: '\u24C8',
     weapon_ability_damage: '\u0E51',
     treasure_chance: '\u2618',
     trophy_fish_chance: '\u2602',
+    double_hook_chance: '\u{1F3A3}',
     rift_damage: '\u2741',
     rift_health: '\u2764',
     rift_intelligence: '\u270E',
@@ -208,11 +213,23 @@
     mana_regen: 1,
     rift_time: 0,
     swing_range: 1,
+    sweep: 0,
     damage: 0,
     weapon_ability_damage: 0,
     treasure_chance: 1,
-    trophy_fish_chance: 1
+    trophy_fish_chance: 1,
+    double_hook_chance: 1
   };
+
+  const preferOriginalStats = new Set<KnownStatKey>([
+    'rift_time',
+    'rift_damage',
+    'rift_health',
+    'rift_intelligence',
+    'rift_mana_regen',
+    'rift_walk_speed',
+    'double_hook_chance'
+  ]);
 
   const prettifyKey = (value: string) =>
     value
@@ -231,13 +248,15 @@
   };
 
   const getStatValue = (key: KnownStatKey) => {
-    if (computed && computed[key] !== undefined) {
-      if (key === 'bonus_attack_speed') {
-        return computed.bonus_attack_speed ?? computed.attack_speed;
-      }
-      return computed[key];
+    const original = getOriginalStatValue(key);
+    if (preferOriginalStats.has(key) && original !== undefined) {
+      return original;
     }
-    return getOriginalStatValue(key);
+    const calculated = getComputedValue(key);
+    if (calculated !== undefined) {
+      return calculated;
+    }
+    return original;
   };
 
   const formatStatValue = (key: KnownStatKey, rawValue?: number | string | null) => {
@@ -255,7 +274,13 @@
     return percentStats.has(key) ? `${formatted}%` : formatted;
   };
 
-  const getComputedValue = (key: string) => {
+  const getComputedValue = (key: KnownStatKey) => {
+    if (preferOriginalStats.has(key)) {
+      const original = getOriginalStatValue(key);
+      if (original !== undefined) {
+        return undefined;
+      }
+    }
     if (key === 'bonus_attack_speed') {
       return computed?.bonus_attack_speed ?? computed?.attack_speed;
     }

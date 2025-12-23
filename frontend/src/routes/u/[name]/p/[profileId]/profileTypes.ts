@@ -176,6 +176,7 @@ export type ProfileSummaryResponse = {
     name?: string | null;
   }[];
   weapon_selected_id?: string | null;
+  museum?: MuseumData | null;
 };
 
 export type AggregatedStat = {
@@ -213,4 +214,78 @@ export type AccessorySummary = {
     upgrade_net_cost?: number | null;
     upgrade_mp_gain?: number | null;
   })[];
+};
+
+// ===== Museum Types =====
+
+export type MuseumItem = {
+  id: string;
+  name: string;
+  donated_time?: number | null;
+  borrowing: boolean;
+  rarity?: string | null;
+  category?: string;
+  mc_id?: string | null;
+  damage?: number | null;
+  icon_url?: string | null;
+  icon_variants?: {
+    vanilla?: string | null;
+    furfsky?: string | null;
+  };
+};
+
+export type MuseumMissingItem = {
+  id: string;
+  name: string;
+  category: 'weapons' | 'armor' | 'rarities';
+  price?: number | null;
+  price_formatted?: string | null;
+  icon_url?: string | null;
+  icon_variants?: {
+    vanilla?: string | null;
+    furfsky?: string | null;
+  };
+};
+
+export type MuseumCategoryProgress = {
+  total: number;
+  donated: number;
+  missing: MuseumMissingItem[];
+};
+
+export type MuseumMissing = {
+  total_museum_items: number;
+  total_donated: number;
+  total_missing: number;
+  progress_percent: number;
+  weapons: MuseumCategoryProgress;
+  armor: MuseumCategoryProgress;
+  rarities: MuseumCategoryProgress;
+  all_missing: MuseumMissingItem[];
+  cheapest: MuseumMissingItem[];
+};
+
+export type MuseumCategory = {
+  name: string;
+  items: MuseumItem[];
+  donated_count: number;
+  total_count: number;
+  progress: number;
+};
+
+export type MuseumData = {
+  available: boolean;
+  value: number;
+  appraisal: boolean;
+  total_donated: number;
+  regular_items: number;
+  special_items: number;
+  items: MuseumItem[];
+  special: MuseumItem[];
+  missing?: MuseumMissing | null;
+  categories?: {
+    weapons?: MuseumCategory;
+    armor?: MuseumCategory;
+    rarities?: MuseumCategory;
+  };
 };

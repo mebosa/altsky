@@ -148,6 +148,13 @@ STAT_VALUE_SOURCES = {
     "social_wisdom": ("social_wisdom",),
     "taming_wisdom": ("taming_wisdom",),
     "rift_time": ("rift_time",),
+    "rift_damage": ("rift_damage",),
+    "rift_health": ("rift_health",),
+    "rift_intelligence": ("rift_intelligence",),
+    "rift_mana_regen": ("rift_mana_regen",),
+    "rift_walk_speed": ("rift_walk_speed",),
+    "double_hook_chance": ("double_hook_chance",),
+    "sweep": ("sweep",),
 }
 
 

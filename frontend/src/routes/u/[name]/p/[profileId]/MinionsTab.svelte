@@ -70,7 +70,7 @@
       category: string;
       categoryColor: string;
       nextTier: number;
-      cost: { craftOnly: boolean; bazaarCost: number | null } | null;
+      cost: { craftCost: number | null; materials: string } | null;
     }> = [];
 
     Object.entries(categories).forEach(([catKey, catData]) => {
@@ -88,10 +88,10 @@
       });
     });
 
-    // Sort by bazaar price (cheapest first), then by tier
+    // Sort by craft cost (cheapest first), then by tier
     missing.sort((a, b) => {
-      const aCost = a.cost?.bazaarCost || Infinity;
-      const bCost = b.cost?.bazaarCost || Infinity;
+      const aCost = a.cost?.craftCost || Infinity;
+      const bCost = b.cost?.craftCost || Infinity;
       if (aCost !== bCost) return aCost - bCost;
       return a.nextTier - b.nextTier;
     });
@@ -190,13 +190,14 @@
             </div>
 
             <div class="missing-cost">
-              <div class="cost-label">Next tier:</div>
-              {#if item.cost?.craftOnly}
-                <div class="cost-value craft-only">Craft only</div>
-              {:else if item.cost?.bazaarCost}
+              <div class="cost-label">Craft cost:</div>
+              {#if item.cost?.craftCost}
                 <div class="cost-value bazaar-price">
-                  💰 {formatCoins(item.cost.bazaarCost)}
+                  💰 {formatCoins(item.cost.craftCost)}
                 </div>
+                {#if item.cost?.materials}
+                  <div class="cost-materials">{item.cost.materials}</div>
+                {/if}
               {:else}
                 <div class="cost-value unknown">Price unknown</div>
               {/if}
@@ -727,8 +728,8 @@
 
   .missing-cost {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 4px;
     padding-top: 8px;
     border-top: 1px solid rgba(148, 163, 184, 0.15);
   }
@@ -743,6 +744,13 @@
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 6px;
+    display: inline-block;
+  }
+
+  .cost-materials {
+    font-size: 0.7rem;
+    color: var(--theme-text-soft);
+    margin-top: 2px;
   }
 
   .cost-value.craft-only {

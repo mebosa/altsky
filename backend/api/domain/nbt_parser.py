@@ -34,10 +34,13 @@ STAT_NAME_MAP = {
     'magic find': 'magic_find',
     'true defense': 'true_defense',
     'sea creature chance': 'sea_creature_chance',
+    'trophy fish chance': 'trophy_fish_chance',
+    'treasure chance': 'treasure_chance',
     'farming fortune': 'farming_fortune',
     'foraging fortune': 'foraging_fortune', 
     'mining fortune': 'mining_fortune',
     'mining speed': 'mining_speed',
+    'fishing speed': 'fishing_speed',
     'pet luck': 'pet_luck',
     'ability damage': 'ability_damage',
     'vitality': 'vitality',
@@ -45,6 +48,7 @@ STAT_NAME_MAP = {
     'health regen': 'health_regen',
     'damage': 'damage',
     'swing range': 'swing_range',
+    'sweep': 'sweep',
 }
 
 def _parse_lore_stats(lore_lines: List[str]) -> Dict[str, float]:

@@ -622,6 +622,7 @@ def _normalize_pack(pack: str) -> TexturePack:
     return "vanilla" if str(pack).lower() == "vanilla" else "furfsky"
 
 
+@lru_cache(maxsize=2048)
 def resolve_item_icon_for_pack(
     item_id: Optional[str],
     mc_id: Optional[str],

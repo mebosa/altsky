@@ -169,6 +169,12 @@
     suffix: '' | '%';
   };
 
+  type AbilityBlock = {
+    piece: string;
+    itemName: string;
+    lines: string[];
+  };
+
   function parseStatLine(line: string): ParsedStatLine | null {
     const colonIndex = line.indexOf(':');
     if (colonIndex === -1) return null;
@@ -285,6 +291,58 @@
       }
     }
     return Array.from(bonuses).filter((line) => line.trim().length);
+  }
+
+  const ABILITY_HEADERS = ['ability:', 'item ability:'];
+  const ABILITY_BREAKERS = [
+    'full set bonus',
+    'tiered bonus',
+    'set bonus',
+    'dungeon bonus',
+    'ancient bonus',
+    'reforge bonus',
+    'this item'
+  ];
+
+  function isAbilityHeader(line: string) {
+    const normalized = line.trim().toLowerCase();
+    return ABILITY_HEADERS.some((prefix) => normalized.startsWith(prefix));
+  }
+
+  function isAbilityBreaker(line: string) {
+    const normalized = line.trim().toLowerCase();
+    if (!normalized) return true;
+    if (isAbilityHeader(normalized)) return true;
+    return ABILITY_BREAKERS.some((prefix) => normalized.startsWith(prefix));
+  }
+
+  function gatherItemAbilityBlocks(items: (WardrobeItem | null)[]): AbilityBlock[] {
+    const blocks: AbilityBlock[] = [];
+
+    items.forEach((item, index) => {
+      if (!item?.lore?.length) return;
+      for (let i = 0; i < item.lore.length; i += 1) {
+        const line = item.lore[i] ?? '';
+        if (!isAbilityHeader(line)) continue;
+        const lines: string[] = [];
+        for (let j = i; j < item.lore.length; j += 1) {
+          const current = item.lore[j] ?? '';
+          if (j !== i && isAbilityBreaker(current)) break;
+          if (current.trim()) {
+            lines.push(current);
+          }
+        }
+        if (lines.length) {
+          blocks.push({
+            piece: pieceLabelFromIndex(index),
+            itemName: item.name,
+            lines
+          });
+        }
+      }
+    });
+
+    return blocks;
   }
 
   function pieceLabelFromIndex(index: number) {
@@ -471,6 +529,7 @@
   let equippedSetLabel = '';
   let equippedStats: AggregatedStat[] = [];
   let equippedBonuses: string[] = [];
+  let equippedAbilities: AbilityBlock[] = [];
   let expectedEquippedSetIndex: number | null = null;
   let equippedSetIndexRaw: number | null = null;
   let equippedSetIndex: number | null = null;
@@ -645,6 +704,7 @@
   $: equippedSetLabel = deriveSetLabel(equippedItems);
   $: equippedStats = aggregateSetStats(equippedItems);
   $: equippedBonuses = gatherSetBonusLines(equippedItems);
+  $: equippedAbilities = gatherItemAbilityBlocks(equippedGroupItems);
   $: equippedRarityInfo = selectPrimaryRarity(equippedGroupItems);
   $: equippedAccent = equippedRarityInfo
     ? rarityToBackground(equippedRarityInfo.raw) ?? null
@@ -727,6 +787,21 @@
               </ul>
             {:else}
               <p class="hero-placeholder">Equip armor to view combined stats.</p>
+            {/if}
+            {#if equippedAbilities.length}
+              <div class="hero-abilities">
+                <p class="hero-label">Item Abilities</p>
+                {#each equippedAbilities as ability, abilityIndex (abilityIndex)}
+                  <div class="hero-ability">
+                    <span class="hero-ability-piece">
+                      {ability.piece} - {ability.itemName}
+                    </span>
+                    {#each ability.lines as line}
+                      <p>{line}</p>
+                    {/each}
+                  </div>
+                {/each}
+              </div>
             {/if}
             {#if equippedBonuses.length}
               <div class="hero-bonus">
@@ -1015,6 +1090,33 @@
   .hero-placeholder {
     margin: 0;
     color: rgba(226, 232, 240, 0.7);
+  }
+
+  .hero-abilities {
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: rgba(248, 250, 252, 0.9);
+  }
+
+  .hero-ability {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .hero-ability-piece {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(226, 232, 240, 0.7);
+  }
+
+  .hero-ability p {
+    margin: 0;
+    line-height: 1.4;
   }
 
   .hero-bonus {

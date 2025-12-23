@@ -54,7 +54,8 @@
     'runecrafting_wisdom',
     'social_wisdom',
     'taming_wisdom',
-    'rift_time'
+    'rift_time',
+    'sweep'
   ] as const;
 
   type KnownStatKey = (typeof primaryStatOrder)[number] | (typeof additionalStatOrder)[number];

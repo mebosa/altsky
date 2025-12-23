@@ -20,6 +20,7 @@ from .decorators import rate_limit
 from .domain.item_textures import load_furfsky_texture, TEXTURE_PACKS, resolve_item_icon_variants
 from .domain.profile_summary import count_coop_members, summarize_profile
 from .domain.armor_textures import get_armor_textures
+from .domain.museum import parse_museum, get_museum_summary, get_missing_items
 from .domain.wardrobe import (
     _decode_bytes,
     _tag_value,
@@ -135,9 +136,11 @@ def serve_vanilla_texture(request, path):
 HYPIXEL_PROFILES_URL = 'https://api.hypixel.net/v2/skyblock/profiles'
 HYPIXEL_PLAYER_URL = 'https://api.hypixel.net/v2/player'
 HYPIXEL_AUCTION_URL = 'https://api.hypixel.net/v2/skyblock/auction'
+HYPIXEL_MUSEUM_URL = 'https://api.hypixel.net/v2/skyblock/museum'
 HYPIXEL_PROFILES_CACHE_SECONDS = _read_int_env('HYPIXEL_PROFILES_CACHE_SECONDS', 20)
 HYPIXEL_PLAYER_CACHE_SECONDS = _read_int_env('HYPIXEL_PLAYER_CACHE_SECONDS', 120)
 HYPIXEL_AUCTION_CACHE_SECONDS = _read_int_env('HYPIXEL_AUCTION_CACHE_SECONDS', 60)
+HYPIXEL_MUSEUM_CACHE_SECONDS = _read_int_env('HYPIXEL_MUSEUM_CACHE_SECONDS', 60)
 
 
 def _fetch_hypixel_profiles(
@@ -377,6 +380,82 @@ def _get_player_lookup_result(name: str, *, force_refresh: bool = False) -> Tupl
             },
             500,
         )
+
+
+def _fetch_museum_data(
+    profile_id: str, *, force_refresh: bool = False
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """
+    Fetch museum data for a profile from Hypixel API.
+    """
+    cache_key = f'hypixel_museum:{profile_id}'
+    if not force_refresh and HYPIXEL_MUSEUM_CACHE_SECONDS > 0:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached, None
+
+    api_key = os.getenv('HYPIXEL_API_KEY')
+    if not api_key:
+        return None, {'error': 'hypixel_api_key_missing', 'status': 503, 'fatal': False}
+
+    try:
+        response = requests.get(
+            HYPIXEL_MUSEUM_URL,
+            params={'profile': profile_id},
+            headers={'API-Key': api_key},
+            timeout=12,
+        )
+    except requests.RequestException as exc:
+        return None, {'error': 'hypixel_request_failed', 'detail': str(exc), 'status': 502, 'fatal': True}
+
+    if response.status_code == 429:
+        return None, {'error': 'rate_limited', 'status': 429, 'fatal': False}
+
+    if response.status_code == 403:
+        cause: Optional[str] = None
+        try:
+            data = response.json()
+            if isinstance(data, dict):
+                raw_cause = data.get('cause') or data.get('message')
+                if isinstance(raw_cause, str) and raw_cause.strip():
+                    cause = raw_cause.strip()
+        except ValueError:
+            cause = None
+
+        return None, {
+            'error': 'hypixel_forbidden',
+            'status': 503,
+            'detail': cause or 'Hypixel API rejected the request.',
+            'fatal': True,
+        }
+
+    if response.status_code != 200:
+        detail: str
+        try:
+            body = response.json()
+            if isinstance(body, dict):
+                detail = str(body.get('cause') or body.get('message') or body)
+            else:
+                detail = str(body)
+        except ValueError:
+            detail = response.text
+
+        if len(detail) > 2000:
+            detail = detail[:2000] + '…'
+
+        return None, {
+            'error': 'hypixel_http_error',
+            'status': response.status_code,
+            'detail': detail,
+            'fatal': True,
+        }
+
+    body = response.json()
+
+    if HYPIXEL_MUSEUM_CACHE_SECONDS > 0:
+        cache.set(cache_key, body, HYPIXEL_MUSEUM_CACHE_SECONDS)
+
+    return body, None
 
 
 def _fetch_player_auctions(
@@ -709,6 +788,22 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
         response_body['computed_stats'] = computed_stats
     if stat_breakdown:
         response_body['stat_breakdown'] = stat_breakdown
+
+    # Fetch museum data
+    museum_body, museum_error = _fetch_museum_data(profile_id, force_refresh=force_refresh)
+    if museum_body and not museum_error:
+        museum_members = museum_body.get('members') or {}
+        parsed_museum = parse_museum(museum_members, normalized_member_uuid)
+        if parsed_museum:
+            museum_summary = get_museum_summary(parsed_museum)
+            # Add missing items with prices
+            missing_items = get_missing_items(parsed_museum, include_prices=True, sort_by_price=True)
+            museum_summary['missing'] = missing_items
+            response_body['museum'] = museum_summary
+        else:
+            response_body['museum'] = {'available': False}
+    else:
+        response_body['museum'] = {'available': False}
 
     return Response(response_body)
 
