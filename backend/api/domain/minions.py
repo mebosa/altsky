@@ -155,16 +155,16 @@ MINIONS = {
     },
 }
 
-def get_minion_slots(unlocked_tiers: int) -> Dict[str, Any]:
-    """Calculate minion slots based on unlocked unique tiers"""
+def get_minion_slots(unlocked_tiers: int, community_upgrades: int = 0) -> Dict[str, Any]:
+    """Calculate minion slots based on unlocked unique tiers and community upgrades"""
     thresholds = sorted(MINION_SLOTS.keys())
-    current_slots = 5
+    base_slots = 5
     next_threshold = None
     tiers_needed = None
     
     for i, threshold in enumerate(thresholds):
         if unlocked_tiers >= threshold:
-            current_slots = MINION_SLOTS[threshold]
+            base_slots = MINION_SLOTS[threshold]
             if i + 1 < len(thresholds):
                 next_threshold = thresholds[i + 1]
                 tiers_needed = next_threshold - unlocked_tiers
@@ -173,14 +173,20 @@ def get_minion_slots(unlocked_tiers: int) -> Dict[str, Any]:
             tiers_needed = threshold - unlocked_tiers
             break
     
+    # Add Elizabeth community shop upgrades (max 5 extra slots)
+    community_bonus = min(community_upgrades, ELIZABETH_SLOT_UPGRADES_MAX)
+    total_slots = base_slots + community_bonus
+    
     return {
-        "current": current_slots,
+        "current": total_slots,
+        "fromUniques": base_slots,
+        "fromCommunity": community_bonus,
         "next_threshold": next_threshold,
         "tiers_until_next": tiers_needed
     }
 
 
-def parse_minions(member: Dict[str, Any]) -> Dict[str, Any]:
+def parse_minions(member: Dict[str, Any], profile: Dict[str, Any] = None) -> Dict[str, Any]:
     crafted_generators = member.get("crafted_generators", [])
     
     # Parse crafted generators into minion ID -> list of tiers
@@ -267,7 +273,62 @@ def parse_minions(member: Dict[str, Any]) -> Dict[str, Any]:
         total_unlockable_tiers += cat_unlockable
     
     # Calculate minion slots
-    slots = get_minion_slots(total_unlocked_tiers)
+    # Get community upgrades for minion slots (from profile level)
+    community_slot_upgrades = 0
+    if profile:
+        community_upgrades = profile.get("community_upgrades", {})
+        upgrade_states = community_upgrades.get("upgrade_states", [])
+        for upgrade in upgrade_states:
+            if upgrade.get("upgrade") == "minion_slots":
+                tier = upgrade.get("tier", 0)
+                if tier > community_slot_upgrades:
+                    community_slot_upgrades = tier
+    
+    slots = get_minion_slots(total_unlocked_tiers, community_slot_upgrades)
+    
+    # Build missing minions list - minions that are not maxed, sorted by upgrade cost
+    missing_minions = []
+    for cat_key, cat_data in categories.items():
+        cat_meta = {
+            "farming": {"name": "Farming", "icon": "🌾"},
+            "mining": {"name": "Mining", "icon": "⛏️"},
+            "combat": {"name": "Combat", "icon": "⚔️"},
+            "foraging": {"name": "Foraging", "icon": "🌲"},
+            "fishing": {"name": "Fishing", "icon": "🎣"}
+        }.get(cat_key, {"name": cat_key.title(), "icon": "📦"})
+        
+        for minion in cat_data["minions"]:
+            if not minion["isMaxed"]:
+                # Calculate upgrade cost for next tier
+                next_tier = minion["tier"] + 1 if minion["tier"] < minion["maxTier"] else None
+                upgrade_cost = None
+                if next_tier and next_tier <= minion["maxTier"]:
+                    # Try to get price from lowest BIN
+                    minion_item_id = f"{minion['id']}_GENERATOR_{next_tier}"
+                    prices = _load_lowest_bin_prices()
+                    if minion_item_id in prices:
+                        upgrade_cost = prices[minion_item_id]
+                
+                missing_minions.append({
+                    **minion,
+                    "category": cat_key,
+                    "categoryName": cat_meta["name"],
+                    "categoryIcon": cat_meta["icon"],
+                    "slotsPerTier": 1,
+                    "tiersRemaining": minion["maxTier"] - minion["unlockedTiers"],
+                    "nextTier": next_tier,
+                    "upgradeCost": upgrade_cost
+                })
+    
+    # Sort missing minions: prioritize those with prices, then by cost per slot
+    def sort_key(m):
+        cost = m.get("upgradeCost")
+        if cost is not None:
+            return (0, cost, m["tiersRemaining"])
+        else:
+            return (1, 999999999, m["tiersRemaining"])
+    
+    missing_minions.sort(key=sort_key)
     
     return {
         "categories": categories,
@@ -275,5 +336,7 @@ def parse_minions(member: Dict[str, Any]) -> Dict[str, Any]:
         "maxedMinions": maxed_minions,
         "unlockedTiers": total_unlocked_tiers,
         "unlockableTiers": total_unlockable_tiers,
-        "slots": slots
+        "slots": slots,
+        "missingMinions": missing_minions,
+        "missingCount": len(missing_minions)
     }

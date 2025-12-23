@@ -299,5 +299,5 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
             **wardrobe,
         },
         "accessories": parse_accessories(member),
-        "minions": parse_minions(member),
+        "minions": parse_minions(member, profile),
     }
