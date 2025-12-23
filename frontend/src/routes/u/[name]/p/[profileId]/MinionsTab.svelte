@@ -238,7 +238,7 @@
                     alt="{minion.name}" 
                     class="minion-icon"
                     loading="lazy"
-                    onerror="this.style.display='none'"
+                    on:error={(e) => { const target = e.currentTarget; if (target) target.style.display = 'none'; }}
                   />
                 {:else}
                   <div class="minion-icon-placeholder">{meta.icon}</div>
@@ -429,14 +429,15 @@
   .minion-card {
     background: rgba(148, 163, 184, 0.06);
     border: 1px solid var(--theme-surface-border);
-    border-radius: 12px;
-    padding: 14px 12px;
+    border-radius: 14px;
+    padding: 16px 12px 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     opacity: 0.5;
+    position: relative;
   }
 
   .minion-card.unlocked {
@@ -444,13 +445,81 @@
   }
 
   .minion-card.maxed {
-    border-color: rgba(255, 215, 0, 0.4);
-    background: rgba(255, 215, 0, 0.05);
+    border-color: rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 200, 0, 0.02) 100%);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.1);
   }
 
   .minion-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    border-color: rgba(148, 163, 184, 0.3);
+  }
+
+  .minion-card.maxed:hover {
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+    border-color: rgba(255, 215, 0, 0.6);
+  }
+
+  /* Minion Icon */
+  .minion-icon-wrapper {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    overflow: visible;
+    background: rgba(148, 163, 184, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .minion-icon-wrapper.maxed {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 180, 0, 0.08) 100%);
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.25);
+  }
+
+  .minion-icon {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    transition: transform 0.2s ease;
+  }
+
+  .minion-card:hover .minion-icon {
+    transform: scale(1.1);
+  }
+
+  .minion-icon-placeholder {
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+
+  .maxed-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    color: #1a1a2e;
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.5);
+    animation: starPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes starPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
   }
 
   .minion-name {
@@ -464,18 +533,14 @@
     width: 100%;
   }
 
-  .minion-tier {
-    font-size: 1.3rem;
+  .minion-tier-display {
+    font-size: 1.2rem;
     font-weight: 700;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
     gap: 4px;
-  }
-
-  .maxed-star {
-    color: #ffd700;
-    font-size: 0.9rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   .tier-dots {
@@ -732,20 +797,43 @@
     }
 
     .minions-grid {
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
       gap: 8px;
     }
 
     .minion-card {
-      padding: 10px 8px;
+      padding: 12px 8px 10px;
+    }
+
+    .minion-icon-wrapper {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 8px;
+    }
+
+    .minion-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .minion-icon-placeholder {
+      font-size: 1.5rem;
+    }
+
+    .maxed-badge {
+      width: 14px;
+      height: 14px;
+      font-size: 0.6rem;
+      top: -4px;
+      right: -4px;
     }
 
     .minion-name {
       font-size: 0.75rem;
     }
 
-    .minion-tier {
-      font-size: 1.1rem;
+    .minion-tier-display {
+      font-size: 1rem;
     }
 
     .tier-dot {

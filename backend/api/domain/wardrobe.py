@@ -345,7 +345,23 @@ def _parse_inventory_items(data: Optional[Dict[str, Any]]) -> List[Optional[Dict
 
     slots: List[Optional[Dict[str, Any]]] = []
     for index, compound in enumerate(file.get("i", [])):
-        slots.append(_parse_compound_item(compound, index))
+        slot_index = index
+        if compound:
+            slot_tag = compound.get("Slot") if isinstance(compound, nbtlib.Compound) else None
+            if slot_tag is None and isinstance(compound, nbtlib.Compound):
+                slot_tag = compound.get("slot")
+            if slot_tag is not None:
+                try:
+                    slot_index = int(_tag_value(slot_tag))
+                except (TypeError, ValueError):
+                    slot_index = index
+        if slot_index < 0:
+            slot_index = index
+
+        item = _parse_compound_item(compound, slot_index)
+        if slot_index >= len(slots):
+            slots.extend([None] * (slot_index + 1 - len(slots)))
+        slots[slot_index] = item
     return slots
 
 

@@ -131,6 +131,8 @@ ACCESSORY_UPGRADES: List[List[str]] = [
     ["MOONGLADE_RING", "MOONGLADE_ARTIFACT"],
 ]
 
+UPGRADE_SUFFIXES = ("TALISMAN", "RING", "ARTIFACT", "RELIC")
+
 # Items that should NOT be treated as upgrade chains (variants are equivalent)
 EXCLUDED_CHAIN_IDS: Set[str] = {
     "PIGGY_BANK",
@@ -364,6 +366,38 @@ def _normalize_accessory_id(item_id: Optional[str]) -> Optional[str]:
     while "__" in normalized:
         normalized = normalized.replace("__", "_")
     return ACCESSORY_ALIAS_TO_CANONICAL.get(normalized, normalized)
+
+
+def _split_upgrade_suffix(item_id: str) -> Optional[Tuple[str, str]]:
+    for suffix in UPGRADE_SUFFIXES:
+        token = f"_{suffix}"
+        if item_id.endswith(token):
+            return item_id[: -len(token)], suffix
+    return None
+
+
+def _infer_upgrade_chains_from_catalog(catalog: List[Dict[str, Any]]) -> List[List[str]]:
+    chains: List[List[str]] = []
+    grouped: Dict[str, Dict[str, str]] = {}
+
+    for item in catalog:
+        item_id = _normalize_accessory_id(item.get("id"))
+        if not item_id or item_id in EXCLUDED_CHAIN_IDS:
+            continue
+        split = _split_upgrade_suffix(item_id)
+        if not split:
+            continue
+        base, suffix = split
+        if not base:
+            continue
+        grouped.setdefault(base, {})[suffix] = item_id
+
+    for suffix_map in grouped.values():
+        chain = [suffix_map[suffix] for suffix in UPGRADE_SUFFIXES if suffix in suffix_map]
+        if len(chain) >= 2:
+            chains.append(chain)
+
+    return chains
 
 
 def _load_rift_accessory_ids() -> Set[str]:
@@ -607,8 +641,17 @@ def _build_upgrade_index() -> Dict[str, List[str]]:
     """
     index: Dict[str, List[str]] = {}
     for chain in ACCESSORY_UPGRADES:
-        for item_id in chain:
-            index[item_id] = chain
+        normalized_chain = [
+            _normalize_accessory_id(item_id) or str(item_id).upper() for item_id in chain
+        ]
+        for item_id in normalized_chain:
+            index[item_id] = normalized_chain
+
+    catalog = _load_accessory_catalog()
+    if catalog:
+        for chain in _infer_upgrade_chains_from_catalog(catalog):
+            for item_id in chain:
+                index[item_id] = chain
     return index
 
 

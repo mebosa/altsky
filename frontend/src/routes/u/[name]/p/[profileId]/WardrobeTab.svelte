@@ -465,6 +465,7 @@
   let wardrobeHasItems = false;
   let setGroups: WardrobeSetGroup[] = [];
   let setGroupMap = new Map<number, WardrobeSetGroup>();
+  let totalSetCount = 0;
   let equippedGroupItems: (WardrobeItem | null)[] = [];
   let equippedItems: WardrobeItem[] = [];
   let equippedSetLabel = '';
@@ -500,6 +501,84 @@
     return Array.from({ length: WARDROBE_SET_SIZE }, (_, index) => items?.[index] ?? null);
   }
 
+  function coerceEquippedSetIndex(raw: number | null, totalSets: number): number | null {
+    if (raw === null || totalSets <= 0) return null;
+    if (raw === 0) return 0;
+    if (raw > 0 && raw <= totalSets) {
+      return raw - 1;
+    }
+    const candidates = [raw, raw - 1].filter((value) => value !== null && value >= 0);
+    for (const candidate of candidates) {
+      const grouping = groupingFromSlot(candidate);
+      if (grouping.setIndex >= 0 && grouping.setIndex < totalSets) {
+        return grouping.setIndex;
+      }
+    }
+    return null;
+  }
+
+  function scoreSetMatch(setIndex: number, liveItems: (WardrobeItem | null)[]) {
+    const group = setGroupMap.get(setIndex);
+    if (!group) return 0;
+    const liveIds = liveItems
+      .filter((item): item is WardrobeItem => !!item)
+      .map((item) => item.id);
+    if (!liveIds.length) return 0;
+    const groupIds = new Set(
+      group.items
+        .filter((item): item is WardrobeItem => !!item)
+        .map((item) => item.id)
+    );
+    let score = 0;
+    for (const id of liveIds) {
+      if (groupIds.has(id)) score += 1;
+    }
+    return score;
+  }
+
+  function resolveEquippedSetIndex(
+    raw: number | null,
+    liveItems: (WardrobeItem | null)[]
+  ): number | null {
+    if (raw === null || totalSetCount <= 0) return null;
+
+    const candidates = new Set<number>();
+    const addCandidate = (value: number | null) => {
+      if (value === null || Number.isNaN(value) || value < 0) return;
+      candidates.add(value);
+    };
+    addCandidate(raw);
+    if (raw > 0) addCandidate(raw - 1);
+    addCandidate(groupingFromSlot(raw).setIndex);
+    if (raw > 0) addCandidate(groupingFromSlot(raw - 1).setIndex);
+
+    const filtered = Array.from(candidates).filter(
+      (value) => value >= 0 && value < totalSetCount
+    );
+    if (!filtered.length) return null;
+
+    const hasLiveItems = liveItems.some((item) => !!item);
+    if (hasLiveItems) {
+      let bestIndex = filtered[0];
+      let bestScore = -1;
+      for (const candidate of filtered) {
+        const score = scoreSetMatch(candidate, liveItems);
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = candidate;
+        }
+      }
+      if (bestScore > 0) return bestIndex;
+    }
+
+    if (raw > 0 && raw <= totalSetCount) {
+      return raw - 1;
+    }
+    if (setGroupMap.has(raw)) return raw;
+
+    return filtered[0];
+  }
+
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
   $: if (wardrobeItems.length) {
@@ -516,6 +595,7 @@
       totalSlotsAvailable > 0 ? Math.ceil(totalSlotsAvailable / WARDROBE_SET_SIZE) : 0;
     const currentMaxIndex = setGroups.length ? setGroups[setGroups.length - 1].setIndex + 1 : 0;
     const targetCount = Math.max(expectedSetCount, currentMaxIndex);
+    totalSetCount = targetCount;
     if (targetCount > 0) {
       let changed = false;
       for (let setIndex = 0; setIndex < targetCount; setIndex += 1) {
@@ -533,22 +613,10 @@
     }
   }
 
-  function resolveEquippedSetIndex(raw: number | null): number | null {
-    if (raw === null) return null;
-    // Try direct match (API may already provide set index)
-    if (setGroupMap.has(raw)) return raw;
-
-    // Convert raw wardrobe slot (absolute slot) into set index (column within bank)
-    const grouping = groupingFromSlot(raw);
-    if (setGroupMap.has(grouping.setIndex)) return grouping.setIndex;
-
-    // If no match, it likely means the equipped armor isn't in the wardrobe.
-    return null;
-  }
-
   $: equippedSetIndexRaw = summary?.wardrobe?.equipped_slot ?? null;
-  $: expectedEquippedSetIndex =
-    equippedSetIndexRaw === null ? null : groupingFromSlot(equippedSetIndexRaw).setIndex;
+  $: liveEquippedItems = normalizeEquippedItems(summary?.wardrobe?.equipped_items ?? null);
+  $: hasLiveEquippedItems = liveEquippedItems.some((item) => !!item);
+  $: expectedEquippedSetIndex = coerceEquippedSetIndex(equippedSetIndexRaw, totalSetCount);
 
   // Ensure the equipped set exists in the list even if wardrobe data for that slot is missing
   $: if (
@@ -566,9 +634,7 @@
     setGroups = [...setGroups, placeholder].sort((a, b) => a.setIndex - b.setIndex);
     setGroupMap = new Map(setGroups.map((group) => [group.setIndex, group]));
   }
-  $: liveEquippedItems = normalizeEquippedItems(summary?.wardrobe?.equipped_items ?? null);
-  $: hasLiveEquippedItems = liveEquippedItems.some((item) => !!item);
-  $: equippedSetIndex = resolveEquippedSetIndex(equippedSetIndexRaw);
+  $: equippedSetIndex = resolveEquippedSetIndex(equippedSetIndexRaw, liveEquippedItems);
   $: {
     const group = equippedSetIndex !== null ? setGroupMap.get(equippedSetIndex) : undefined;
     const fallbackItems = group ? group.items : createEmptySet();

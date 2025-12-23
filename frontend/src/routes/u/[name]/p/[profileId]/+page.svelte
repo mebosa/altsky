@@ -11,6 +11,9 @@
   import WardrobeTab from './WardrobeTab.svelte';
   import AccessoriesTab from './AccessoriesTab.svelte';
   import MinionsTab from './MinionsTab.svelte';
+  import PetsTab from './PetsTab.svelte';
+  import AuctionsTab from './AuctionsTab.svelte';
+  import DropCalcTab from './DropCalcTab.svelte';
   import { skillOrder, statLabels, slayerLabels, dungeonClassLabels } from './profileConstants';
   import type { Player, ProfileSummaryResponse } from './profileTypes';
 
@@ -30,8 +33,11 @@
     { id: 'slayer', label: 'Slayer' },
     { id: 'dungeons', label: 'Dungeons' },
     { id: 'minions', label: 'Minions' },
+    { id: 'pets', label: 'Pets' },
     { id: 'accessories', label: 'Accessories' },
-    { id: 'wardrobe', label: 'Wardrobe' }
+    { id: 'wardrobe', label: 'Wardrobe' },
+    { id: 'auctions', label: 'Auctions' },
+    { id: 'dropcalc', label: 'Drop Calc' }
   ] as const;
 
   const tabsList: { id: string; label: string }[] = tabs.map((tab) => ({ ...tab }));
@@ -229,10 +235,16 @@
       <DungeonsTab {summary} {dungeonClassLabels} />
     {:else if activeTab === 'minions'}
       <MinionsTab {summary} />
+    {:else if activeTab === 'pets'}
+      <PetsTab {summary} />
     {:else if activeTab === 'accessories'}
       <AccessoriesTab {summary} />
     {:else if activeTab === 'wardrobe'}
       <WardrobeTab {summary} />
+    {:else if activeTab === 'auctions'}
+      <AuctionsTab {summary} {player} />
+    {:else if activeTab === 'dropcalc'}
+      <DropCalcTab {summary} />
     {/if}
   {/if}
 </div>
