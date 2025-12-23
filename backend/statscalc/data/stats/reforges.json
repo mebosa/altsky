@@ -71,6 +71,51 @@
       "LEGENDARY": { "intelligence": 125, "speed": 2, "health": 15 },
       "MYTHIC": { "intelligence": 150, "speed": 3, "health": 20 },
       "DIVINE": { "intelligence": 175, "speed": 4, "health": 25 }
+    },
+    "mossy": {
+      "COMMON": { "health": 15, "farming_fortune": 10, "speed": 1 },
+      "UNCOMMON": { "health": 20, "farming_fortune": 15, "speed": 1 },
+      "RARE": { "health": 25, "farming_fortune": 20, "speed": 2 },
+      "EPIC": { "health": 35, "farming_fortune": 30, "speed": 2 },
+      "LEGENDARY": { "health": 50, "farming_fortune": 45, "speed": 3 },
+      "MYTHIC": { "health": 65, "farming_fortune": 60, "speed": 4 },
+      "DIVINE": { "health": 80, "farming_fortune": 75, "speed": 5 }
+    },
+    "blessed": {
+      "COMMON": { "health": 10, "defense": 5, "strength": 4, "speed": 1 },
+      "UNCOMMON": { "health": 15, "defense": 10, "strength": 8, "speed": 1 },
+      "RARE": { "health": 20, "defense": 15, "strength": 12, "speed": 2 },
+      "EPIC": { "health": 30, "defense": 20, "strength": 18, "speed": 3 },
+      "LEGENDARY": { "health": 40, "defense": 25, "strength": 25, "speed": 4 },
+      "MYTHIC": { "health": 50, "defense": 30, "strength": 32, "speed": 5 },
+      "DIVINE": { "health": 60, "defense": 35, "strength": 40, "speed": 6 }
+    },
+    "giant": {
+      "COMMON": { "health": 50 },
+      "UNCOMMON": { "health": 65 },
+      "RARE": { "health": 80 },
+      "EPIC": { "health": 120 },
+      "LEGENDARY": { "health": 180 },
+      "MYTHIC": { "health": 240 },
+      "DIVINE": { "health": 300 }
+    },
+    "submerged": {
+      "COMMON": { "crit_chance": 2, "sea_creature_chance": 1 },
+      "UNCOMMON": { "crit_chance": 3, "sea_creature_chance": 1 },
+      "RARE": { "crit_chance": 4, "sea_creature_chance": 2 },
+      "EPIC": { "crit_chance": 5, "sea_creature_chance": 2 },
+      "LEGENDARY": { "crit_chance": 6, "sea_creature_chance": 3 },
+      "MYTHIC": { "crit_chance": 8, "sea_creature_chance": 4 },
+      "DIVINE": { "crit_chance": 10, "sea_creature_chance": 5 }
+    },
+    "renowned": {
+      "COMMON": { "strength": 2, "crit_damage": 4, "health": 4, "defense": 4 },
+      "UNCOMMON": { "strength": 4, "crit_damage": 7, "health": 6, "defense": 6 },
+      "RARE": { "strength": 6, "crit_damage": 10, "health": 8, "defense": 8 },
+      "EPIC": { "strength": 10, "crit_damage": 14, "health": 10, "defense": 10 },
+      "LEGENDARY": { "strength": 14, "crit_damage": 20, "health": 12, "defense": 12 },
+      "MYTHIC": { "strength": 18, "crit_damage": 28, "health": 16, "defense": 16 },
+      "DIVINE": { "strength": 22, "crit_damage": 36, "health": 20, "defense": 20 }
     }
   }
 }

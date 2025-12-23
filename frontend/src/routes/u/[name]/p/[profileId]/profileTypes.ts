@@ -94,6 +94,11 @@ export type ProfileSummaryResponse = {
         maxTier: number;
         unlockedTiers: number;
         isMaxed: boolean;
+        texture: string;
+        nextTierCost: {
+          craftOnly: boolean;
+          bazaarCost: number | null;
+        } | null;
       }[];
       totalMinions: number;
       maxedMinions: number;

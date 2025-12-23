@@ -48,6 +48,56 @@
   function progressPercent(current: number, total: number): number {
     return total > 0 ? Math.round((current / total) * 100) : 0;
   }
+
+  // Format coins
+  function formatCoins(amount: number): string {
+    if (amount >= 1_000_000_000) {
+      return `${(amount / 1_000_000_000).toFixed(1)}B`;
+    }
+    if (amount >= 1_000_000) {
+      return `${(amount / 1_000_000).toFixed(1)}M`;
+    }
+    if (amount >= 1_000) {
+      return `${(amount / 1_000).toFixed(1)}K`;
+    }
+    return amount.toLocaleString();
+  }
+
+  // Get missing minions (not yet unlocked or need next tier)
+  $: missingMinions = (() => {
+    const missing: Array<{
+      minion: any;
+      category: string;
+      categoryColor: string;
+      nextTier: number;
+      cost: { craftOnly: boolean; bazaarCost: number | null } | null;
+    }> = [];
+
+    Object.entries(categories).forEach(([catKey, catData]) => {
+      const meta = categoryMeta[catKey];
+      catData.minions.forEach((minion) => {
+        if (!minion.isMaxed) {
+          missing.push({
+            minion,
+            category: meta.name,
+            categoryColor: meta.color,
+            nextTier: minion.tier + 1,
+            cost: minion.nextTierCost
+          });
+        }
+      });
+    });
+
+    // Sort by bazaar price (cheapest first), then by tier
+    missing.sort((a, b) => {
+      const aCost = a.cost?.bazaarCost || Infinity;
+      const bCost = b.cost?.bazaarCost || Infinity;
+      if (aCost !== bCost) return aCost - bCost;
+      return a.nextTier - b.nextTier;
+    });
+
+    return missing;
+  })();
 </script>
 
 <div class="minions-container">
@@ -92,6 +142,77 @@
     </div>
   </div>
 
+  <!-- Missing Minions Section -->
+  {#if missingMinions.length > 0}
+    <div class="missing-section">
+      <div class="missing-header">
+        <span class="missing-icon">🎯</span>
+        <h2>Missing Minions</h2>
+        <span class="missing-count">{missingMinions.length} minions to max</span>
+        <span class="missing-subtitle">Sorted by cheapest upgrade cost per unique tier</span>
+      </div>
+      
+      <div class="missing-grid">
+        {#each missingMinions.slice(0, 12) as item}
+          <div class="missing-card">
+            <div class="missing-card-header">
+              {#if item.minion.texture}
+                <img 
+                  src="{item.minion.texture}" 
+                  alt="{item.minion.name}" 
+                  class="missing-icon-img"
+                  loading="lazy"
+                />
+              {/if}
+              <div class="missing-info">
+                <div class="missing-name">{item.minion.name}</div>
+                <div class="missing-category" style="color: {item.categoryColor}">
+                  {item.category}
+                </div>
+              </div>
+            </div>
+
+            <div class="missing-upgrade">
+              <div class="missing-tier-info">
+                <span class="missing-current">{toRoman(item.minion.tier)}</span>
+                <span class="missing-arrow">→</span>
+                <span class="missing-next">{toRoman(item.nextTier)}</span>
+                <span class="missing-max">/{toRoman(item.minion.maxTier)}</span>
+              </div>
+              
+              <div class="missing-progress-bar">
+                <div class="missing-progress-fill" style="width: {progressPercent(item.minion.tier, item.minion.maxTier)}%"></div>
+              </div>
+
+              <div class="missing-tier-status">
+                {item.minion.unlockedTiers} tier remaining
+              </div>
+            </div>
+
+            <div class="missing-cost">
+              <div class="cost-label">Next tier:</div>
+              {#if item.cost?.craftOnly}
+                <div class="cost-value craft-only">Craft only</div>
+              {:else if item.cost?.bazaarCost}
+                <div class="cost-value bazaar-price">
+                  💰 {formatCoins(item.cost.bazaarCost)}
+                </div>
+              {:else}
+                <div class="cost-value unknown">Price unknown</div>
+              {/if}
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      {#if missingMinions.length > 12}
+        <div class="show-all-footer">
+          Showing 12 of {missingMinions.length} missing minions
+        </div>
+      {/if}
+    </div>
+  {/if}
+
   <!-- Category Sections -->
   {#each categoryOrder as catKey}
     {@const cat = categories[catKey]}
@@ -110,13 +231,26 @@
         <div class="minions-grid">
           {#each cat.minions as minion}
             <div class="minion-card" class:unlocked={minion.tier > 0} class:maxed={minion.isMaxed}>
+              <div class="minion-icon-wrapper" class:maxed={minion.isMaxed}>
+                {#if minion.texture}
+                  <img 
+                    src="{minion.texture}" 
+                    alt="{minion.name}" 
+                    class="minion-icon"
+                    loading="lazy"
+                    onerror="this.style.display='none'"
+                  />
+                {:else}
+                  <div class="minion-icon-placeholder">{meta.icon}</div>
+                {/if}
+                {#if minion.isMaxed}
+                  <span class="maxed-badge">★</span>
+                {/if}
+              </div>
               <div class="minion-name">{minion.name}</div>
-              <div class="minion-tier" style="color: {getTierColor(minion.tier, minion.maxTier)}">
+              <div class="minion-tier-display" style="color: {getTierColor(minion.tier, minion.maxTier)}">
                 {#if minion.tier > 0}
                   {toRoman(minion.tier)}
-                  {#if minion.isMaxed}
-                    <span class="maxed-star">★</span>
-                  {/if}
                 {:else}
                   —
                 {/if}
@@ -375,6 +509,203 @@
     color: var(--theme-text-soft);
   }
 
+  /* Missing Minions Section */
+  .missing-section {
+    background: var(--theme-surface-bg);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .missing-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+    flex-wrap: wrap;
+  }
+
+  .missing-icon {
+    font-size: 1.4rem;
+  }
+
+  .missing-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .missing-count {
+    margin-left: auto;
+    background: rgba(217, 90, 90, 0.15);
+    color: #d95a5a;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .missing-subtitle {
+    width: 100%;
+    font-size: 0.75rem;
+    color: var(--theme-text-soft);
+    font-style: italic;
+  }
+
+  .missing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .missing-card {
+    background: rgba(148, 163, 184, 0.06);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .missing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border-color: rgba(148, 163, 184, 0.3);
+  }
+
+  .missing-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .missing-icon-img {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+  }
+
+  .missing-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .missing-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--theme-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .missing-category {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .missing-upgrade {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .missing-tier-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+  }
+
+  .missing-current {
+    color: #d9985a;
+    font-weight: 600;
+  }
+
+  .missing-arrow {
+    color: var(--theme-text-soft);
+  }
+
+  .missing-next {
+    color: #7cd95a;
+    font-weight: 700;
+  }
+
+  .missing-max {
+    color: var(--theme-text-soft);
+    font-size: 0.8rem;
+  }
+
+  .missing-progress-bar {
+    height: 4px;
+    background: rgba(148, 163, 184, 0.15);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .missing-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d9985a, #7cd95a);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .missing-tier-status {
+    font-size: 0.7rem;
+    color: var(--theme-text-soft);
+  }
+
+  .missing-cost {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  .cost-label {
+    font-size: 0.75rem;
+    color: var(--theme-text-soft);
+  }
+
+  .cost-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  .cost-value.craft-only {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--theme-text-soft);
+  }
+
+  .cost-value.bazaar-price {
+    background: rgba(255, 215, 0, 0.12);
+    color: #ffa500;
+  }
+
+  .cost-value.unknown {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--theme-text-soft);
+    font-style: italic;
+  }
+
+  .show-all-footer {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--theme-text-soft);
+    padding: 10px;
+    background: rgba(148, 163, 184, 0.05);
+    border-radius: 8px;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 600px) {
     .stats-row {
@@ -385,6 +716,19 @@
       flex-direction: column;
       gap: 4px;
       text-align: right;
+    }
+
+    .missing-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .missing-count {
+      margin-left: 0;
+    }
+
+    .missing-grid {
+      grid-template-columns: 1fr;
     }
 
     .minions-grid {

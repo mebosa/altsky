@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import io
 import gzip
+import json
 import logging
+import os
 import time
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
@@ -37,6 +39,9 @@ _ACCESSORY_CATALOG_TTL_SECONDS = 60 * 60  # 1 hour
 _LOWEST_BIN_CACHE: Dict[str, int] = {}
 _LOWEST_BIN_FETCHED_AT = 0.0
 _LOWEST_BIN_TTL_SECONDS = 10 * 60  # 10 minutes
+
+_RIFT_ACCESSORY_IDS: Set[str] = set()
+_RIFT_ACCESSORY_IDS_LOADED = False
 
 # Static upgrade chains (ported from SkyCrypt/SkyHelper + manual additions)
 ACCESSORY_UPGRADES: List[List[str]] = [
@@ -359,6 +364,66 @@ def _normalize_accessory_id(item_id: Optional[str]) -> Optional[str]:
     while "__" in normalized:
         normalized = normalized.replace("__", "_")
     return ACCESSORY_ALIAS_TO_CANONICAL.get(normalized, normalized)
+
+
+def _load_rift_accessory_ids() -> Set[str]:
+    global _RIFT_ACCESSORY_IDS_LOADED
+    if _RIFT_ACCESSORY_IDS_LOADED:
+        return _RIFT_ACCESSORY_IDS
+    _RIFT_ACCESSORY_IDS_LOADED = True
+
+    try:
+        stats_path = os.path.normpath(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "statscalc",
+                "data",
+                "stats",
+                "accessories_wiki.json",
+            )
+        )
+        with open(stats_path, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        accessories = payload.get("accessories")
+        if isinstance(accessories, dict):
+            for item_id, stats in accessories.items():
+                if not isinstance(stats, dict):
+                    continue
+                if any(str(key).startswith("rift_") for key in stats.keys()):
+                    _RIFT_ACCESSORY_IDS.add(str(item_id).upper())
+    except Exception as exc:
+        LOGGER.warning("Failed to load rift accessory ids: %s", exc)
+
+    return _RIFT_ACCESSORY_IDS
+
+
+def _collect_bag_payloads(sources: Iterable[Any]) -> List[str]:
+    payloads: List[str] = []
+    seen: Set[str] = set()
+    for source in sources:
+        encoded = _seek_data_string(source)
+        if not encoded or encoded in seen:
+            continue
+        seen.add(encoded)
+        payloads.append(encoded)
+    return payloads
+
+
+def _count_non_rift_accessories(items: List[Dict[str, Any]]) -> int:
+    rift_ids = _load_rift_accessory_ids()
+    if not rift_ids:
+        return len(items)
+    count = 0
+    for item in items:
+        raw_id = item.get("id") or item.get("mc_id")
+        normalized = _normalize_accessory_id(raw_id)
+        if not normalized:
+            continue
+        if normalized not in rift_ids:
+            count += 1
+    return count
 
 
 def _load_accessory_catalog() -> List[Dict[str, Any]]:
@@ -863,8 +928,30 @@ def parse_accessories(member: Dict[str, Any]) -> Dict[str, Any]:
         member.get("talisman_bag"),
     ]
 
-    encoded = _resolve_bag_payload(sources)
-    items, rarity_counts, unique_ids, calculated_magical_power = _parse_accessory_items(encoded)
+    payloads = _collect_bag_payloads(sources)
+    best_items: List[Dict[str, Any]] = []
+    best_rarity_counts: Dict[str, int] = {}
+    best_unique_ids: Set[str] = set()
+    best_magical_power = 0
+    best_score = (-1, -1)
+
+    for encoded in payloads:
+        items, rarity_counts, unique_ids, calculated_magical_power = _parse_accessory_items(encoded)
+        score = (_count_non_rift_accessories(items), len(items))
+        if score > best_score:
+            best_score = score
+            best_items = items
+            best_rarity_counts = rarity_counts
+            best_unique_ids = unique_ids
+            best_magical_power = calculated_magical_power
+
+    if not payloads:
+        best_items, best_rarity_counts, best_unique_ids, best_magical_power = _parse_accessory_items(None)
+
+    items = best_items
+    rarity_counts = best_rarity_counts
+    unique_ids = best_unique_ids
+    calculated_magical_power = best_magical_power
     owned_ids: Set[str] = set()
     for acc in items:
         for key in ("id", "mc_id"):

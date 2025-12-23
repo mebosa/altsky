@@ -56,6 +56,29 @@
       "health": 140,
       "defense": 50,
       "intelligence": 30
+    },
+    "FERMENTO_HELMET": {
+      "health": 100,
+      "defense": 30,
+      "farming_fortune": 30,
+      "speed": 10
+    },
+    "FERMENTO_CHESTPLATE": {
+      "health": 200,
+      "defense": 50,
+      "farming_fortune": 40
+    },
+    "FERMENTO_LEGGINGS": {
+      "health": 175,
+      "defense": 40,
+      "farming_fortune": 35,
+      "speed": 15
+    },
+    "FERMENTO_BOOTS": {
+      "health": 125,
+      "defense": 30,
+      "farming_fortune": 25,
+      "speed": 20
     }
   },
   "armor_sets": {

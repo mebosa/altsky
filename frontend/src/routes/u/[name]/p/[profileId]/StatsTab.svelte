@@ -12,12 +12,30 @@
   const dispatch = createEventDispatcher<{ weaponchange: { slot: number | null; id: string | null } }>();
 
   let weaponSlot = '';
-  $: weaponSlot =
-    summary?.weapon_selected_slot !== undefined && summary?.weapon_selected_slot !== null
-      ? String(summary.weapon_selected_slot)
-      : '';
   let weaponId = '';
-  $: weaponId = summary?.weapon_selected_id ?? '';
+  let weaponSlotDirty = false;
+  let weaponIdDirty = false;
+  $: if (summary) {
+    if (!weaponSlotDirty && summary.weapon_selected_slot !== undefined) {
+      weaponSlot =
+        summary.weapon_selected_slot !== null ? String(summary.weapon_selected_slot) : '';
+    }
+    if (!weaponIdDirty && summary.weapon_selected_id !== undefined) {
+      weaponId = summary.weapon_selected_id ?? '';
+    }
+    if (weaponSlotDirty && summary.weapon_selected_slot !== undefined) {
+      const normalized = summary.weapon_selected_slot !== null ? String(summary.weapon_selected_slot) : '';
+      if (normalized === weaponSlot) {
+        weaponSlotDirty = false;
+      }
+    }
+    if (weaponIdDirty && summary.weapon_selected_id !== undefined) {
+      const normalizedId = summary.weapon_selected_id ?? '';
+      if (normalizedId === weaponId) {
+        weaponIdDirty = false;
+      }
+    }
+  }
 
   let expandedStat: string | null = null;
 
@@ -111,24 +129,56 @@
   };
 
   const statIcons: Partial<Record<KnownStatKey, string>> = {
-    health: '',
-    defense: '',
-    strength: '',
-    speed: '',
-    crit_chance: '',
-    crit_damage: '',
-    intelligence: '',
-    bonus_attack_speed: '',
-    ferocity: '',
-    magic_find: '',
-    pet_luck: '',
-    true_defense: '',
-    sea_creature_chance: 'α',
-    mining_speed: '',
-    mining_fortune: '',
-    farming_fortune: '',
-    foraging_fortune: '',
-    pristine: ''
+    health: '\u2764',
+    defense: '\u2748',
+    strength: '\u2741',
+    speed: '\u2726',
+    crit_chance: '\u2623',
+    crit_damage: '\u2620',
+    intelligence: '\u270E',
+    bonus_attack_speed: '\u2694',
+    ferocity: '\u2AFD',
+    magic_find: '\u272F',
+    pet_luck: '\u2663',
+    true_defense: '\u2742',
+    sea_creature_chance: '\u03B1',
+    ability_damage: '\u0E51',
+    mining_speed: '\u2E15',
+    mining_fortune: '\u2618',
+    farming_fortune: '\u2618',
+    foraging_fortune: '\u2618',
+    pristine: '\u2727',
+    fishing_speed: '\u2602',
+    health_regen: '\u2763',
+    vitality: '\u2668',
+    mending: '\u2604',
+    mana_regen: '\u{1F5F2}',
+    alchemy_wisdom: '\u262F',
+    carpentry_wisdom: '\u262F',
+    combat_wisdom: '\u262F',
+    enchanting_wisdom: '\u262F',
+    farming_wisdom: '\u262F',
+    fishing_wisdom: '\u262F',
+    foraging_wisdom: '\u262F',
+    mining_wisdom: '\u262F',
+    runecrafting_wisdom: '\u262F',
+    social_wisdom: '\u262F',
+    taming_wisdom: '\u262F',
+    rift_time: '\u0444',
+    damage: '\u2741',
+    swing_range: '\u24C8',
+    weapon_ability_damage: '\u0E51',
+    treasure_chance: '\u2618',
+    trophy_fish_chance: '\u2602',
+    rift_damage: '\u2741',
+    rift_health: '\u2764',
+    rift_intelligence: '\u270E',
+    rift_mana_regen: '\u{1F5F2}',
+    rift_walk_speed: '\u2726',
+    cold_resistance: '\u2744',
+    heat_resistance: '\u2668',
+    pressure_resistance: '\u24C5',
+    respiration: '\u24C7'
   };
 
   const precisionMap: Partial<Record<KnownStatKey, number>> = {
@@ -227,6 +277,10 @@
   const handleWeaponChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
     const value = target?.value ?? '';
+    weaponSlot = value;
+    weaponSlotDirty = true;
+    weaponId = '';
+    weaponIdDirty = true;
     if (!value) {
       dispatch('weaponchange', { slot: null, id: null });
       return;
@@ -242,6 +296,10 @@
     const target = event.target as HTMLInputElement;
     const value = target?.value ?? '';
     const trimmed = value.trim();
+    weaponId = value;
+    weaponIdDirty = true;
+    weaponSlot = '';
+    weaponSlotDirty = true;
     if (!trimmed) {
       dispatch('weaponchange', { slot: null, id: null });
       return;
@@ -368,7 +426,14 @@
         
         {#if displayValue && Number(displayValue) !== 0}
           <div class="mini-stat">
-            <span class="mini-label">{getStatLabel(key)}</span>
+            <span class="mini-label">
+              {#if statIcons[key]}
+                <span class="mini-icon" style="color: {statColors[key] || 'var(--theme-text-soft)'}">
+                  {statIcons[key]}
+                </span>
+              {/if}
+              {getStatLabel(key)}
+            </span>
             <span class="mini-value" style="color: {statColors[key] || 'var(--theme-text-primary)'}">
               {formatStatValue(key, displayValue)}
             </span>
@@ -638,6 +703,14 @@
     color: var(--theme-text-soft);
     text-transform: uppercase;
     letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mini-icon {
+    font-size: 0.85rem;
+    line-height: 1;
   }
 
   .mini-value {

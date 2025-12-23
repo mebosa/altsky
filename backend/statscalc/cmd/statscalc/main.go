@@ -77,6 +77,22 @@ func routes(calc *calculator.Calculator) http.Handler {
 			return
 		}
 
+		// Debug logging
+		log.Printf("[DEBUG] Equipment: helmet=%v, chestplate=%v, leggings=%v, boots=%v",
+			profile.Equipment.Helmet != nil,
+			profile.Equipment.Chestplate != nil,
+			profile.Equipment.Leggings != nil,
+			profile.Equipment.Boots != nil)
+		if profile.Equipment.Helmet != nil {
+			log.Printf("[DEBUG] Helmet ID: %s, Rarity: %s, Reforge: %s",
+				profile.Equipment.Helmet.ID,
+				profile.Equipment.Helmet.Rarity,
+				profile.Equipment.Helmet.Reforge)
+			log.Printf("[DEBUG] Helmet Enchants: %v, HPB: %d",
+				profile.Equipment.Helmet.Enchants,
+				profile.Equipment.Helmet.HotPotatoCount)
+		}
+
 		stats := calc.Calculate(profile)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{

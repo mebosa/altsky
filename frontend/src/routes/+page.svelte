@@ -360,7 +360,7 @@
       />
       <button type="button" on:click={handleSearch}>Search</button>
     </div>
-    <p class="hint">Use the exact Hypixel username to find the player.</p>
+    <p class="hint">Usernames are not case-sensitive on Hypixel.</p>
     
     {#if searchError}
       <div class="error-message">

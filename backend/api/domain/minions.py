@@ -1,4 +1,14 @@
 from typing import List, Dict, Any, Set
+import time
+import logging
+import requests
+
+LOGGER = logging.getLogger(__name__)
+
+# Bazaar price cache
+_BAZAAR_CACHE: Dict[str, Dict[str, float]] = {}
+_BAZAAR_FETCHED_AT = 0.0
+_BAZAAR_TTL_SECONDS = 5 * 60  # 5 minutes
 
 # Minion slots based on unique tiers crafted
 MINION_SLOTS = {
@@ -7,6 +17,70 @@ MINION_SLOTS = {
     225: 16, 250: 17, 275: 18, 300: 19, 350: 20,
     400: 21, 450: 22, 500: 23, 550: 24, 600: 25, 650: 26
 }
+
+# Elizabeth community shop upgrades add +1 slot each (up to 5 slots)
+ELIZABETH_SLOT_UPGRADES_MAX = 5
+
+
+def _fetch_bazaar_prices() -> Dict[str, Dict[str, float]]:
+    """Fetch bazaar prices from Hypixel API with caching"""
+    global _BAZAAR_CACHE, _BAZAAR_FETCHED_AT
+    
+    now = time.time()
+    if _BAZAAR_CACHE and now - _BAZAAR_FETCHED_AT < _BAZAAR_TTL_SECONDS:
+        return _BAZAAR_CACHE
+    
+    try:
+        response = requests.get('https://api.hypixel.net/v2/skyblock/bazaar', timeout=8)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data.get('success') and 'products' in data:
+            prices = {}
+            for product_id, product_data in data['products'].items():
+                quick_status = product_data.get('quick_status', {})
+                prices[product_id] = {
+                    'buyPrice': quick_status.get('buyPrice', 0),
+                    'sellPrice': quick_status.get('sellPrice', 0)
+                }
+            
+            _BAZAAR_CACHE = prices
+            _BAZAAR_FETCHED_AT = now
+            return prices
+            
+    except requests.RequestException as exc:
+        LOGGER.warning("Failed to fetch bazaar prices: %s", exc)
+    except (ValueError, KeyError) as exc:
+        LOGGER.warning("Failed to parse bazaar data: %s", exc)
+    
+    return _BAZAAR_CACHE
+
+
+def _get_minion_upgrade_cost(minion_id: str, from_tier: int, to_tier: int, bazaar_prices: Dict[str, Dict[str, float]]) -> Dict[str, Any]:
+    """Calculate cost to upgrade minion from one tier to another
+    
+    Returns dict with:
+    - craftOnly: bool - whether this can only be crafted
+    - bazaarCost: int or None - cost to buy directly from bazaar
+    """
+    # Generate minion item ID (e.g., WHEAT_GENERATOR_11)
+    minion_item_id = f"{minion_id}_GENERATOR_{to_tier}"
+    
+    # Check if available in bazaar
+    bazaar_data = bazaar_prices.get(minion_item_id)
+    
+    if bazaar_data and bazaar_data.get('buyPrice', 0) > 0:
+        return {
+            'craftOnly': False,
+            'bazaarCost': int(bazaar_data['buyPrice'])
+        }
+    
+    # Not available in bazaar - craft only
+    return {
+        'craftOnly': True,
+        'bazaarCost': None
+    }
+
 
 # All minions categorized by type
 MINIONS = {
@@ -136,6 +210,9 @@ def parse_minions(member: Dict[str, Any]) -> Dict[str, Any]:
     maxed_minions = 0
     total_unlockable_tiers = 0
     
+    # Fetch bazaar prices for cost calculation
+    bazaar_prices = _fetch_bazaar_prices()
+    
     for category, minion_defs in MINIONS.items():
         cat_minions = []
         cat_unlocked = 0
@@ -147,6 +224,14 @@ def parse_minions(member: Dict[str, Any]) -> Dict[str, Any]:
             max_tier = max(tiers) if tiers else 0
             max_possible = minion_info["maxTier"]
             unlocked_count = len(tiers)
+            texture = minion_info.get("texture", "")
+            
+            # Calculate next tier cost (if not maxed)
+            next_tier_cost = None
+            if max_tier < max_possible:
+                next_tier = max_tier + 1
+                cost_info = _get_minion_upgrade_cost(minion_id, max_tier, next_tier, bazaar_prices)
+                next_tier_cost = cost_info
             
             cat_minions.append({
                 "id": minion_id,
@@ -155,7 +240,9 @@ def parse_minions(member: Dict[str, Any]) -> Dict[str, Any]:
                 "tier": max_tier,
                 "maxTier": max_possible,
                 "unlockedTiers": unlocked_count,
-                "isMaxed": max_tier >= max_possible
+                "isMaxed": max_tier >= max_possible,
+                "texture": f"{MC_HEADS_BASE}/{texture}" if texture else "",
+                "nextTierCost": next_tier_cost
             })
             
             cat_unlocked += unlocked_count

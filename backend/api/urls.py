@@ -7,6 +7,7 @@ urlpatterns = [
     path("profile/<str:uuid>", views.hypixel_profile),
     path("hypixel/profile/<str:uuid>", views.hypixel_profile),
     path("hypixel/profile/<str:uuid>/<str:profile_id>", views.hypixel_profile_summary),
+    path("hypixel/auctions/<str:uuid>", views.hypixel_player_auctions),
     path("og/site.png", views.site_preview_image),
     path("og/site-v2.png", views.site_preview_image_v2),
     path("og/site-v3.png", views.site_preview_image_v3),

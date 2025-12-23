@@ -29,18 +29,48 @@ import { browser } from '$app/environment'; // Used for SSR checks
 
 const RECENT_KEY = 'altsky_recent'; // Key for recent searches
 
+function normalizeRecentList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const item of value) {
+    if (typeof item !== 'string') continue;
+    const trimmed = item.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(trimmed);
+  }
+  return result;
+}
+
 export function saveRecent(name: string) {
   if (typeof window !== 'undefined') {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const normalized = trimmed.toLowerCase();
     const recent = loadRecent();
-    const newRecent = [name, ...recent.filter((n) => n !== name)].slice(0, 5);
+    const newRecent = [trimmed, ...recent.filter((n) => n.toLowerCase() !== normalized)].slice(0, 5);
     localStorage.setItem(RECENT_KEY, JSON.stringify(newRecent));
   }
 }
 
 export function loadRecent(): string[] {
   if (typeof window !== 'undefined') {
-    const recent = localStorage.getItem(RECENT_KEY);
-    return recent ? JSON.parse(recent) : [];
+    const stored = localStorage.getItem(RECENT_KEY);
+    if (!stored) return [];
+    try {
+      const parsed = JSON.parse(stored);
+      const normalized = normalizeRecentList(parsed);
+      if (normalized.length !== parsed.length) {
+        localStorage.setItem(RECENT_KEY, JSON.stringify(normalized));
+      }
+      return normalized;
+    } catch {
+      localStorage.removeItem(RECENT_KEY);
+      return [];
+    }
   }
   return [];
 }

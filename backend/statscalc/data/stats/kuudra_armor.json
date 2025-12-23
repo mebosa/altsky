@@ -26,28 +26,32 @@
       "defense": 64,
       "health": 206,
       "strength": 48,
-      "crit_damage": 32,
+      "crit_chance": 15,
+      "crit_damage": 38.4,
       "intelligence": 8
     },
     "BURNING_CRIMSON_CHESTPLATE": {
       "defense": 103,
       "health": 365,
       "strength": 48,
-      "crit_damage": 32,
+      "crit_chance": 15,
+      "crit_damage": 38.4,
       "intelligence": 8
     },
     "BURNING_CRIMSON_HELMET": {
       "defense": 79,
       "health": 254,
       "strength": 48,
-      "crit_damage": 32,
+      "crit_chance": 15,
+      "crit_damage": 38.4,
       "intelligence": 24
     },
     "BURNING_CRIMSON_LEGGINGS": {
       "defense": 87,
       "health": 325,
       "strength": 48,
-      "crit_damage": 32,
+      "crit_chance": 15,
+      "crit_damage": 38.4,
       "intelligence": 8
     },
     "BURNING_FERVOR_BOOTS": {

@@ -6,11 +6,24 @@
       }
     },
     "dominance": {
-      "per_level": {}
+      "per_level": {
+        "crit_damage": 1
+      }
     },
     "veteran": {
       "per_level": {
         "combat_wisdom": 1.5
+      }
+    },
+    "warrior": {
+      "per_level": {
+        "strength": 2
+      }
+    },
+    "deadeye": {
+      "per_level": {
+        "crit_chance": 0.5,
+        "crit_damage": 1
       }
     },
     "vitality": {

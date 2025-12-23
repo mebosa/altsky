@@ -793,8 +793,14 @@
     }
 
     .accessory-tooltip {
-      min-width: 200px;
-      max-width: 240px;
+      position: fixed;
+      left: 50%;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      top: auto;
+      transform: translate(-50%, 0);
+      width: min(320px, calc(100vw - 32px));
+      max-width: calc(100vw - 32px);
+      z-index: 50;
     }
   }
 

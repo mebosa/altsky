@@ -328,25 +328,63 @@ func applyEquipmentBonuses(ctx *Context, profile model.PlayerProfile, cfg data.C
 
 		itemName := item.ID
 
-		// 기본 아이템 스탯
-		isWeapon := false
-		itemStats, ok := cfg.ArmorStats[item.ID]
-		if !ok {
-			itemStats, ok = cfg.WeaponStats[item.ID]
-			if ok {
-				isWeapon = true
+		// lore_stats가 있으면 사용 (가장 정확한 스탯)
+		var itemStats map[string]float64
+		useLoreStats := false
+		if item.ExtraAttributes != nil {
+			if loreStatsRaw, ok := item.ExtraAttributes["lore_stats"]; ok {
+				if loreStatsMap, ok := loreStatsRaw.(map[string]any); ok {
+					itemStats = make(map[string]float64)
+					for stat, val := range loreStatsMap {
+						switch v := val.(type) {
+						case float64:
+							itemStats[stat] = v
+						case int:
+							itemStats[stat] = float64(v)
+						}
+					}
+					useLoreStats = true
+				}
 			}
 		}
 
-		if ok {
-			// Dungeon Stars (Outside Dungeon: +2% per star)
+		// 기본 아이템 스탯 (lore_stats가 없으면 하드코딩된 값 사용)
+		isWeapon := false
+		if !useLoreStats {
+			var ok bool
+			itemStats, ok = cfg.ArmorStats[item.ID]
+			if !ok {
+				itemStats, ok = cfg.WeaponStats[item.ID]
+				if ok {
+					isWeapon = true
+				}
+			}
+		}
+
+		if len(itemStats) > 0 {
+			// Star multiplier depends on item type (lore_stats에는 이미 스타 반영되어 있음)
 			starMultiplier := 1.0
-			if item.Stars > 0 {
-				starMultiplier += 0.02 * float64(item.Stars)
+			if !useLoreStats && item.Stars > 0 {
+				if isKuudraArmor(item.ID) {
+					// Kuudra armor: ~14.6% per star for stars 1-5, ~5.2% for stars 6-10
+					if item.Stars <= 5 {
+						starMultiplier += 0.146 * float64(item.Stars)
+					} else {
+						// First 5 stars: 73% total, then ~5.2% per additional star
+						starMultiplier += 0.73 + 0.052*float64(item.Stars-5)
+					}
+				} else {
+					// Regular dungeon items: +2% per star outside dungeons
+					starMultiplier += 0.02 * float64(item.Stars)
+				}
 			}
 
+			sourceLabel := "Item"
+			if useLoreStats {
+				sourceLabel = "Item (lore)"
+			}
 			for stat, value := range itemStats {
-				ctx.Add(stat, fmt.Sprintf("Item: %s", itemName), value*starMultiplier)
+				ctx.Add(stat, fmt.Sprintf("%s: %s", sourceLabel, itemName), value*starMultiplier)
 			}
 		}
 
@@ -363,6 +401,12 @@ func applyEquipmentBonuses(ctx *Context, profile model.PlayerProfile, cfg data.C
 						ctx.Add(stat, fmt.Sprintf("Reforge: %s on %s", item.Reforge, itemName), value)
 					}
 				}
+			}
+
+			// Ancient 리포지 특수 보너스: Catacombs 레벨당 +1 Crit Damage
+			if item.Reforge == "ancient" && profile.Dungeons.Catacombs.Level > 0 {
+				ancientBonus := float64(profile.Dungeons.Catacombs.Level)
+				ctx.Add("crit_damage", fmt.Sprintf("Ancient Bonus (Cata %d) on %s", profile.Dungeons.Catacombs.Level, itemName), ancientBonus)
 			}
 		}
 
@@ -462,6 +506,31 @@ func detectArmorSet(itemID string) string {
 	}
 
 	return ""
+}
+
+// isKuudraArmor checks if the item is a Kuudra armor piece (uses Crimson Essence for upgrades)
+func isKuudraArmor(itemID string) bool {
+	kuudraPrefixes := []string{
+		"HOT_", "BURNING_", "FIERY_", "INFERNAL_",
+	}
+	kuudraSets := []string{
+		"CRIMSON_", "TERROR_", "AURORA_", "FERVOR_", "HOLLOW_",
+	}
+
+	for _, prefix := range kuudraPrefixes {
+		if strings.HasPrefix(itemID, prefix) {
+			return true
+		}
+	}
+
+	// Also check for base tier Kuudra armor (without tier prefix)
+	for _, set := range kuudraSets {
+		if strings.HasPrefix(itemID, set) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func applyAttributeBonuses(ctx *Context, attributes map[string]any, cfg data.Config, itemName string) {

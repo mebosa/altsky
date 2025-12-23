@@ -9,11 +9,76 @@ import base64
 import gzip
 import io
 import logging
-from typing import Any, Dict, List, Optional
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 import nbtlib
 
 LOGGER = logging.getLogger(__name__)
+
+# Minecraft 색상 코드 제거를 위한 패턴
+MC_COLOR_PATTERN = re.compile(r'§[0-9a-fk-or]', re.IGNORECASE)
+
+# 스탯 이름 매핑 (lore에서 사용되는 이름 -> 내부 스탯 이름)
+STAT_NAME_MAP = {
+    'health': 'health',
+    'defense': 'defense',
+    'strength': 'strength',
+    'speed': 'speed',
+    'crit chance': 'crit_chance',
+    'crit damage': 'crit_damage',
+    'intelligence': 'intelligence',
+    'attack speed': 'bonus_attack_speed',
+    'bonus attack speed': 'bonus_attack_speed',
+    'ferocity': 'ferocity',
+    'magic find': 'magic_find',
+    'true defense': 'true_defense',
+    'sea creature chance': 'sea_creature_chance',
+    'farming fortune': 'farming_fortune',
+    'foraging fortune': 'foraging_fortune', 
+    'mining fortune': 'mining_fortune',
+    'mining speed': 'mining_speed',
+    'pet luck': 'pet_luck',
+    'ability damage': 'ability_damage',
+    'vitality': 'vitality',
+    'mending': 'mending',
+    'health regen': 'health_regen',
+    'damage': 'damage',
+    'swing range': 'swing_range',
+}
+
+def _parse_lore_stats(lore_lines: List[str]) -> Dict[str, float]:
+    """
+    lore 텍스트에서 스탯을 파싱합니다.
+    예: "Health: +130" -> {'health': 130}
+    예: "Farming Fortune: +67 (+25) (+12)" -> {'farming_fortune': 67}
+    """
+    stats: Dict[str, float] = {}
+    
+    for line in lore_lines:
+        # 색상 코드 제거
+        clean_line = MC_COLOR_PATTERN.sub('', line).strip()
+        
+        # 빈 줄이나 특수 줄 무시
+        if not clean_line or clean_line.startswith('['):
+            continue
+            
+        # "스탯이름: +값" 또는 "스탯이름: 값" 패턴 매칭
+        # 예: "Health: +130", "Defense: +40", "Farming Fortune: +67 (+25) (+12)"
+        match = re.match(r'^([A-Za-z ]+):\s*([+-]?\d+(?:\.\d+)?)', clean_line)
+        if match:
+            stat_name = match.group(1).strip().lower()
+            try:
+                stat_value = float(match.group(2))
+            except ValueError:
+                continue
+            
+            # 스탯 이름 매핑
+            internal_name = STAT_NAME_MAP.get(stat_name)
+            if internal_name:
+                stats[internal_name] = stat_value
+    
+    return stats
 
 
 def decode_inventory_data(raw_data: Optional[str]) -> List[Dict[str, Any]]:
@@ -42,7 +107,6 @@ def decode_inventory_data(raw_data: Optional[str]) -> List[Dict[str, Any]]:
             nbt_file = nbtlib.File.from_fileobj(io.BytesIO(decoded))
             
         root = nbt_file
-        print(f"DEBUG: Root keys: {root.keys()}")
         items = []
         
         # Root is usually a Compound with "i" (List)
@@ -89,6 +153,15 @@ def _parse_item_nbt(item_tag: Any) -> Optional[Dict[str, Any]]:
             item_data['id'] = extra_attrs.get('id')
             # Rarity 추출
             item_data['rarity'] = _extract_rarity(tag_compound)
+        
+        # Lore에서 스탯 파싱
+        display = tag_compound.get('display', {})
+        lore_list = display.get('Lore', [])
+        if lore_list:
+            lore_strings = [str(line) for line in lore_list]
+            lore_stats = _parse_lore_stats(lore_strings)
+            if lore_stats:
+                item_data['extra_attributes']['lore_stats'] = lore_stats
     
     # Skyblock item ID가 없으면 무시
     if not item_data.get('id'):
@@ -199,6 +272,7 @@ def _upgrade_rarity(rarity: str) -> str:
 def extract_equipment_from_profile(member_data: Dict[str, Any]) -> Dict[str, Optional[Dict[str, Any]]]:
     """
     프로필에서 현재 착용 중인 장비를 추출합니다.
+    inv_armor가 비어있으면 wardrobe에서 equipped_slot의 장비를 사용합니다.
     """
     equipment = {
         'helmet': None,
@@ -211,21 +285,62 @@ def extract_equipment_from_profile(member_data: Dict[str, Any]) -> Dict[str, Opt
         'gloves': None,
     }
     
-    # inv_armor에서 방어구 추출
     inventory = member_data.get('inventory', {})
+    
+    # inv_armor에서 방어구 추출
     armor_data = inventory.get('inv_armor', {}).get('data')
+    armor_found = False
     
     if armor_data:
         items = decode_inventory_data(armor_data)
+        LOGGER.warning(f"[DEBUG] inv_armor items count: {len(items)}")
+        if items:
+            LOGGER.warning(f"[DEBUG] First item extra_attributes keys: {list(items[0].get('extra_attributes', {}).keys()) if items[0] else 'None'}")
         # 슬롯 순서: [boots, leggings, chestplate, helmet]
         if len(items) > 0 and items[0]:
             equipment['boots'] = items[0]
+            armor_found = True
         if len(items) > 1 and items[1]:
             equipment['leggings'] = items[1]
+            armor_found = True
         if len(items) > 2 and items[2]:
             equipment['chestplate'] = items[2]
+            armor_found = True
         if len(items) > 3 and items[3]:
             equipment['helmet'] = items[3]
+            armor_found = True
+
+    # inv_armor가 비어있으면 wardrobe에서 equipped_slot의 장비 사용
+    if not armor_found:
+        equipped_slot = inventory.get('wardrobe_equipped_slot')
+        wardrobe_data = inventory.get('wardrobe_contents', {}).get('data')
+        
+        if equipped_slot is not None and wardrobe_data:
+            try:
+                slot_index = int(equipped_slot) - 1  # 1-based to 0-based
+                if slot_index >= 0:
+                    wardrobe_items = decode_inventory_data(wardrobe_data)
+                    if wardrobe_items:
+                        # Wardrobe는 9열(slots 0-8)씩 구성됨
+                        # 각 슬롯은 4개의 아이템 (helmet, chestplate, leggings, boots)
+                        # 슬롯 1: helmet=0, chestplate=9, leggings=18, boots=27
+                        # 슬롯 2: helmet=1, chestplate=10, leggings=19, boots=28
+                        # 등등...
+                        helmet_idx = slot_index
+                        chestplate_idx = slot_index + 9
+                        leggings_idx = slot_index + 18
+                        boots_idx = slot_index + 27
+                        
+                        if helmet_idx < len(wardrobe_items) and wardrobe_items[helmet_idx]:
+                            equipment['helmet'] = wardrobe_items[helmet_idx]
+                        if chestplate_idx < len(wardrobe_items) and wardrobe_items[chestplate_idx]:
+                            equipment['chestplate'] = wardrobe_items[chestplate_idx]
+                        if leggings_idx < len(wardrobe_items) and wardrobe_items[leggings_idx]:
+                            equipment['leggings'] = wardrobe_items[leggings_idx]
+                        if boots_idx < len(wardrobe_items) and wardrobe_items[boots_idx]:
+                            equipment['boots'] = wardrobe_items[boots_idx]
+            except (ValueError, TypeError):
+                pass
 
     # equipment_contents에서 장신구(Necklace, Cloak, Belt, Gloves) 추출
     equipment_data = inventory.get('equipment_contents', {}).get('data')
@@ -361,22 +476,24 @@ def extract_pets_from_profile(member_data: Dict[str, Any]) -> List[Dict[str, Any
         if not isinstance(pet_raw, dict):
             continue
         
+        pet_type = pet_raw.get('type')
+        tier = pet_raw.get('tier', 'COMMON')
+        xp = int(pet_raw.get('exp', 0) or 0)
+        
         pet = {
-            'type': pet_raw.get('type'),
-            'tier': pet_raw.get('tier'),
-            'level': 0,
-            'xp': int(pet_raw.get('exp', 0) or 0),
+            'type': pet_type,
+            'tier': tier,
+            'level': 1,  # 펫은 1레벨부터 시작 (0레벨 없음)
+            'xp': xp,
             'active': pet_raw.get('active', False),
             'held_item': pet_raw.get('heldItem'),
             'candy_used': int(pet_raw.get('candyUsed', 0) or 0),
             'skin': pet_raw.get('skin'),
         }
         
-        # 펫 레벨 계산
-        xp = pet.get('xp', 0)
-        tier = pet.get('tier', 'COMMON')
+        # 펫 레벨 계산 (XP가 있으면 레벨 계산, pet_type 전달하여 Golden Dragon 등 처리)
         if xp > 0:
-            pet['level'] = _calculate_pet_level(tier, xp)
+            pet['level'] = _calculate_pet_level(tier, xp, pet_type)
         
         if pet['type']:
             pets.append(pet)
@@ -464,8 +581,17 @@ PET_XP_REQUIREMENTS = {
   ]
 }
 
-def _calculate_pet_level(rarity: str, xp: float) -> int:
-    """펫 경험치를 기반으로 레벨을 계산합니다."""
+def _calculate_pet_level(rarity: str, xp: float, pet_type: str = None) -> int:
+    """펫 경험치를 기반으로 레벨을 계산합니다.
+    
+    Args:
+        rarity: 펫 등급 (COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC)
+        xp: 펫 경험치
+        pet_type: 펫 타입 (GOLDEN_DRAGON 등 특수 케이스 처리용)
+    
+    Returns:
+        펫 레벨 (1-100, Golden Dragon은 1-200)
+    """
     rarity = rarity.upper()
     if rarity == 'MYTHIC':
         rarity = 'LEGENDARY'
@@ -475,14 +601,16 @@ def _calculate_pet_level(rarity: str, xp: float) -> int:
         # 기본값: Common 테이블 사용
         table = PET_XP_REQUIREMENTS['COMMON']
     
-    level = 1
+    level = 1  # 펫은 1레벨부터 시작
     for i, req_xp in enumerate(table):
         if xp >= req_xp:
             level = i + 1
         else:
             break
     
-    return min(100, level)
+    # 특수 케이스: Golden Dragon은 200레벨까지 가능
+    max_level = 200 if pet_type == 'GOLDEN_DRAGON' else 100
+    return min(max_level, level)
 
 
 def extract_dungeons_from_profile(member_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:

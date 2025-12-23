@@ -17,9 +17,19 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .decorators import rate_limit
-from .domain.item_textures import load_furfsky_texture
+from .domain.item_textures import load_furfsky_texture, TEXTURE_PACKS, resolve_item_icon_variants
 from .domain.profile_summary import count_coop_members, summarize_profile
 from .domain.armor_textures import get_armor_textures
+from .domain.wardrobe import (
+    _decode_bytes,
+    _tag_value,
+    _component_to_plain,
+    _component_to_colored,
+    _extract_extra_texture,
+    _extract_skull_icon,
+    _detect_rarity,
+    _extract_leather_color,
+)
 from . import statscalc_client
 
 LOGGER = logging.getLogger(__name__)
@@ -124,8 +134,10 @@ def serve_vanilla_texture(request, path):
 
 HYPIXEL_PROFILES_URL = 'https://api.hypixel.net/v2/skyblock/profiles'
 HYPIXEL_PLAYER_URL = 'https://api.hypixel.net/v2/player'
+HYPIXEL_AUCTION_URL = 'https://api.hypixel.net/v2/skyblock/auction'
 HYPIXEL_PROFILES_CACHE_SECONDS = _read_int_env('HYPIXEL_PROFILES_CACHE_SECONDS', 20)
 HYPIXEL_PLAYER_CACHE_SECONDS = _read_int_env('HYPIXEL_PLAYER_CACHE_SECONDS', 120)
+HYPIXEL_AUCTION_CACHE_SECONDS = _read_int_env('HYPIXEL_AUCTION_CACHE_SECONDS', 60)
 
 
 def _fetch_hypixel_profiles(
@@ -367,6 +379,179 @@ def _get_player_lookup_result(name: str, *, force_refresh: bool = False) -> Tupl
         )
 
 
+def _fetch_player_auctions(
+    uuid: str, *, force_refresh: bool = False
+) -> Tuple[Optional[List[Dict[str, Any]]], Optional[Dict[str, Any]]]:
+    """
+    Fetch active auctions for a player from Hypixel API.
+    """
+    cache_key = f'hypixel_auctions:{uuid}'
+    if not force_refresh and HYPIXEL_AUCTION_CACHE_SECONDS > 0:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached, None
+
+    api_key = os.getenv('HYPIXEL_API_KEY')
+    if not api_key:
+        return None, {'error': 'hypixel_api_key_missing', 'status': 503, 'fatal': False}
+
+    try:
+        response = requests.get(
+            HYPIXEL_AUCTION_URL,
+            params={'player': uuid},
+            headers={'API-Key': api_key},
+            timeout=12,
+        )
+    except requests.RequestException as exc:
+        return None, {'error': 'hypixel_request_failed', 'detail': str(exc), 'status': 502, 'fatal': True}
+
+    if response.status_code == 429:
+        return None, {'error': 'rate_limited', 'status': 429, 'fatal': False}
+
+    if response.status_code == 403:
+        cause: Optional[str] = None
+        try:
+            data = response.json()
+            if isinstance(data, dict):
+                raw_cause = data.get('cause') or data.get('message')
+                if isinstance(raw_cause, str) and raw_cause.strip():
+                    cause = raw_cause.strip()
+        except ValueError:
+            cause = None
+
+        return None, {
+            'error': 'hypixel_forbidden',
+            'status': 503,
+            'detail': cause or 'Hypixel API rejected the request.',
+            'fatal': True,
+        }
+
+    if response.status_code != 200:
+        detail: str
+        try:
+            body = response.json()
+            if isinstance(body, dict):
+                detail = str(body.get('cause') or body.get('message') or body)
+            else:
+                detail = str(body)
+        except ValueError:
+            detail = response.text
+
+        if len(detail) > 2000:
+            detail = detail[:2000] + '…'
+
+        return None, {
+            'error': 'hypixel_http_error',
+            'status': response.status_code,
+            'detail': detail,
+            'fatal': True,
+        }
+
+    body = response.json()
+    if body.get('success') is False:
+        return None, {'error': 'hypixel_error', 'detail': body, 'status': 502, 'fatal': True}
+
+    auctions = body.get('auctions') or []
+    
+    # Enrich auctions with parsed item data
+    enriched_auctions = []
+    for auction in auctions:
+        enriched = _enrich_auction_item(auction)
+        enriched_auctions.append(enriched)
+
+    if HYPIXEL_AUCTION_CACHE_SECONDS > 0:
+        cache.set(cache_key, enriched_auctions, HYPIXEL_AUCTION_CACHE_SECONDS)
+
+    return enriched_auctions, None
+
+
+def _enrich_auction_item(auction: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Parse auction item_bytes to extract icon information.
+    """
+    import io
+    import nbtlib
+    
+    result = dict(auction)
+    item_bytes = auction.get('item_bytes')
+    if not item_bytes:
+        return result
+    
+    # Handle item_bytes as object with 'data' field or direct string
+    if isinstance(item_bytes, dict):
+        item_bytes_str = item_bytes.get('data')
+    else:
+        item_bytes_str = item_bytes
+    
+    if not item_bytes_str:
+        return result
+    
+    payload = _decode_bytes(item_bytes_str)
+    if not payload:
+        return result
+    
+    try:
+        file = nbtlib.File.from_fileobj(io.BytesIO(payload))
+    except Exception:
+        return result
+    
+    items = file.get('i', [])
+    if not items:
+        return result
+    
+    compound = items[0]
+    if not compound or 'id' not in compound:
+        return result
+    
+    item_id_raw = _tag_value(compound.get('id'))
+    item_id = str(item_id_raw) if item_id_raw is not None else ''
+    
+    tag = compound.get('tag') or nbtlib.Compound()
+    display = tag.get('display') or nbtlib.Compound()
+    extra = tag.get('ExtraAttributes') or nbtlib.Compound()
+    
+    extra_id_raw = _tag_value(extra.get('id')) if extra else None
+    extra_id = str(extra_id_raw) if extra_id_raw else None
+    
+    damage_raw = _tag_value(compound.get('Damage'))
+    try:
+        damage = int(damage_raw)
+    except (TypeError, ValueError):
+        damage = None
+    
+    # Get icon variants for each texture pack
+    icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
+    
+    # Check for custom textures (skulls, etc.)
+    fallback_icon = _extract_extra_texture(extra) or _extract_skull_icon(tag)
+    if fallback_icon:
+        for pack in TEXTURE_PACKS:
+            icon_variants.setdefault(pack, fallback_icon)
+    
+    icon_url = next(
+        (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
+        None,
+    )
+    
+    # Extract leather color if applicable
+    leather_color = _extract_leather_color(display, extra)
+    
+    # Parse lore for colored display
+    lore_entries = display.get('Lore') or []
+    lore = [_component_to_plain(_tag_value(line)) for line in lore_entries]
+    lore_colored = [_component_to_colored(_tag_value(line)) for line in lore_entries]
+    
+    result['skyblock_id'] = extra_id or item_id
+    result['mc_id'] = item_id
+    result['icon_url'] = icon_url
+    result['icon_variants'] = {pack: url for pack, url in icon_variants.items() if url}
+    result['leather_color'] = leather_color
+    result['lore'] = lore
+    result['lore_colored'] = lore_colored
+    
+    return result
+
+
 @api_view(['GET'])
 def health(_: Request) -> Response:
     return Response({'ok': True})
@@ -386,6 +571,27 @@ def hypixel_profile(request: Request, uuid: str) -> Response:
     """
     force_refresh = _should_bypass_cache(getattr(request, 'query_params', None))
     body, error = _fetch_hypixel_profiles(uuid, force_refresh=force_refresh)
+    if error:
+        payload = {'error': error.get('error')}
+        if 'detail' in error:
+            payload['detail'] = error['detail']
+        return Response(payload, status=error.get('status') or 502)
+    return Response(body)
+
+
+@api_view(['GET'])
+def hypixel_player_auctions(request: Request, uuid: str) -> Response:
+    """
+    Active auctions for a player from Hypixel SkyBlock.
+    """
+    force_refresh = _should_bypass_cache(getattr(request, 'query_params', None))
+    auctions, error = _fetch_player_auctions(uuid, force_refresh=force_refresh)
+    if error:
+        payload = {'error': error.get('error')}
+        if 'detail' in error:
+            payload['detail'] = error['detail']
+        return Response(payload, status=error.get('status') or 502)
+    return Response({'auctions': auctions or []})
     if error:
         payload = {'error': error.get('error')}
         if 'detail' in error:
@@ -481,7 +687,7 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
         **summary,
     }
     if member_data:
-        from .domain.nbt_parser import extract_weapon_candidates_from_profile, extract_weapon_from_profile
+        from .domain.nbt_parser import extract_weapon_candidates_from_profile, extract_weapon_from_profile, extract_pets_from_profile
 
         weapon_candidates = extract_weapon_candidates_from_profile(member_data)
         if weapon_candidates:
@@ -493,6 +699,12 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
             response_body['weapon_catalog'] = _load_weapon_catalog()
             if weapon_id:
                 response_body['weapon_selected_id'] = weapon_id
+        
+        # Extract pets data for frontend
+        pets = extract_pets_from_profile(member_data)
+        if pets:
+            response_body['pets'] = pets
+            response_body['pet_score'] = _calculate_pet_score(pets)
     if computed_stats:
         response_body['computed_stats'] = computed_stats
     if stat_breakdown:
@@ -772,7 +984,28 @@ def _extract_accessory_tuning(member_data: Dict[str, Any]) -> Dict[str, int]:
 
 
 def _calculate_pet_score(pets: List[Dict[str, Any]]) -> int:
+    """Calculate pet score based on SkyCrypt logic.
+    
+    Pet score = sum of highest rarity per pet type + 1 for each maxed unique pet type
+    
+    Rarity scores: COMMON=1, UNCOMMON=2, RARE=3, EPIC=4, LEGENDARY=5, MYTHIC=6
+    Max level bonus: +1 per unique pet type that has reached max level
+    
+    Special cases:
+    - GOLDEN_DRAGON max level is 200
+    - FRACTURED_MONTEZUMA_SOUL is ignored in calculation
+    """
+    # Pet type -> max level mapping (default 100)
+    PET_MAX_LEVELS = {
+        'GOLDEN_DRAGON': 200,
+    }
+    
+    # Pets to ignore in score calculation
+    IGNORED_PETS = {'FRACTURED_MONTEZUMA_SOUL'}
+    
     highest_rarity: Dict[str, int] = {}
+    has_max_level: Dict[str, bool] = {}
+    
     rarity_score = {
         'COMMON': 1,
         'UNCOMMON': 2,
@@ -785,14 +1018,30 @@ def _calculate_pet_score(pets: List[Dict[str, Any]]) -> int:
     for pet in pets:
         pet_type = pet.get('type')
         rarity = pet.get('tier')
+        level = pet.get('level', 0)
+        
         if not pet_type or not rarity:
             continue
             
+        # Skip ignored pets
+        if pet_type in IGNORED_PETS:
+            continue
+            
+        # Track highest rarity per pet type
         score = rarity_score.get(rarity, 0)
         if score > highest_rarity.get(pet_type, 0):
             highest_rarity[pet_type] = score
-            
-    return sum(highest_rarity.values())
+        
+        # Check if pet is at max level
+        max_level = PET_MAX_LEVELS.get(pet_type, 100)
+        if level >= max_level and not has_max_level.get(pet_type, False):
+            has_max_level[pet_type] = True
+    
+    # Total score = rarity scores + max level bonuses
+    rarity_total = sum(highest_rarity.values())
+    max_level_bonus = sum(1 for v in has_max_level.values() if v)
+    
+    return rarity_total + max_level_bonus
 
 
 def _build_statscalc_payload(
@@ -965,6 +1214,7 @@ def _serialize_item(item: Dict[str, Any]) -> Dict[str, Any]:
         'abiphone_contacts_count',
         'enderman_kills',
         'zombie_kills',
+        'lore_stats',  # lore에서 파싱된 스탯
     ):
         if key in extra:
             extra_payload[key] = extra[key]
