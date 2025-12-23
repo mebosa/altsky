@@ -2,7 +2,13 @@
   import { onMount } from 'svelte';
   import type { MuseumData, MuseumItem, MuseumMissingItem } from './profileTypes';
   import { texturePackStore } from '$lib/stores/texturePack';
-  import { loadHypixelItems, getItemTextureUrl, itemsLoaded } from '$lib/stores/hypixelItems';
+  import { 
+    loadHypixelItems, 
+    getItemTextureUrl, 
+    itemsLoaded, 
+    loadFurfskytextures, 
+    furfskyCacheLoaded 
+  } from '$lib/stores/hypixelItems';
 
   export let museum: MuseumData | null = null;
 
@@ -13,6 +19,15 @@
 
   // Reactive: force re-render when items are loaded
   $: itemsReady = $itemsLoaded;
+  
+  // Load furfsky textures when pack is furfsky and we have missing items
+  $: if ($texturePackStore === 'furfsky' && missingData?.all_missing?.length) {
+    const itemIds = missingData.all_missing.map(item => item.id);
+    loadFurfskytextures(itemIds);
+  }
+  
+  // Track if furfsky textures are ready
+  $: furfskReady = $furfskyCacheLoaded;
 
   // View mode: 'donated' or 'missing'
   type ViewMode = 'donated' | 'missing';
@@ -274,7 +289,7 @@
             <span class="item-count">Best value for museum progress</span>
           </div>
 
-          {#key itemsReady}
+          {#key `${itemsReady}-${furfskReady}-${$texturePackStore}`}
           <div class="cheapest-grid">
             {#each cheapestItems.slice(0, 10) as item, index}
               {@const iconSrc = getMissingItemIcon(item.id)}
@@ -361,7 +376,7 @@
             </button>
           </div>
 
-          {#key itemsReady}
+          {#key `${itemsReady}-${furfskReady}-${$texturePackStore}`}
           <div class="missing-grid">
             {#each displayedMissing as item}
               {@const iconSrc = getMissingItemIcon(item.id)}

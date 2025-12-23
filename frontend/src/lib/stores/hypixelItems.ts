@@ -18,8 +18,10 @@ const itemsMapStore = writable<Map<string, HypixelItem>>(new Map());
 export const itemsLoading = writable(false);
 export const itemsLoaded = writable(false);
 
-// Furfsky texture base URL
-const FURFSKY_BASE = '/api/textures/furfsky';
+// Furfsky textures cache (loaded from backend)
+const furfskyCacheStore = writable<Map<string, string | null>>(new Map());
+export const furfskyCacheLoaded = writable(false);
+const furfskyCacheLoading = writable(false);
 
 // Material to vanilla texture path mapping
 const MATERIAL_TO_TEXTURE: Record<string, string> = {
@@ -140,6 +142,52 @@ export async function loadHypixelItems(): Promise<void> {
   }
 }
 
+// Load furfsky textures for a list of item IDs from backend
+export async function loadFurfskytextures(itemIds: string[]): Promise<void> {
+  if (get(furfskyCacheLoading) || itemIds.length === 0) return;
+  
+  // Filter out already cached items
+  const currentCache = get(furfskyCacheStore);
+  const uncachedIds = itemIds.filter(id => !currentCache.has(id));
+  
+  if (uncachedIds.length === 0) {
+    furfskyCacheLoaded.set(true);
+    return;
+  }
+  
+  furfskyCacheLoading.set(true);
+  
+  try {
+    const response = await fetch('/api/textures/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item_ids: uncachedIds, pack: 'furfsky' })
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch furfsky textures');
+    
+    const data = await response.json();
+    const textures = data.textures as Record<string, string | null>;
+    
+    // Update cache
+    const newCache = new Map(currentCache);
+    for (const [id, url] of Object.entries(textures)) {
+      newCache.set(id, url);
+    }
+    furfskyCacheStore.set(newCache);
+    furfskyCacheLoaded.set(true);
+  } catch (error) {
+    console.error('Failed to load furfsky textures:', error);
+  } finally {
+    furfskyCacheLoading.set(false);
+  }
+}
+
+// Get furfsky texture URL from cache
+export function getFurfskyCachedTexture(itemId: string): string | null | undefined {
+  return get(furfskyCacheStore).get(itemId);
+}
+
 // Get item by ID
 export function getItem(itemId: string): HypixelItem | undefined {
   return get(itemsMapStore).get(itemId);
@@ -163,6 +211,17 @@ function extractSkinTextureId(skinValue: string): string | null {
 
 // Get texture URL for an item with pack support
 export function getItemTextureUrl(itemId: string, pack: 'vanilla' | 'furfsky' = 'vanilla'): string | null {
+  // For furfsky pack, check the cache first
+  if (pack === 'furfsky') {
+    const cachedUrl = get(furfskyCacheStore).get(itemId);
+    // If cached (even if null), use the cached value
+    if (cachedUrl !== undefined) {
+      // If furfsky URL exists, use it; otherwise fallback to vanilla
+      if (cachedUrl) return cachedUrl;
+      // Fall through to vanilla resolution if furfsky returned null
+    }
+  }
+  
   const map = get(itemsMapStore);
   
   // Try exact match first
@@ -179,6 +238,14 @@ export function getItemTextureUrl(itemId: string, pack: 'vanilla' | 'furfsky' = 
         item = map.get(variant);
         resolvedId = variant;
         break;
+      }
+    }
+    
+    // Also check furfsky cache for resolved variant
+    if (pack === 'furfsky') {
+      const cachedUrl = get(furfskyCacheStore).get(resolvedId);
+      if (cachedUrl !== undefined && cachedUrl) {
+        return cachedUrl;
       }
     }
   }

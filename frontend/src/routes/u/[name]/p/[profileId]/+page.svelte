@@ -14,6 +14,7 @@
     slayer: () => import('./SlayerTab.svelte'),
     dungeons: () => import('./DungeonsTab.svelte'),
     minions: () => import('./MinionsTab.svelte'),
+    collections: () => import('./CollectionsTab.svelte'),
     pets: () => import('./PetsTab.svelte'),
     accessories: () => import('./AccessoriesTab.svelte'),
     wardrobe: () => import('./WardrobeTab.svelte'),
@@ -59,6 +60,7 @@
     { id: 'slayer', label: 'Slayer' },
     { id: 'dungeons', label: 'Dungeons' },
     { id: 'minions', label: 'Minions' },
+    { id: 'collections', label: 'Collections' },
     { id: 'pets', label: 'Pets' },
     { id: 'accessories', label: 'Accessories' },
     { id: 'wardrobe', label: 'Wardrobe' },
@@ -270,6 +272,8 @@
       <svelte:component this={loadedTabs.dungeons} {summary} {dungeonClassLabels} />
     {:else if activeTab === 'minions' && loadedTabs.minions}
       <svelte:component this={loadedTabs.minions} {summary} />
+    {:else if activeTab === 'collections' && loadedTabs.collections}
+      <svelte:component this={loadedTabs.collections} {summary} />
     {:else if activeTab === 'pets' && loadedTabs.pets}
       <svelte:component this={loadedTabs.pets} {summary} />
     {:else if activeTab === 'accessories' && loadedTabs.accessories}

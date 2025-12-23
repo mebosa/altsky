@@ -469,7 +469,7 @@
   </div>
 
   <!-- Essence -->
-  {#if summary.currencies.essence}
+  {#if summary?.currencies?.essence}
     <div class="essence-section">
       <h3>Essence</h3>
       <div class="essence-list">

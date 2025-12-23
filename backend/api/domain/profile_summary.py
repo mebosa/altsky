@@ -10,6 +10,7 @@ from .slayer import extract_slayer
 from .wardrobe import parse_wardrobe
 from .accessories import parse_accessories
 from .minions import parse_minions
+from .collections import extract_collections_from_profile
 
 
 @dataclass
@@ -282,6 +283,9 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
         elif equipped_slot > 0:
             equipped_slot -= 1
 
+    # Extract collections data
+    collections = extract_collections_from_profile(member)
+
     return {
         "profile": {
             "profile_id": profile_id,
@@ -307,4 +311,5 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
         },
         "accessories": parse_accessories(member),
         "minions": parse_minions(member, profile),
+        "collections": collections,
     }

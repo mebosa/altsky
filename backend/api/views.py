@@ -17,10 +17,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .decorators import rate_limit
-from .domain.item_textures import load_furfsky_texture, TEXTURE_PACKS, resolve_item_icon_variants
+from .domain.item_textures import load_furfsky_texture, TEXTURE_PACKS, resolve_item_icon_variants, resolve_item_icon_for_pack
 from .domain.profile_summary import count_coop_members, summarize_profile
 from .domain.armor_textures import get_armor_textures
 from .domain.museum import parse_museum, get_museum_summary, get_missing_items
+from .domain.collections import extract_collections_from_profile
 from .domain.wardrobe import (
     _decode_bytes,
     _tag_value,
@@ -1243,10 +1244,11 @@ def _build_statscalc_payload(
             payload['pets'] = pets
             payload['pet_score'] = _calculate_pet_score(pets)
         
-        # Collections
-        collections = member_data.get('collection', {})
-        if collections:
-            payload['collections'] = collections
+        # Collections - statscalc expects map[string]int, not the full processed structure
+        raw_collections = member_data.get('collection', {})
+        if raw_collections and isinstance(raw_collections, dict):
+            # Ensure values are integers
+            payload['collections'] = {k: int(v) for k, v in raw_collections.items() if isinstance(v, (int, float))}
         
         # HOTM
         hotm = extract_hotm_from_profile(member_data)
@@ -1668,3 +1670,43 @@ def get_vanilla_armor_texture_view(request: Request, name: str, layer: str) -> R
     except Exception as e:
         print(f"DEBUG: Error serving vanilla armor: {e}", flush=True)
         return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST", "GET"])
+def get_item_textures_batch(request: Request) -> Response:
+    """
+    Get textures for multiple items at once.
+    
+    POST body or GET params:
+    - item_ids: List of item IDs (comma-separated for GET)
+    - pack: Texture pack ('vanilla' or 'furfsky'), default 'furfsky'
+    
+    Returns:
+    {
+        "textures": {
+            "ITEM_ID": "texture_url",
+            ...
+        }
+    }
+    """
+    if request.method == "POST":
+        item_ids = request.data.get("item_ids", [])
+        pack = request.data.get("pack", "furfsky")
+    else:
+        item_ids_raw = request.query_params.get("item_ids", "")
+        item_ids = [i.strip() for i in item_ids_raw.split(",") if i.strip()]
+        pack = request.query_params.get("pack", "furfsky")
+    
+    if not item_ids:
+        return Response({"textures": {}})
+    
+    # Limit to 500 items to prevent abuse
+    item_ids = item_ids[:500]
+    
+    textures: Dict[str, Optional[str]] = {}
+    for item_id in item_ids:
+        # Resolve texture using existing infrastructure
+        texture_url = resolve_item_icon_for_pack(item_id, None, None, pack=pack)
+        textures[item_id] = texture_url
+    
+    return Response({"textures": textures})

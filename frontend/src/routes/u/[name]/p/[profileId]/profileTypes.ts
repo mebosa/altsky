@@ -177,6 +177,7 @@ export type ProfileSummaryResponse = {
   }[];
   weapon_selected_id?: string | null;
   museum?: MuseumData | null;
+  collections?: CollectionsData | null;
 };
 
 export type AggregatedStat = {
@@ -288,4 +289,39 @@ export type MuseumData = {
     armor?: MuseumCategory;
     rarities?: MuseumCategory;
   };
+};
+
+// ===== Collection Types =====
+
+export type CollectionItem = {
+  id: string;
+  name: string;
+  amount: number;
+  amountFormatted: string;
+  tier: number;
+  maxTier: number;
+  isMaxed: boolean;
+  progress: number;
+  nextTierReq: number | null;
+  nextTierReqFormatted: string | null;
+  texture: string;
+};
+
+export type CollectionCategory = {
+  name: string;
+  icon: string;
+  color: string;
+  collections: CollectionItem[];
+  totalCollections: number;
+  maxedCollections: number;
+  totalTiers: number;
+  unlockedTiers: number;
+};
+
+export type CollectionsData = {
+  categories: Record<string, CollectionCategory>;
+  totalCollections: number;
+  maxedCollections: number;
+  totalTiers: number;
+  unlockedTiers: number;
 };
