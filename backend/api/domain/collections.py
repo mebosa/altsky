@@ -13,103 +13,6 @@ _COLLECTIONS_CACHE: Dict[str, Any] = {}
 _COLLECTIONS_FETCHED_AT = 0.0
 _COLLECTIONS_TTL_SECONDS = 60 * 60  # 1 hour (rarely changes)
 
-# Item ID to texture mapping for common items
-COLLECTION_TEXTURES: Dict[str, str] = {
-    # Farming
-    "WHEAT": "wheat",
-    "CARROT_ITEM": "carrot",
-    "POTATO_ITEM": "potato",
-    "PUMPKIN": "pumpkin",
-    "MELON": "melon",
-    "SEEDS": "seeds",
-    "RED_MUSHROOM": "red_mushroom",
-    "BROWN_MUSHROOM": "brown_mushroom",
-    "INK_SACK:3": "cocoa_beans",
-    "CACTUS": "cactus",
-    "SUGAR_CANE": "sugar_cane",
-    "FEATHER": "feather",
-    "LEATHER": "leather",
-    "PORK": "porkchop",
-    "RAW_CHICKEN": "raw_chicken",
-    "MUTTON": "mutton",
-    "RABBIT": "rabbit",
-    "NETHER_STALK": "nether_wart",
-    
-    # Mining
-    "COBBLESTONE": "cobblestone",
-    "COAL": "coal",
-    "IRON_INGOT": "iron_ingot",
-    "GOLD_INGOT": "gold_ingot",
-    "DIAMOND": "diamond",
-    "INK_SACK:4": "lapis_lazuli",
-    "EMERALD": "emerald",
-    "REDSTONE": "redstone",
-    "QUARTZ": "nether_quartz",
-    "OBSIDIAN": "obsidian",
-    "GLOWSTONE_DUST": "glowstone_dust",
-    "GRAVEL": "gravel",
-    "ICE": "ice",
-    "NETHERRACK": "netherrack",
-    "SAND": "sand",
-    "ENDER_STONE": "end_stone",
-    "MITHRIL_ORE": "prismarine_crystals",
-    "HARD_STONE": "stone",
-    "GEMSTONE_COLLECTION": "emerald",
-    "MYCEL": "mycelium",
-    "RED_SAND": "red_sand",
-    "SULPHUR": "sulphur",
-    "SNOW_BALL": "snowball",
-    "TITANIUM": "iron_ingot",
-    "STARFALL": "nether_star",
-    "GLACITE": "packed_ice",
-    "UMBER": "brown_dye",
-    "TUNGSTEN": "iron_block",
-    
-    # Combat
-    "ROTTEN_FLESH": "rotten_flesh",
-    "BONE": "bone",
-    "STRING": "string",
-    "SPIDER_EYE": "spider_eye",
-    "SULPHUR_ORE": "sulphur",
-    "GUNPOWDER": "gunpowder",
-    "ENDER_PEARL": "ender_pearl",
-    "GHAST_TEAR": "ghast_tear",
-    "SLIME_BALL": "slime_ball",
-    "BLAZE_ROD": "blaze_rod",
-    "MAGMA_CREAM": "magma_cream",
-    "CHILI_PEPPER": "blaze_powder",
-    
-    # Foraging
-    "LOG": "oak_log",
-    "LOG:1": "spruce_log",
-    "LOG:2": "birch_log",
-    "LOG_2:1": "dark_oak_log",
-    "LOG_2": "acacia_log",
-    "LOG:3": "jungle_log",
-    
-    # Fishing
-    "RAW_FISH": "raw_fish",
-    "RAW_FISH:1": "salmon",
-    "RAW_FISH:2": "clownfish",
-    "RAW_FISH:3": "pufferfish",
-    "PRISMARINE_SHARD": "prismarine_shard",
-    "PRISMARINE_CRYSTALS": "prismarine_crystals",
-    "CLAY_BALL": "clay_ball",
-    "WATER_LILY": "lily_pad",
-    "INK_SACK": "ink_sac",
-    "SPONGE": "sponge",
-    "MAGMAFISH": "magma_cream",
-    
-    # Rift
-    "AGARICUS_CAP": "red_mushroom",
-    "CADUCOUS_STEM": "stick",
-    "WILTED_BERBERIS": "dead_bush",
-    "HALF_EATEN_CARROT": "carrot",
-    "HEMOVIBE": "redstone",
-    "LIVING_METAL_HEART": "iron_block",
-    "EFFERVESCENT_SOUL": "ghast_tear",
-}
-
 # Category icons
 CATEGORY_META: Dict[str, Dict[str, str]] = {
     "FARMING": {"name": "Farming", "icon": "🌾", "color": "#7cd95a"},
@@ -270,7 +173,7 @@ def extract_collections_from_profile(member_data: Dict[str, Any]) -> Optional[Di
                 "progress": round(progress, 1),
                 "nextTierReq": next_tier_req,
                 "nextTierReqFormatted": _format_amount(next_tier_req) if next_tier_req else None,
-                "texture": COLLECTION_TEXTURES.get(item_id, "barrier"),
+                "texture": item_id,  # Use item_id directly, frontend will resolve texture via Hypixel Items API
             })
             
             category_total_tiers += max_tier

@@ -109,9 +109,80 @@ const MATERIAL_TO_TEXTURE: Record<string, string> = {
   END_STONE: 'block/end_stone',
   QUARTZ_BLOCK: 'block/quartz_block_side',
   PRISMARINE: 'block/prismarine',
+  
+  // Collection Items - Farming
+  WHEAT: 'item/wheat',
+  CARROT_ITEM: 'item/carrot',
+  POTATO_ITEM: 'item/potato',
+  MELON: 'item/melon_slice',
+  SEEDS: 'item/wheat_seeds',
+  RED_MUSHROOM: 'block/red_mushroom',
+  BROWN_MUSHROOM: 'block/brown_mushroom',
+  MUSHROOM_COLLECTION: 'block/red_mushroom',
+  'INK_SACK:3': 'item/cocoa_beans',
+  SUGAR_CANE: 'item/sugar_cane',
+  LEATHER: 'item/leather',
+  PORK: 'item/porkchop',
+  RAW_CHICKEN: 'item/chicken',
+  MUTTON: 'item/mutton',
+  RABBIT: 'item/rabbit',
+  NETHER_STALK: 'item/nether_wart',
+  
+  // Collection Items - Mining
+  COBBLESTONE: 'block/cobblestone',
+  COAL: 'item/coal',
+  'INK_SACK:4': 'item/lapis_lazuli',
+  REDSTONE: 'item/redstone',
+  QUARTZ: 'item/quartz',
+  GLOWSTONE_DUST: 'item/glowstone_dust',
+  GRAVEL: 'block/gravel',
+  ICE: 'block/ice',
+  SAND: 'block/sand',
+  'SAND:1': 'block/red_sand',
+  ENDER_STONE: 'block/end_stone',
+  MITHRIL_ORE: 'item/prismarine_crystals',
+  HARD_STONE: 'block/stone',
+  GEMSTONE_COLLECTION: 'item/emerald',
+  MYCEL: 'block/mycelium_side',
+  RED_SAND: 'block/red_sand',
+  SULPHUR_ORE: 'item/gunpowder',
+  SNOW_BALL: 'item/snowball',
+  
+  // Collection Items - Combat
+  ROTTEN_FLESH: 'item/rotten_flesh',
+  STRING: 'item/string',
+  SPIDER_EYE: 'item/spider_eye',
+  SULPHUR: 'item/gunpowder',
+  GUNPOWDER: 'item/gunpowder',
+  ENDER_PEARL: 'item/ender_pearl',
+  SLIME_BALL: 'item/slime_ball',
+  
+  // Collection Items - Foraging
+  LOG: 'block/oak_log',
+  'LOG:1': 'block/spruce_log',
+  'LOG:2': 'block/birch_log',
+  'LOG_2:1': 'block/dark_oak_log',
+  LOG_2: 'block/acacia_log',
+  'LOG:3': 'block/jungle_log',
+  
+  // Collection Items - Fishing
+  RAW_FISH: 'item/cod',
+  'RAW_FISH:1': 'item/salmon',
+  'RAW_FISH:2': 'item/tropical_fish',
+  'RAW_FISH:3': 'item/pufferfish',
+  CLAY_BALL: 'item/clay_ball',
+  WATER_LILY: 'block/lily_pad',
+  INK_SACK: 'item/ink_sac',
+  
+  // Rift items
+  AGARICUS_CAP: 'block/red_mushroom',
+  CADUCOUS_STEM: 'item/stick',
+  WILTED_BERBERIS: 'block/dead_bush',
+  HALF_EATEN_CARROT: 'item/carrot',
+  HEMOVIBE: 'item/redstone',
 };
 
-const VANILLA_TEXTURE_BASE = 'https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures';
+const VANILLA_TEXTURE_BASE = 'https://mcasset.cloud/1.20.4/assets/minecraft/textures';
 
 // Load items from Hypixel API
 export async function loadHypixelItems(): Promise<void> {
@@ -220,6 +291,12 @@ export function getItemTextureUrl(itemId: string, pack: 'vanilla' | 'furfsky' = 
       if (cachedUrl) return cachedUrl;
       // Fall through to vanilla resolution if furfsky returned null
     }
+  }
+  
+  // First, try direct lookup in MATERIAL_TO_TEXTURE (for collection items etc.)
+  const directTexturePath = MATERIAL_TO_TEXTURE[itemId];
+  if (directTexturePath) {
+    return `${VANILLA_TEXTURE_BASE}/${directTexturePath}.png`;
   }
   
   const map = get(itemsMapStore);

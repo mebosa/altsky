@@ -1,7 +1,126 @@
 <script lang="ts">
   import type { ProfileSummaryResponse, CollectionItem, CollectionCategory } from './profileTypes';
+  import { onMount } from 'svelte';
+  import { texturePackStore } from '$lib/stores/texturePack';
+  import { loadFurfskytextures, getFurfskyCachedTexture, furfskyCacheLoaded } from '$lib/stores/hypixelItems';
 
   export let summary: ProfileSummaryResponse;
+
+  // Load furfsky textures when pack is furfsky
+  $: if ($texturePackStore === 'furfsky' && collectionsData?.categories) {
+    const allItemIds: string[] = [];
+    for (const cat of Object.values(collectionsData.categories) as any[]) {
+      for (const col of cat.collections || []) {
+        allItemIds.push(col.texture || col.id);
+      }
+    }
+    if (allItemIds.length > 0) {
+      loadFurfskytextures(allItemIds);
+    }
+  }
+
+  // Collection item ID to texture path mapping (vanilla)
+  const COLLECTION_TEXTURES: Record<string, string> = {
+    // Farming
+    WHEAT: 'item/wheat',
+    CARROT_ITEM: 'item/carrot',
+    POTATO_ITEM: 'item/potato',
+    PUMPKIN: 'block/pumpkin_side',
+    MELON: 'item/melon_slice',
+    SEEDS: 'item/wheat_seeds',
+    RED_MUSHROOM: 'block/red_mushroom',
+    BROWN_MUSHROOM: 'block/brown_mushroom',
+    MUSHROOM_COLLECTION: 'block/red_mushroom',
+    'INK_SACK:3': 'item/cocoa_beans',
+    CACTUS: 'block/cactus_side',
+    SUGAR_CANE: 'item/sugar_cane',
+    FEATHER: 'item/feather',
+    LEATHER: 'item/leather',
+    PORK: 'item/porkchop',
+    RAW_CHICKEN: 'item/chicken',
+    MUTTON: 'item/mutton',
+    RABBIT: 'item/rabbit',
+    NETHER_STALK: 'item/nether_wart',
+    EGG: 'item/egg',
+    RAW_BEEF: 'item/beef',
+    
+    // Mining
+    COBBLESTONE: 'block/cobblestone',
+    COAL: 'item/coal',
+    IRON_INGOT: 'item/iron_ingot',
+    GOLD_INGOT: 'item/gold_ingot',
+    DIAMOND: 'item/diamond',
+    'INK_SACK:4': 'item/lapis_lazuli',
+    EMERALD: 'item/emerald',
+    REDSTONE: 'item/redstone',
+    QUARTZ: 'item/quartz',
+    OBSIDIAN: 'block/obsidian',
+    GLOWSTONE_DUST: 'item/glowstone_dust',
+    GRAVEL: 'block/gravel',
+    ICE: 'block/ice',
+    NETHERRACK: 'block/netherrack',
+    SAND: 'block/sand',
+    'SAND:1': 'block/red_sand',
+    ENDER_STONE: 'block/end_stone',
+    MITHRIL_ORE: 'item/prismarine_crystals',
+    HARD_STONE: 'block/stone',
+    GEMSTONE_COLLECTION: 'item/emerald',
+    MYCEL: 'block/mycelium_side',
+    RED_SAND: 'block/red_sand',
+    SULPHUR_ORE: 'item/gunpowder',
+    SNOW_BALL: 'item/snowball',
+    TITANIUM_ORE: 'item/iron_ingot',
+    STARFALL: 'item/nether_star',
+    GLACITE: 'block/packed_ice',
+    UMBER: 'item/cocoa_beans',
+    TUNGSTEN: 'block/iron_block',
+    
+    // Combat
+    ROTTEN_FLESH: 'item/rotten_flesh',
+    BONE: 'item/bone',
+    STRING: 'item/string',
+    SPIDER_EYE: 'item/spider_eye',
+    SULPHUR: 'item/gunpowder',
+    GUNPOWDER: 'item/gunpowder',
+    ENDER_PEARL: 'item/ender_pearl',
+    GHAST_TEAR: 'item/ghast_tear',
+    SLIME_BALL: 'item/slime_ball',
+    BLAZE_ROD: 'item/blaze_rod',
+    MAGMA_CREAM: 'item/magma_cream',
+    CHILI_PEPPER: 'item/blaze_powder',
+    
+    // Foraging
+    LOG: 'block/oak_log',
+    'LOG:1': 'block/spruce_log',
+    'LOG:2': 'block/birch_log',
+    'LOG_2:1': 'block/dark_oak_log',
+    LOG_2: 'block/acacia_log',
+    'LOG:3': 'block/jungle_log',
+    
+    // Fishing
+    RAW_FISH: 'item/cod',
+    'RAW_FISH:1': 'item/salmon',
+    'RAW_FISH:2': 'item/tropical_fish',
+    'RAW_FISH:3': 'item/pufferfish',
+    PRISMARINE_SHARD: 'item/prismarine_shard',
+    PRISMARINE_CRYSTALS: 'item/prismarine_crystals',
+    CLAY_BALL: 'item/clay_ball',
+    WATER_LILY: 'block/lily_pad',
+    INK_SACK: 'item/ink_sac',
+    SPONGE: 'block/sponge',
+    MAGMA_FISH: 'item/magma_cream',
+    
+    // Rift
+    AGARICUS_CAP: 'block/red_mushroom',
+    CADUCOUS_STEM: 'item/stick',
+    WILTED_BERBERIS: 'block/dead_bush',
+    HALF_EATEN_CARROT: 'item/carrot',
+    HEMOVIBE: 'item/redstone',
+    METAL_HEART: 'block/iron_block',
+    TIMITE: 'item/clock',
+  };
+
+  const TEXTURE_BASE = 'https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures';
 
   $: collectionsData = summary.collections;
   $: categories = collectionsData?.categories || {};
@@ -12,6 +131,25 @@
 
   // Category order for display
   const categoryOrder = ['farming', 'mining', 'combat', 'foraging', 'fishing', 'rift'];
+
+  // Get texture URL for a collection item (supports furfsky)
+  function getTextureUrl(itemId: string): string | null {
+    // If furfsky pack is selected, check furfsky cache first
+    if ($texturePackStore === 'furfsky') {
+      const furfskUrl = getFurfskyCachedTexture(itemId);
+      if (furfskUrl) {
+        return furfskUrl;
+      }
+      // Fallback to vanilla if furfsky not available
+    }
+    
+    // Vanilla texture
+    const path = COLLECTION_TEXTURES[itemId];
+    if (path) {
+      return `${TEXTURE_BASE}/${path}.png`;
+    }
+    return null;
+  }
 
   // Get tier color based on completion
   function getTierColor(tier: number, maxTier: number): string {
@@ -100,22 +238,28 @@
 
       <div class="collections-grid">
         {#each data.collections as collection}
-          <div class="collection-card" class:maxed={collection.isMaxed}>
-            <div class="collection-header">
-              <div class="collection-icon">
-                <img 
-                  src="https://mc-heads.net/minecraft/item/{collection.texture}" 
-                  alt={collection.name}
-                  onerror={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://mc-heads.net/minecraft/item/barrier'; }}
-                />
+          {#key `${$texturePackStore}-${$furfskyCacheLoaded}`}
+            {@const textureUrl = getTextureUrl(collection.texture)}
+            <div class="collection-card" class:maxed={collection.isMaxed}>
+              <div class="collection-header">
+                <div class="collection-icon" class:furfsky={$texturePackStore === 'furfsky'}>
+                  {#if textureUrl}
+                    <img 
+                      src={textureUrl} 
+                      alt={collection.name}
+                      onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  {:else}
+                    <div class="fallback-icon">📦</div>
+                  {/if}
+                </div>
+                <div class="collection-info">
+                  <div class="collection-name">{collection.name}</div>
+                  <div class="collection-amount">{collection.amountFormatted} collected</div>
+                </div>
               </div>
-              <div class="collection-info">
-                <div class="collection-name">{collection.name}</div>
-                <div class="collection-amount">{collection.amountFormatted} collected</div>
-              </div>
-            </div>
 
-            <div class="collection-tier">
+              <div class="collection-tier">
               <div class="tier-display" style="color: {getTierColor(collection.tier, collection.maxTier)}">
                 {#if collection.tier > 0}
                   {toRoman(collection.tier)}
@@ -142,7 +286,8 @@
                 MAXED
               </div>
             {/if}
-          </div>
+            </div>
+          {/key}
         {/each}
       </div>
     </div>
@@ -331,6 +476,17 @@
     width: 32px;
     height: 32px;
     image-rendering: pixelated;
+  }
+
+  .collection-icon.furfsky img {
+    width: 36px;
+    height: 36px;
+    image-rendering: auto;
+  }
+
+  .fallback-icon {
+    font-size: 1.25rem;
+    opacity: 0.6;
   }
 
   .collection-info {

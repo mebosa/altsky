@@ -145,6 +145,11 @@ export type ProfileSummaryResponse = {
       bonuses: { source: string; value: number }[];
     }>;
   };
+  stat_breakdown?: Record<string, {
+    total: number;
+    base: number;
+    bonuses: { source: string; value: number }[];
+  }>;
   currencies: {
     purse: number;
     bank: {

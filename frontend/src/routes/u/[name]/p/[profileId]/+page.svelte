@@ -78,6 +78,7 @@
   let errorMsg = data.errorMsg ?? '';
   let loading = !summary && !errorMsg;
   let refreshing = false;
+  let statsLoading = false; // stats 별도 로딩 상태
   let activeTab: TabId = 'summary';
   let selectedWeaponSlot: number | null = null;
   let selectedWeaponId: string | null = null;
@@ -149,12 +150,53 @@
     if (!refreshing) fetchProfile(true, selectedWeaponSlot, selectedWeaponId);
   }
 
+  // stats만 별도로 로드하는 함수 (SSR 후 클라이언트에서 호출)
+  async function loadStats(
+    weaponSlot: number | null = selectedWeaponSlot,
+    weaponId: string | null = selectedWeaponId
+  ) {
+    if (!player || statsLoading) return;
+    
+    statsLoading = true;
+    try {
+      const query: Record<string, string | number> = {};
+      if (weaponId) {
+        query.weapon_id = weaponId;
+      } else if (weaponSlot !== null && weaponSlot !== undefined) {
+        query.weapon_slot = weaponSlot;
+      }
+      
+      const fullSummary = await get<ProfileSummaryResponse>(
+        `/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(params.profileId)}`,
+        { query: Object.keys(query).length ? query : undefined }
+      );
+      
+      // 기존 summary에 computed_stats와 museum만 업데이트
+      if (fullSummary && summary) {
+        summary = {
+          ...summary,
+          computed_stats: fullSummary.computed_stats,
+          stat_breakdown: fullSummary.stat_breakdown,
+          museum: fullSummary.museum,
+          weapon_candidates: fullSummary.weapon_candidates,
+          weapon_catalog: fullSummary.weapon_catalog,
+          weapon_selected_slot: fullSummary.weapon_selected_slot,
+          weapon_selected_id: fullSummary.weapon_selected_id,
+        };
+      }
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+    } finally {
+      statsLoading = false;
+    }
+  }
+
   onMount(() => {
     if (!summary && !errorMsg) {
       fetchProfile();
     } else if (summary && !summary.computed_stats) {
-      // If summary is loaded but stats are missing (SSR optimization), fetch full profile
-      fetchProfile(false, selectedWeaponSlot, selectedWeaponId);
+      // SSR에서 skip_stats=1로 가져왔으므로 클라이언트에서 stats만 추가 로드
+      loadStats(selectedWeaponSlot, selectedWeaponId);
     }
   });
 
@@ -183,7 +225,8 @@
   function handleWeaponChange(event: CustomEvent<{ slot: number | null; id: string | null }>) {
     selectedWeaponSlot = event.detail.slot;
     selectedWeaponId = event.detail.id;
-    fetchProfile(false, selectedWeaponSlot, selectedWeaponId);
+    // weapon 변경 시 stats만 다시 로드 (전체 프로필 다시 안 가져옴)
+    loadStats(selectedWeaponSlot, selectedWeaponId);
   }
 
   const canonicalUrl = `${SITE_BASE}/u/${encodeURIComponent(params.name)}/p/${encodeURIComponent(

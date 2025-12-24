@@ -790,21 +790,167 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     if stat_breakdown:
         response_body['stat_breakdown'] = stat_breakdown
 
-    # Fetch museum data
-    museum_body, museum_error = _fetch_museum_data(profile_id, force_refresh=force_refresh)
-    if museum_body and not museum_error:
-        museum_members = museum_body.get('members') or {}
-        parsed_museum = parse_museum(museum_members, normalized_member_uuid)
-        if parsed_museum:
-            museum_summary = get_museum_summary(parsed_museum)
-            # Add missing items with prices
-            missing_items = get_missing_items(parsed_museum, include_prices=True, sort_by_price=True)
-            museum_summary['missing'] = missing_items
-            response_body['museum'] = museum_summary
+    # Museum 데이터 지연 로딩: skip_museum=1이면 museum API 호출 생략
+    # SSR에서는 skip_museum=1로 빠른 초기 렌더링, 클라이언트에서 별도 요청
+    skip_museum = _is_truthy(request.query_params.get('skip_museum'))
+    if not skip_museum:
+        # Fetch museum data
+        museum_body, museum_error = _fetch_museum_data(profile_id, force_refresh=force_refresh)
+        if museum_body and not museum_error:
+            museum_members = museum_body.get('members') or {}
+            parsed_museum = parse_museum(museum_members, normalized_member_uuid)
+            if parsed_museum:
+                museum_summary = get_museum_summary(parsed_museum)
+                # Add missing items with prices
+                missing_items = get_missing_items(parsed_museum, include_prices=True, sort_by_price=True)
+                museum_summary['missing'] = missing_items
+                response_body['museum'] = museum_summary
+            else:
+                response_body['museum'] = {'available': False}
         else:
             response_body['museum'] = {'available': False}
     else:
-        response_body['museum'] = {'available': False}
+        response_body['museum'] = {'deferred': True}
+
+    return Response(response_body)
+
+
+@api_view(['GET'])
+def hypixel_profile_summary_by_name(request: Request, name: str, profile_id: str) -> Response:
+    """
+    Enriched summary for a specific profile using player name instead of UUID.
+    This eliminates the need for a separate player lookup call, improving page load speed.
+    """
+    force_refresh = _should_bypass_cache(getattr(request, 'query_params', None))
+    
+    # Resolve name to UUID first
+    player_result, status_code = _get_player_lookup_result(name, force_refresh=force_refresh)
+    if status_code != 200 or 'uuid' not in player_result:
+        return Response(player_result, status=status_code)
+    
+    uuid = player_result['uuid']
+    player_name = player_result.get('name', name)
+    
+    # Reuse the existing logic from hypixel_profile_summary
+    body, error = _fetch_hypixel_profiles(uuid, force_refresh=force_refresh)
+    if error:
+        payload = {'error': error.get('error')}
+        if 'detail' in error:
+            payload['detail'] = error['detail']
+        return Response(payload, status=error.get('status') or 502)
+
+    profiles = body.get('profiles') or []
+    target = None
+    for candidate in profiles:
+        if candidate.get('profile_id') == profile_id or candidate.get('uuid') == profile_id:
+            target = candidate
+            break
+
+    if not target:
+        return Response({'error': 'profile_not_found'}, status=404)
+
+    normalized_member_uuid = (uuid or "").replace("-", "")
+    achievements = _fetch_player_achievements(uuid, force_refresh=force_refresh)
+
+    summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
+    if not summary:
+        return Response({'error': 'member_not_in_profile'}, status=404)
+
+    member_data = target.get('members', {}).get(normalized_member_uuid)
+    skip_stats = _is_truthy(request.query_params.get('skip_stats'))
+    
+    computed_stats = None
+    stat_breakdown = None
+    weapon_slot = None
+    raw_weapon_slot = request.query_params.get('weapon_slot')
+    if raw_weapon_slot is not None:
+        try:
+            weapon_slot = int(raw_weapon_slot)
+        except (TypeError, ValueError):
+            weapon_slot = None
+        else:
+            if weapon_slot < 0 or weapon_slot > 8:
+                weapon_slot = None
+    raw_weapon_id = request.query_params.get('weapon_id')
+    weapon_id = raw_weapon_id.strip() if isinstance(raw_weapon_id, str) else None
+    if weapon_id == "":
+        weapon_id = None
+    if weapon_id:
+        weapon_id = weapon_id.strip().upper().replace(" ", "_").replace("-", "_")
+        while "__" in weapon_id:
+            weapon_id = weapon_id.replace("__", "_")
+    
+    if not skip_stats:
+        stats_payload = _build_statscalc_payload(
+            summary,
+            normalized_member_uuid,
+            profile_id,
+            member_data,
+            weapon_slot=weapon_slot,
+            weapon_id=weapon_id,
+        )
+        if stats_payload:
+            calc_result = statscalc_client.calculate_stats(stats_payload)
+            if calc_result:
+                stats_block = calc_result.get('stats')
+                if isinstance(stats_block, dict) and 'stats' in stats_block:
+                    computed_stats = stats_block
+                else:
+                    computed_stats = {
+                        'stats': stats_block or {},
+                        'breakdown': calc_result.get('breakdown') or {},
+                    }
+                stat_breakdown = computed_stats.get('breakdown')
+
+    response_body = {
+        'ok': True,
+        'player': {'name': player_name, 'uuid': uuid},
+        'last_updated': body.get('last_updated') or body.get('lastUpdated'),
+        **summary,
+    }
+    
+    if member_data:
+        from .domain.nbt_parser import extract_weapon_candidates_from_profile, extract_weapon_from_profile, extract_pets_from_profile
+
+        weapon_candidates = extract_weapon_candidates_from_profile(member_data)
+        if weapon_candidates:
+            response_body['weapon_candidates'] = weapon_candidates
+            selected_weapon = extract_weapon_from_profile(member_data, preferred_slot=weapon_slot)
+            if selected_weapon:
+                response_body['weapon_selected_slot'] = selected_weapon.get('slot')
+        else:
+            response_body['weapon_catalog'] = _load_weapon_catalog()
+            if weapon_id:
+                response_body['weapon_selected_id'] = weapon_id
+        
+        pets = extract_pets_from_profile(member_data)
+        if pets:
+            response_body['pets'] = pets
+            response_body['pet_score'] = _calculate_pet_score(pets)
+    
+    if computed_stats:
+        response_body['computed_stats'] = computed_stats
+    if stat_breakdown:
+        response_body['stat_breakdown'] = stat_breakdown
+
+    # Museum 데이터 지연 로딩
+    skip_museum = _is_truthy(request.query_params.get('skip_museum'))
+    if not skip_museum:
+        museum_body, museum_error = _fetch_museum_data(profile_id, force_refresh=force_refresh)
+        if museum_body and not museum_error:
+            museum_members = museum_body.get('members') or {}
+            parsed_museum = parse_museum(museum_members, normalized_member_uuid)
+            if parsed_museum:
+                museum_summary = get_museum_summary(parsed_museum)
+                missing_items = get_missing_items(parsed_museum, include_prices=True, sort_by_price=True)
+                museum_summary['missing'] = missing_items
+                response_body['museum'] = museum_summary
+            else:
+                response_body['museum'] = {'available': False}
+        else:
+            response_body['museum'] = {'available': False}
+    else:
+        response_body['museum'] = {'deferred': True}
 
     return Response(response_body)
 

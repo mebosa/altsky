@@ -13,3 +13,5 @@ urllib3==2.5.0
 nbtlib==2.0.4
 numpy==2.3.4
 Pillow==10.4.0
+django-redis==5.4.0
+hiredis==3.0.0

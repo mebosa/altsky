@@ -1,4 +1,22 @@
 services:
+  # Redis 캐시 - API 응답 캐시로 페이지 로딩 속도 대폭 향상
+  redis:
+    image: redis:7-alpine
+    container_name: altsky-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - altsky-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   # 데이터베이스 (SQLite 사용하므로 필요 없음, 하지만 추후 확장성 위해 포함)
   db:
     image: postgres:16-alpine
@@ -35,6 +53,7 @@ services:
       CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-1}
       DATABASE_URL: postgresql://altsky:${DB_PASSWORD:-change-me-in-production}@db:5432/altsky
       STATSCALC_URL: http://statscalc:8082
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
     volumes:
@@ -43,6 +62,7 @@ services:
     depends_on:
       - db
       - statscalc
+      - redis
     networks:
       - altsky-network
     dns:
@@ -115,6 +135,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   altsky-network:
