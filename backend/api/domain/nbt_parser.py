@@ -628,6 +628,10 @@ def _calculate_pet_level(rarity: str, xp: float, pet_type: str = None) -> int:
     """
     rarity = rarity.upper()
     
+    # XP가 0이면 항상 레벨 1 반환 (레벨 0 방지)
+    if xp <= 0:
+        return 1
+    
     # 최대 레벨 결정
     max_level = 200 if pet_type == 'GOLDEN_DRAGON' else 100
     

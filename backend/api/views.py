@@ -1992,14 +1992,11 @@ def get_item_textures_batch(request: Request) -> Response:
     
     if not item_ids:
         return Response({"textures": {}})
-    
-    # Limit to 500 items to prevent abuse
     item_ids = item_ids[:500]
     
     textures: Dict[str, Optional[str]] = {}
     for item_id in item_ids:
-        # Resolve texture using existing infrastructure
         texture_url = resolve_item_icon_for_pack(item_id, None, None, pack=pack)
         textures[item_id] = texture_url
     
-    return Response({"textures": textures})
+    return Response({"textures": textures})``

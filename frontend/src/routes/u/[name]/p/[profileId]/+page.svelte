@@ -367,6 +367,8 @@
     gap: 32px;
     transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
     box-shadow: var(--neu-elevated), inset 2px 2px 6px rgba(0, 0, 0, 0.18);
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   .breadcrumb {
@@ -385,6 +387,9 @@
     display: flex;
     align-items: baseline;
     gap: 12px;
+    flex-wrap: wrap;
+    max-width: 100%;
+    word-break: break-word;
   }
 
   .profile-name {
