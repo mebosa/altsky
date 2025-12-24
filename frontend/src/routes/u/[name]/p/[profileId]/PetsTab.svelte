@@ -91,7 +91,7 @@
     OCELOT: '5657cd5c2989ff97570fec4ddcdc6926a68a3393250c1be1f0b114a1db1',
     PIGMAN: '63d9cb6513f2072e5d4e426d70a5557bc398554c880d4e7b7ec8ef4945eb02f2',
     RABBIT: '117bffc1972acd7f3b4a8f43b5b6c7534695b8fd62677e0306b2831574b',
-    FROG: '5454ad786b1cd4a1c2c3469023c1e38d2c5a8e3c3cc06d3f8dae8c8f5e3dcb87',
+    FROG: '45852a95928897746012988fbd5dbaa1b7b7a5fb65157016f4ff3f245374c08',
     SHEEP: '64e22a46047d272e89a1cfa13e9734b7e12827e235c2012c1a95962874da0',
     SILVERFISH: 'da91dab8391af5fda54acd2c0b18fbd819b865e1a8f1d623813fa761e924540',
     WITHER_SKELETON: 'f5ec964645a8efac76be2f160d7c9956362f32b6517390c59c3085034f050cff',
@@ -191,25 +191,27 @@
       .join(' ');
   }
 
-  // Get pet texture URL using mc-heads.net API
+  // Get pet texture URL from local server
   function getPetTextureUrl(pet: Pet): string {
-    const texture = petTextures[pet.type];
-    let hash: string;
-
     // Check for pet skin first
     if (pet.skin && petSkins[pet.skin]) {
-      hash = petSkins[pet.skin];
-    } else if (typeof texture === 'object') {
-      // Handle pets with rarity-specific textures
-      hash = texture[pet.tier.toLowerCase()] || texture.default;
+      // Pet skins still use mc-heads.net for now
+      return `https://mc-heads.net/head/${petSkins[pet.skin]}`;
+    }
+    
+    const texture = petTextures[pet.type];
+    
+    if (typeof texture === 'object') {
+      // Handle pets with rarity-specific textures (e.g., FLYING_FISH)
+      const suffix = pet.tier.toLowerCase() === 'mythic' ? '_mythic' : '';
+      return `/pets/${pet.type.toLowerCase()}${suffix}.png`;
     } else if (texture) {
-      hash = texture;
+      // Use local server image
+      return `/pets/${pet.type.toLowerCase()}.png`;
     } else {
       // Fallback - return empty to use fallback display
       return '';
     }
-
-    return `https://mc-heads.net/head/${hash}`;
   }
 
   // Count stats
@@ -224,11 +226,25 @@
     {} as Record<string, number>
   );
 
-  // Handle image load error - show fallback
+  // Handle image load error - try mc-heads.net fallback, then show text fallback
   function handleImageError(event: Event) {
     const img = event.target as HTMLImageElement;
-    const petType = img.alt;
-    console.warn(`Failed to load pet texture: ${petType} from ${img.src}`);
+    const petType = img.dataset.petType || img.alt;
+    const currentSrc = img.src;
+    
+    // If currently loading from local, try mc-heads.net
+    if (!currentSrc.includes('mc-heads.net') && !currentSrc.includes('sky.shiiyu.moe')) {
+      const texture = petTextures[petType];
+      const hash = typeof texture === 'string' ? texture : (texture as Record<string, string>)?.default;
+      if (hash) {
+        console.warn(`Local pet texture failed for ${petType}, trying mc-heads.net`);
+        img.src = `https://mc-heads.net/head/${hash}`;
+        return;
+      }
+    }
+    
+    // If mc-heads.net also failed, show text fallback
+    console.warn(`Failed to load pet texture: ${petType} from ${currentSrc}`);
     img.style.display = 'none';
     const parent = img.parentElement;
     if (parent) {
