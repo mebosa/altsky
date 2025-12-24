@@ -159,9 +159,6 @@
     MAMMOTH: '6b10715732cd1fd49fa1b6187947c307dd4687105cf033840607f9d6234743ad',
     MOLE: '727baaafc09978d4bda73e16afdde85ec13b0f95ad989524c5fcaa717cf06b4a',
     GLACITE_GOLEM: 'af132a6593876d3c377d503fd66eca3fb938743251f7b16a9870c60b7388c8a3',
-    WITHER: '8ac3c4e9d1fc8d2f23ac9d9e0c3a5b9c36c3e4cee19e82c7c1df18c5e00c',
-    CAVE_SPIDER: 'b9e91cfb9dafe8ee1b932f7a11a2aee94e3b6e5a5c7d8f3c92b8b3e77d8d7',
-    SLIME: '16ad20fc2d579b3c13eca7c3d4e7e3c7e2b6c1d8f3e2a1b4c5d6e7f8a9b',
   };
 
   // Pet skins data (skin name -> texture hash)
