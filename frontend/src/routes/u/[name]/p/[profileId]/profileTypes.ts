@@ -184,6 +184,23 @@ export type ProfileSummaryResponse = {
   museum?: MuseumData | null;
   collections?: CollectionsData | null;
   inventory?: InventoryData | null;
+  networth?: NetworthData | null;
+};
+
+// ===== Networth Types =====
+
+export type NetworthCategory = {
+  name: string;
+  total: number;
+  item_count: number;
+};
+
+export type NetworthData = {
+  total: number;
+  unsoulbound: number;
+  purse: number;
+  bank: number;
+  categories: Record<string, NetworthCategory>;
 };
 
 export type AggregatedStat = {

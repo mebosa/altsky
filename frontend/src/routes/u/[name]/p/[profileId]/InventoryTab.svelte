@@ -253,9 +253,9 @@
     expandedBackpacks = expandedBackpacks;
   }
 
-  // Backpack color mapping based on SkyBlock backpack types
-  const BACKPACK_COLORS: Record<string, string> = {
-    // By ID
+  // Backpack color mapping based on SkyBlock backpack types (default colors)
+  const BACKPACK_DEFAULT_COLORS: Record<string, string> = {
+    // By ID - default colors when not dyed
     'SMALL_BACKPACK': '#8B4513',      // Brown
     'MEDIUM_BACKPACK': '#DAA520',     // Golden/Yellow
     'LARGE_BACKPACK': '#228B22',      // Green
@@ -272,17 +272,17 @@
   function getBackpackColor(item: InventoryItem | null): string | null {
     if (!item) return null;
     
-    // Check leather_color first (some custom backpacks might have it)
+    // Check leather_color first (user-dyed backpacks from backpack_color NBT)
     const leatherColor = formatLeatherColor(item.leather_color);
     if (leatherColor) return leatherColor;
     
-    // Check by item ID
+    // Fall back to default color by item ID
     const itemId = item.id?.toUpperCase() ?? '';
-    if (BACKPACK_COLORS[itemId]) {
-      return BACKPACK_COLORS[itemId];
+    if (BACKPACK_DEFAULT_COLORS[itemId]) {
+      return BACKPACK_DEFAULT_COLORS[itemId];
     }
     
-    // Check by item name as fallback
+    // Check by item name as last fallback
     const name = item.name?.toLowerCase() ?? '';
     if (name.includes('small')) return '#8B4513';
     if (name.includes('medium')) return '#DAA520';
@@ -1276,14 +1276,77 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.15s ease;
+    position: relative;
   }
 
   .backpack-icon.colored {
-    border-color: var(--backpack-color, rgba(55, 60, 80, 0.7));
-    box-shadow: 
-      inset 0 0 12px var(--backpack-color),
-      0 0 8px color-mix(in srgb, var(--backpack-color) 40%, transparent);
+    border-color: color-mix(in srgb, var(--backpack-color) 60%, rgba(55, 60, 80, 0.7));
+  }
+
+  /* 기본 색상 필터 - 원본 텍스처를 회색조로 만들고 색상 적용 */
+  .backpack-card[style*="#1D1D21"] .backpack-icon.colored img { /* BLACK */
+    filter: grayscale(1) brightness(0.4) contrast(1.2);
+  }
+  
+  .backpack-card[style*="#3C44AA"] .backpack-icon.colored img { /* BLUE */
+    filter: grayscale(1) sepia(1) hue-rotate(200deg) saturate(3) brightness(0.75);
+  }
+  
+  .backpack-card[style*="#835432"] .backpack-icon.colored img { /* BROWN */
+    filter: grayscale(1) sepia(1) hue-rotate(15deg) saturate(2) brightness(0.65);
+  }
+  
+  .backpack-card[style*="#169C9C"] .backpack-icon.colored img { /* CYAN */
+    filter: grayscale(1) sepia(1) hue-rotate(165deg) saturate(2.5) brightness(0.8);
+  }
+  
+  .backpack-card[style*="#474F52"] .backpack-icon.colored img { /* GRAY */
+    filter: grayscale(1) brightness(0.55) contrast(1.1);
+  }
+  
+  .backpack-card[style*="#5E7C16"] .backpack-icon.colored img { /* GREEN */
+    filter: grayscale(1) sepia(1) hue-rotate(75deg) saturate(2.5) brightness(0.65);
+  }
+  
+  .backpack-card[style*="#3AB3DA"] .backpack-icon.colored img { /* LIGHT_BLUE */
+    filter: grayscale(1) sepia(1) hue-rotate(180deg) saturate(2) brightness(1);
+  }
+  
+  .backpack-card[style*="#9D9D97"] .backpack-icon.colored img { /* LIGHT_GRAY */
+    filter: grayscale(1) brightness(0.85) contrast(1.05);
+  }
+  
+  .backpack-card[style*="#80C71F"] .backpack-icon.colored img { /* LIME */
+    filter: grayscale(1) sepia(1) hue-rotate(75deg) saturate(3) brightness(0.95);
+  }
+  
+  .backpack-card[style*="#C74EBD"] .backpack-icon.colored img { /* MAGENTA */
+    filter: grayscale(1) sepia(1) hue-rotate(290deg) saturate(2.5) brightness(0.9);
+  }
+  
+  .backpack-card[style*="#F9801D"] .backpack-icon.colored img { /* ORANGE */
+    filter: grayscale(1) sepia(1) hue-rotate(15deg) saturate(3.5) brightness(0.95);
+  }
+  
+  .backpack-card[style*="#F38BAA"] .backpack-icon.colored img { /* PINK */
+    filter: grayscale(1) sepia(1) hue-rotate(320deg) saturate(1.5) brightness(1.1);
+  }
+  
+  .backpack-card[style*="#8932B8"] .backpack-icon.colored img { /* PURPLE */
+    filter: grayscale(1) sepia(1) hue-rotate(260deg) saturate(3) brightness(0.75);
+  }
+  
+  .backpack-card[style*="#B02E26"] .backpack-icon.colored img { /* RED */
+    filter: grayscale(1) sepia(1) hue-rotate(350deg) saturate(3.5) brightness(0.8);
+  }
+  
+  .backpack-card[style*="#F9FFFE"] .backpack-icon.colored img { /* WHITE */
+    filter: grayscale(1) brightness(1.3) contrast(0.9);
+  }
+  
+  .backpack-card[style*="#FED83D"] .backpack-icon.colored img { /* YELLOW */
+    filter: grayscale(1) sepia(1) hue-rotate(40deg) saturate(4) brightness(1.1);
   }
 
   .backpack-icon img {
@@ -1291,6 +1354,8 @@
     height: 36px;
     object-fit: contain;
     image-rendering: pixelated;
+    position: relative;
+    z-index: 1;
   }
 
   .backpack-placeholder {

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
@@ -12,6 +13,9 @@ from .accessories import parse_accessories
 from .minions import parse_minions
 from .collections import extract_collections_from_profile
 from .inventory import parse_inventory
+from .networth import calculate_networth
+
+NW_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -290,6 +294,14 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
     # Extract inventory data
     inventory = parse_inventory(member)
 
+    # Calculate networth
+    try:
+        networth_result = calculate_networth(member, profile)
+        networth = networth_result.to_dict()
+    except Exception as e:
+        NW_LOGGER.warning("Failed to calculate networth: %s", e)
+        networth = None
+
     return {
         "profile": {
             "profile_id": profile_id,
@@ -317,4 +329,5 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
         "minions": parse_minions(member, profile),
         "collections": collections,
         "inventory": inventory,
+        "networth": networth,
     }

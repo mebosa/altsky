@@ -70,6 +70,18 @@
         <span class="label">Total Coins</span>
         <span class="value accent">{formatLargeNumber(summary.currencies.total_coins)}</span>
       </div>
+      {#if summary.networth}
+        <div class="divider"></div>
+        <div>
+          <span class="label">Networth</span>
+          <span class="value networth">{formatLargeNumber(summary.networth.total)}</span>
+        </div>
+        <div>
+          <span class="label">Unsoulbound</span>
+          <span class="value">{formatLargeNumber(summary.networth.unsoulbound)}</span>
+        </div>
+      {/if}
+      <div class="divider"></div>
       <div>
         <span class="label">Motes</span>
         <span class="value">{formatLargeNumber(summary.currencies.motes)}</span>
@@ -186,6 +198,17 @@
 
   .stat-list .value.accent {
     color: var(--theme-accent);
+  }
+
+  .stat-list .value.networth {
+    color: #ffd700;
+    font-weight: 700;
+  }
+
+  .stat-list .divider {
+    height: 1px;
+    background: var(--theme-secondary-alpha-32);
+    margin: 4px 0;
   }
 
   .model-card {

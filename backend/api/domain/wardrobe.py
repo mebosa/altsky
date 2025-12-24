@@ -181,23 +181,61 @@ def _detect_rarity(extra: Dict[str, Any], lore: List[str]) -> Optional[str]:
     return None
 
 
+# SkyBlock backpack color name to hex mapping
+BACKPACK_COLOR_MAP = {
+    'BLACK': '#1D1D21',
+    'BLUE': '#3C44AA',
+    'BROWN': '#835432',
+    'CYAN': '#169C9C',
+    'GRAY': '#474F52',
+    'GREY': '#474F52',
+    'GREEN': '#5E7C16',
+    'LIGHT_BLUE': '#3AB3DA',
+    'LIGHT_GRAY': '#9D9D97',
+    'LIGHT_GREY': '#9D9D97',
+    'LIME': '#80C71F',
+    'MAGENTA': '#C74EBD',
+    'ORANGE': '#F9801D',
+    'PINK': '#F38BAA',
+    'PURPLE': '#8932B8',
+    'RED': '#B02E26',
+    'WHITE': '#F9FFFE',
+    'YELLOW': '#FED83D',
+}
+
+
 def _extract_leather_color(display: nbtlib.Compound, extra: nbtlib.Compound) -> Optional[str]:
     color_tag = None
+    
+    # Check display.color (standard leather armor - integer)
     if display and "color" in display:
         color_tag = display.get("color")
-    elif extra and "color" in extra:
+        try:
+            value = int(_tag_value(color_tag))
+            value = max(0, min(value, 0xFFFFFF))
+            return f"#{value:06x}"
+        except (TypeError, ValueError):
+            pass
+    
+    # Check ExtraAttributes.color (integer)
+    if extra and "color" in extra:
         color_tag = extra.get("color")
+        try:
+            value = int(_tag_value(color_tag))
+            value = max(0, min(value, 0xFFFFFF))
+            return f"#{value:06x}"
+        except (TypeError, ValueError):
+            pass
+    
+    # Check ExtraAttributes.backpack_color (SkyBlock backpacks - string like "BLUE", "RED")
+    if extra and "backpack_color" in extra:
+        color_name = _tag_value(extra.get("backpack_color"))
+        if isinstance(color_name, str):
+            color_name = color_name.upper().strip()
+            if color_name in BACKPACK_COLOR_MAP:
+                return BACKPACK_COLOR_MAP[color_name]
 
-    if color_tag is None:
-        return None
-
-    try:
-        value = int(_tag_value(color_tag))
-    except (TypeError, ValueError):
-        return None
-
-    value = max(0, min(value, 0xFFFFFF))
-    return f"#{value:06x}"
+    return None
 
 
 def _decode_texture_value(encoded: str) -> Optional[str]:
