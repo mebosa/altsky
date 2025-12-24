@@ -11,6 +11,7 @@ from .wardrobe import parse_wardrobe
 from .accessories import parse_accessories
 from .minions import parse_minions
 from .collections import extract_collections_from_profile
+from .inventory import parse_inventory
 
 
 @dataclass
@@ -286,6 +287,9 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
     # Extract collections data
     collections = extract_collections_from_profile(member)
 
+    # Extract inventory data
+    inventory = parse_inventory(member)
+
     return {
         "profile": {
             "profile_id": profile_id,
@@ -312,4 +316,5 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
         "accessories": parse_accessories(member),
         "minions": parse_minions(member, profile),
         "collections": collections,
+        "inventory": inventory,
     }

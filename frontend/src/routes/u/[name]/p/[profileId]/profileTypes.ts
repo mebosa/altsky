@@ -183,6 +183,7 @@ export type ProfileSummaryResponse = {
   weapon_selected_id?: string | null;
   museum?: MuseumData | null;
   collections?: CollectionsData | null;
+  inventory?: InventoryData | null;
 };
 
 export type AggregatedStat = {
@@ -329,4 +330,37 @@ export type CollectionsData = {
   maxedCollections: number;
   totalTiers: number;
   unlockedTiers: number;
+};
+
+// ===== Inventory Types =====
+
+/** Reuse WardrobeItem structure for inventory items */
+export type InventoryItem = WardrobeItem;
+
+export type BackpackData = {
+  slot: number;
+  icon: InventoryItem | null;
+  contents: (InventoryItem | null)[];
+  size: number;
+};
+
+export type InventoryData = {
+  /** Player inventory - 36 slots (0-8 hotbar, 9-35 main) */
+  player_inventory: (InventoryItem | null)[];
+  /** Ender chest contents */
+  ender_chest: (InventoryItem | null)[];
+  /** Currently equipped equipment */
+  equipment: (InventoryItem | null)[];
+  /** Backpack contents */
+  backpacks: BackpackData[];
+  /** Personal vault contents */
+  personal_vault: (InventoryItem | null)[];
+  /** Potion bag contents */
+  potion_bag: (InventoryItem | null)[];
+  /** Fishing bag contents */
+  fishing_bag: (InventoryItem | null)[];
+  /** Sacks bag contents */
+  sacks_bag: (InventoryItem | null)[];
+  /** Arrow quiver contents */
+  quiver: (InventoryItem | null)[];
 };
