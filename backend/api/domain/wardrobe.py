@@ -466,6 +466,22 @@ def _parse_compound_item(
 
     skin_url = _extract_skin_url(tag)
 
+    # Extract extra attributes for networth calculation
+    extra_attributes = {}
+    if extra:
+        for key in extra:
+            val = _tag_value(extra.get(key))
+            if val is not None:
+                # Handle nested compounds/lists
+                if isinstance(val, dict):
+                    extra_attributes[key] = val
+                elif isinstance(val, list):
+                    extra_attributes[key] = [
+                        _tag_value(v) if hasattr(v, '__iter__') else v for v in val
+                    ]
+                else:
+                    extra_attributes[key] = val
+
     return {
         "slot": index,
         "id": extra_id or item_id,
@@ -479,6 +495,7 @@ def _parse_compound_item(
         "icon_variants": {pack: url for pack, url in icon_variants.items() if url},
         "leather_color": leather_color,
         "skin_url": skin_url,
+        "extra_attributes": extra_attributes,
     }
 
 

@@ -805,6 +805,69 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
                 missing_items = get_missing_items(parsed_museum, include_prices=True, sort_by_price=True)
                 museum_summary['missing'] = missing_items
                 response_body['museum'] = museum_summary
+                
+                # Calculate actual museum value with modifiers (enchants, stars, HPB, etc.)
+                # Hypixel's museum value only counts base item prices
+                from .domain.networth import calculate_items_value, fetch_prices, _parse_inventory_items
+                try:
+                    prices = fetch_prices()
+                    museum_items_data = []
+                    
+                    # Extract museum items from API response
+                    member_museum = museum_members.get(normalized_member_uuid) or museum_members.get(normalized_member_uuid.replace("-", ""))
+                    if member_museum:
+                        raw_items = member_museum.get("items", {})
+                        raw_list = raw_items.values() if isinstance(raw_items, dict) else (raw_items if isinstance(raw_items, list) else [])
+
+                        def _maybe_add(blob):
+                            if isinstance(blob, str) and blob:
+                                return [blob]
+                            return []
+
+                        for item_entry in raw_list:
+                            if not isinstance(item_entry, dict):
+                                continue
+                            candidates = []
+                            candidates += _maybe_add(item_entry.get("data"))
+                            candidates += _maybe_add(item_entry.get("item_data") or item_entry.get("itemData") or item_entry.get("itemBytes"))
+                            items_data = item_entry.get("items")
+                            if isinstance(items_data, dict):
+                                candidates += _maybe_add(items_data.get("data"))
+                            elif isinstance(items_data, list):
+                                for sub in items_data:
+                                    if isinstance(sub, dict):
+                                        candidates += _maybe_add(sub.get("data"))
+
+                            for raw_data in candidates:
+                                try:
+                                    parsed_items = _parse_inventory_items({'data': raw_data})
+                                    museum_items_data.extend(parsed_items)
+                                except Exception as e:
+                                    LOGGER.debug(f"Failed to parse museum item: {e}")
+                    
+                    # Calculate actual value with all modifiers
+                    if museum_items_data:
+                        museum_value, _, _ = calculate_items_value(museum_items_data, prices)
+                        LOGGER.info(f"Museum actual value: {museum_value:,.0f} (Hypixel base: {museum_summary.get('value', 0):,.0f})")
+                        if museum_value <= 0:
+                            LOGGER.info("Museum computed as 0; falling back to Hypixel base value")
+                            museum_value = museum_summary.get('value', 0)
+                    else:
+                        # Fallback to Hypixel's base value
+                        museum_value = museum_summary.get('value', 0)
+                except Exception as e:
+                    LOGGER.warning(f"Failed to calculate actual museum value: {e}")
+                    museum_value = museum_summary.get('value', 0)
+                
+                if museum_value and response_body.get('networth'):
+                    nw = response_body['networth']
+                    nw['total'] = nw.get('total', 0) + museum_value
+                    # Museum items are soulbound, so they don't add to unsoulbound
+                    if 'categories' in nw:
+                        nw['categories']['museum'] = {
+                            'name': 'Museum',
+                            'total': museum_value
+                        }
             else:
                 response_body['museum'] = {'available': False}
         else:
@@ -855,6 +918,9 @@ def hypixel_profile_summary_by_name(request: Request, name: str, profile_id: str
     summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
     if not summary:
         return Response({'error': 'member_not_in_profile'}, status=404)
+    
+    LOGGER.warning(f"[DEBUG] summary keys: {list(summary.keys())}")
+    LOGGER.warning(f"[DEBUG] 'museum' in summary: {'museum' in summary}")
 
     member_data = target.get('members', {}).get(normalized_member_uuid)
     skip_stats = _is_truthy(request.query_params.get('skip_stats'))
@@ -935,23 +1001,104 @@ def hypixel_profile_summary_by_name(request: Request, name: str, profile_id: str
 
     # Museum 데이터 지연 로딩
     skip_museum = _is_truthy(request.query_params.get('skip_museum'))
+    LOGGER.warning(f"[DEBUG] skip_museum: {skip_museum}")
     if not skip_museum:
         museum_body, museum_error = _fetch_museum_data(profile_id, force_refresh=force_refresh)
+        LOGGER.warning(f"[DEBUG] museum_body: {museum_body is not None}, museum_error: {museum_error}")
         if museum_body and not museum_error:
             museum_members = museum_body.get('members') or {}
+            LOGGER.warning(f"[DEBUG] Museum members keys: {list(museum_members.keys())}")
+            LOGGER.warning(f"[DEBUG] Normalized UUID: {normalized_member_uuid}")
             parsed_museum = parse_museum(museum_members, normalized_member_uuid)
+            LOGGER.warning(f"[DEBUG] Parsed museum: {parsed_museum is not None}")
             if parsed_museum:
+                LOGGER.warning(f"[DEBUG] Parsed museum value: {parsed_museum.get('value', 'NO_VALUE')}")
                 museum_summary = get_museum_summary(parsed_museum)
+                LOGGER.warning(f"[DEBUG] Museum summary value: {museum_summary.get('value', 'NO_VALUE')}")
                 missing_items = get_missing_items(parsed_museum, include_prices=True, sort_by_price=True)
                 museum_summary['missing'] = missing_items
                 response_body['museum'] = museum_summary
+                
+                # Calculate actual museum value with modifiers (enchants, stars, HPB, etc.)
+                # Hypixel's museum value only counts base item prices
+                from .domain.networth import calculate_items_value, fetch_prices, _parse_inventory_items
+                
+                # Initialize with Hypixel's base value
+                museum_value = museum_summary.get('value', 0)
+                LOGGER.warning(f"[DEBUG] Initial museum_value from summary: {museum_value:,.0f}")
+                
+                try:
+                    prices = fetch_prices()
+                    museum_items_data = []
+                    
+                    # Extract museum items from API response
+                    member_museum = museum_members.get(normalized_member_uuid) or museum_members.get(normalized_member_uuid.replace("-", ""))
+                    if member_museum:
+                        raw_items = member_museum.get("items", {})
+                        raw_list = raw_items.values() if isinstance(raw_items, dict) else (raw_items if isinstance(raw_items, list) else [])
+
+                        def _maybe_add(blob):
+                            if isinstance(blob, str) and blob:
+                                return [blob]
+                            return []
+
+                        for item_entry in raw_list:
+                            if not isinstance(item_entry, dict):
+                                continue
+                            candidates = []
+                            candidates += _maybe_add(item_entry.get("data"))
+                            candidates += _maybe_add(item_entry.get("item_data") or item_entry.get("itemData") or item_entry.get("itemBytes"))
+                            items_data = item_entry.get("items")
+                            if isinstance(items_data, dict):
+                                candidates += _maybe_add(items_data.get("data"))
+                            elif isinstance(items_data, list):
+                                for sub in items_data:
+                                    if isinstance(sub, dict):
+                                        candidates += _maybe_add(sub.get("data"))
+
+                            for raw_data in candidates:
+                                try:
+                                    parsed_items = _parse_inventory_items({'data': raw_data})
+                                    museum_items_data.extend(parsed_items)
+                                except Exception as e:
+                                    LOGGER.debug(f"Failed to parse museum item: {e}")
+                    
+                    # Calculate actual value with all modifiers
+                    LOGGER.warning(f"[DEBUG] museum_items_data count: {len(museum_items_data)}")
+                    if museum_items_data:
+                        museum_value, _, _ = calculate_items_value(museum_items_data, prices)
+                        LOGGER.warning(f"Museum actual value with modifiers: {museum_value:,.0f} (Hypixel base: {museum_summary.get('value', 0):,.0f})")
+                        if museum_value <= 0:
+                            LOGGER.warning("Museum computed as 0; falling back to Hypixel base value")
+                            museum_value = museum_summary.get('value', 0)
+                    else:
+                        LOGGER.warning(f"Using Hypixel base museum value (no items data): {museum_value:,.0f}")
+                except Exception as e:
+                    LOGGER.warning(f"Failed to calculate actual museum value: {e}, using base value: {museum_value:,.0f}")
+                
+                LOGGER.warning(f"[DEBUG] Final museum_value: {museum_value:,.0f}")
+                if museum_value and response_body.get('networth'):
+                    LOGGER.warning(f"[DEBUG] Adding museum to networth")
+                    nw = response_body['networth']
+                    nw['total'] = nw.get('total', 0) + museum_value
+                    if 'categories' in nw:
+                        nw['categories']['museum'] = {
+                            'name': 'Museum',
+                            'total': museum_value
+                        }
+                else:
+                    LOGGER.warning(f"[DEBUG] NOT adding museum: museum_value={museum_value}, has_networth={response_body.get('networth') is not None}")
             else:
+                LOGGER.warning(f"[DEBUG] Setting museum unavailable (parsed_museum is None)")
                 response_body['museum'] = {'available': False}
         else:
+            LOGGER.warning(f"[DEBUG] Setting museum unavailable (museum_body or museum_error issue)")
             response_body['museum'] = {'available': False}
     else:
+        LOGGER.warning(f"[DEBUG] Skipping museum (skip_museum=True)")
         response_body['museum'] = {'deferred': True}
-
+    
+    LOGGER.warning(f"[DEBUG] Final response_body museum value: {response_body.get('museum', {}).get('value', 'NO_VALUE')}")
     return Response(response_body)
 
 

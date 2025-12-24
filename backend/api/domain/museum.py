@@ -473,9 +473,14 @@ def _extract_damage(item_data: Dict[str, Any]) -> Optional[int]:
 def _process_museum_items(
     raw_items: Any,
     category: str = "unknown"
-) -> List[MuseumItem]:
-    """Process raw museum item entries into MuseumItem objects."""
+) -> tuple[List[MuseumItem], List[Dict[str, Any]]]:
+    """Process raw museum item entries into MuseumItem objects and parsed items for networth.
+    
+    Returns:
+        Tuple of (museum_items, parsed_items_for_networth)
+    """
     items = []
+    parsed_items = []
     
     # Handle both dict and list formats
     if isinstance(raw_items, list):
@@ -509,6 +514,14 @@ def _process_museum_items(
                             lore = _extract_lore(first_item)
                             mc_id = _extract_mc_id(first_item)
                             damage = _extract_damage(first_item)
+                            
+                            # Parse item for networth calculation
+                            try:
+                                parsed = _parse_inventory_items({'data': raw_data})
+                                if parsed and len(parsed) > 0:
+                                    parsed_items.append(parsed[0])
+                            except Exception as e2:
+                                LOGGER.debug(f"Failed to parse museum item {item_id} for networth: {e2}")
                 except Exception as e:
                     LOGGER.debug(f"Failed to decode museum item {item_id}: {e}")
             
@@ -615,6 +628,10 @@ def parse_museum(
         # Try without dashes
         clean_uuid = member_uuid.replace("-", "")
         member_museum = museum_data.get(clean_uuid)
+    
+    import logging
+    LOGGER = logging.getLogger(__name__)
+    LOGGER.warning(f"[MUSEUM] member_museum found: {member_museum is not None}, type: {type(member_museum) if member_museum else 'None'}")
     
     if not member_museum:
         return None
