@@ -867,3 +867,17 @@ def _format_price(price: float) -> str:
     if price >= 1_000:
         return f"{price / 1_000:.1f}K"
     return f"{price:.0f}"
+
+
+def get_cached_museum_summary(profile_id: str, museum_data: Dict[str, Any], force_refresh: bool = False) -> Optional[Dict[str, Any]]:
+    cache_key = f"museum_summary:{profile_id}"
+    if not force_refresh:
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+        
+    summary = parse_museum(museum_data, profile_id)
+    if summary:
+        cache.set(cache_key, summary, timeout=300)
+        
+    return summary

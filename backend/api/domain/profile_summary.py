@@ -14,6 +14,7 @@ from .minions import parse_minions
 from .collections import extract_collections_from_profile
 from .inventory import parse_inventory
 from .networth import calculate_networth
+from django.core.cache import cache
 
 NW_LOGGER = logging.getLogger(__name__)
 
@@ -331,3 +332,32 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
         "inventory": inventory,
         "networth": networth,
     }
+
+
+def get_cached_profile_summary(player_uuid: str, profile: Dict[str, Any], *, achievements: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    members = profile.get("members") or {}
+    member = members.get(player_uuid)
+    if not member:
+        return None
+        
+    # Determine cache key based on last_save
+    profile_id = profile.get("profile_id")
+    last_save = member.get("last_save") or 0
+    
+    # Cache key includes profile_id, uuid, and last_save timestamp
+    # This ensures that if the profile is updated (last_save changes), we re-compute.
+    cache_key = f"profile_summary:{profile_id}:{player_uuid}:{last_save}"
+    
+    # Try to get from cache
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+        
+    # Compute
+    summary = summarize_profile(player_uuid, profile, achievements=achievements)
+    
+    # Cache it for 5 minutes (to keep networth prices relatively fresh)
+    if summary:
+        cache.set(cache_key, summary, timeout=300)
+        
+    return summary

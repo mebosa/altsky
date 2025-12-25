@@ -4,6 +4,7 @@ import logging
 import mimetypes
 import os
 from datetime import datetime, timezone
+from functools import lru_cache
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -18,9 +19,9 @@ from rest_framework.response import Response
 
 from .decorators import rate_limit
 from .domain.item_textures import load_furfsky_texture, TEXTURE_PACKS, resolve_item_icon_variants, resolve_item_icon_for_pack
-from .domain.profile_summary import count_coop_members, summarize_profile
+from .domain.profile_summary import count_coop_members, summarize_profile, get_cached_profile_summary
 from .domain.armor_textures import get_armor_textures
-from .domain.museum import parse_museum, get_museum_summary, get_missing_items
+from .domain.museum import parse_museum, get_museum_summary, get_missing_items, get_cached_museum_summary
 from .domain.collections import extract_collections_from_profile
 from .domain.wardrobe import (
     _decode_bytes,
@@ -88,10 +89,8 @@ VANILLA_ASSET_BASE = (
 )
 
 
-def serve_vanilla_texture(request, path):
-    """
-    Proxy vanilla Minecraft textures from GitHub, caching locally to avoid CORS issues.
-    """
+@lru_cache(maxsize=256)
+def _get_vanilla_texture_content(path: str) -> Optional[bytes]:
     # Ensure cache directory exists
     os.makedirs(VANILLA_TEXTURE_CACHE_DIR, exist_ok=True)
     
@@ -99,45 +98,51 @@ def serve_vanilla_texture(request, path):
     safe_filename = path.replace("/", "_").replace("\\", "_")
     cache_path = os.path.join(VANILLA_TEXTURE_CACHE_DIR, f"vanilla_{safe_filename}")
     
-    # Check if cached
+    # Check if cached on disk
     if os.path.exists(cache_path):
         try:
             with open(cache_path, "rb") as f:
-                payload = f.read()
-            content_type, _ = mimetypes.guess_type(path)
-            response = HttpResponse(payload, content_type=content_type or "image/png")
-            response["Cache-Control"] = "public, max-age=86400"
-            response["Access-Control-Allow-Origin"] = "*"
-            return response
+                return f.read()
         except OSError:
             pass
     
     # Fetch from GitHub
     url = f"{VANILLA_ASSET_BASE}/{path}"
     try:
-        response = requests.get(url, timeout=10)
+        response = _SESSION.get(url, timeout=10)
         if response.status_code != 200:
             LOGGER.debug("Vanilla texture not found: %s (status=%s)", path, response.status_code)
-            return HttpResponse(status=404)
+            return None
         
         payload = response.content
         
-        # Cache the response
+        # Cache the response to disk
         try:
             with open(cache_path, "wb") as f:
                 f.write(payload)
         except OSError as exc:
             LOGGER.warning("Failed to cache vanilla texture %s: %s", path, exc)
         
-        content_type, _ = mimetypes.guess_type(path)
-        http_response = HttpResponse(payload, content_type=content_type or "image/png")
-        http_response["Cache-Control"] = "public, max-age=86400"
-        http_response["Access-Control-Allow-Origin"] = "*"
-        return http_response
+        return payload
         
     except requests.RequestException as exc:
         LOGGER.warning("Failed to fetch vanilla texture %s: %s", path, exc)
+        return None
+
+
+def serve_vanilla_texture(request, path):
+    """
+    Proxy vanilla Minecraft textures from GitHub, caching locally to avoid CORS issues.
+    """
+    payload = _get_vanilla_texture_content(path)
+    if payload is None:
         return HttpResponse(status=404)
+
+    content_type, _ = mimetypes.guess_type(path)
+    http_response = HttpResponse(payload, content_type=content_type or "image/png")
+    http_response["Cache-Control"] = "public, max-age=86400"
+    http_response["Access-Control-Allow-Origin"] = "*"
+    return http_response
 
 
 HYPIXEL_PROFILES_URL = 'https://api.hypixel.net/v2/skyblock/profiles'
@@ -715,7 +720,11 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     # Fetch player achievements from Hypixel main player endpoint to align with SkyCrypt logic
     achievements = _fetch_player_achievements(uuid, force_refresh=force_refresh)
 
-    summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
+    if force_refresh:
+        summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
+    else:
+        summary = get_cached_profile_summary(normalized_member_uuid, target, achievements=achievements)
+
     if not summary:
         return Response({'error': 'member_not_in_profile'}, status=404)
 
@@ -1015,7 +1024,7 @@ def hypixel_profile_summary_by_name(request: Request, name: str, profile_id: str
             museum_members = museum_body.get('members') or {}
             LOGGER.warning(f"[DEBUG] Museum members keys: {list(museum_members.keys())}")
             LOGGER.warning(f"[DEBUG] Normalized UUID: {normalized_member_uuid}")
-            parsed_museum = parse_museum(museum_members, normalized_member_uuid)
+            parsed_museum = get_cached_museum_summary(normalized_member_uuid, museum_members, force_refresh=force_refresh)
             LOGGER.warning(f"[DEBUG] Parsed museum: {parsed_museum is not None}")
             if parsed_museum:
                 LOGGER.warning(f"[DEBUG] Parsed museum value: {parsed_museum.get('value', 'NO_VALUE')}")

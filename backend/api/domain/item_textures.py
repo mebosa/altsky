@@ -216,6 +216,7 @@ def furfsky_texture_exists(filename: str) -> bool:
     return filename in _furfsky_zip_index()
 
 
+@lru_cache(maxsize=256)
 def load_furfsky_texture(filename: str) -> Optional[bytes]:
     if not filename:
         return None
