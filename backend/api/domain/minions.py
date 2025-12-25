@@ -1,7 +1,8 @@
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Optional
 import time
 import logging
 import requests
+from ..http_client import session
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ def _fetch_bazaar_prices() -> Dict[str, Dict[str, float]]:
         return _BAZAAR_CACHE
     
     try:
-        response = requests.get('https://api.hypixel.net/v2/skyblock/bazaar', timeout=8)
+        response = session.get('https://api.hypixel.net/v2/skyblock/bazaar', timeout=8)
         response.raise_for_status()
         data = response.json()
         
@@ -144,7 +145,7 @@ TIER_CRAFTING = {
 }
 
 
-def _calculate_craft_cost(minion_id: str, tier: int, bazaar_prices: Dict[str, Dict[str, float]]) -> int | None:
+def _calculate_craft_cost(minion_id: str, tier: int, bazaar_prices: Dict[str, Dict[str, float]]) -> Optional[int]:
     """Calculate the total bazaar cost to craft a minion tier from materials only (excludes previous tier)"""
     if tier < 1 or tier > 12:
         return None

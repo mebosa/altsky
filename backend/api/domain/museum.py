@@ -16,6 +16,7 @@ import requests
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Set
 
+from ..http_client import session
 from .nbt_parser import decode_inventory_data
 from .item_textures import resolve_item_icon_variants
 
@@ -244,7 +245,7 @@ def _fetch_bazaar_prices() -> Dict[str, Dict[str, float]]:
         return _BAZAAR_CACHE
     
     try:
-        response = requests.get('https://api.hypixel.net/v2/skyblock/bazaar', timeout=8)
+        response = session.get('https://api.hypixel.net/v2/skyblock/bazaar', timeout=8)
         response.raise_for_status()
         data = response.json()
         
@@ -279,7 +280,7 @@ def _fetch_auction_prices() -> Dict[str, float]:
     
     try:
         # Use Moulberry's lowest bin API which is commonly used
-        response = requests.get('https://moulberry.codes/lowestbin.json', timeout=8)
+        response = session.get('https://moulberry.codes/lowestbin.json', timeout=8)
         response.raise_for_status()
         data = response.json()
         

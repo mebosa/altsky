@@ -548,13 +548,15 @@
   .fraction-input {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    overflow-x: auto;
   }
 
   .fraction-input input {
     flex: 1;
-    padding: 10px 14px;
-    font-size: 1rem;
+    min-width: 60px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
     text-align: center;
     border: 1px solid color-mix(in srgb, var(--theme-form-border) 90%, transparent);
     border-radius: 10px;
@@ -571,6 +573,7 @@
   .divider {
     font-size: 1.2rem;
     color: var(--theme-text-soft);
+    flex-shrink: 0;
   }
 
   .hint {

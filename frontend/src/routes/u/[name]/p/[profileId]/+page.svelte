@@ -102,6 +102,11 @@
   $: if (activeTab && !loading) {
     loadTab(activeTab);
     scrollToTab(activeTab);
+    
+    // If museum tab is selected and museum data is deferred, load stats to fetch museum data
+    if (activeTab === 'museum' && summary?.museum && 'deferred' in summary.museum && !statsLoading) {
+      loadStats(selectedWeaponSlot, selectedWeaponId);
+    }
   }
 
   async function fetchProfile(

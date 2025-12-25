@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, Optional
 
 import requests
+from .http_client import session
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ def calculate_stats(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return None
 
     try:
-        response = requests.post(f"{_BASE_URL}/stats", json=payload, timeout=_TIMEOUT)
+        response = session.post(f"{_BASE_URL}/stats", json=payload, timeout=_TIMEOUT)
         response.raise_for_status()
     except requests.RequestException as exc:
         if exc.response is not None:

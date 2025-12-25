@@ -265,13 +265,16 @@
     },
     "LUSH_ARTIFACT": {
       "health": 5,
-      "health_regen": 1
+      "health_regen": 1,
+      "rift_time": 10
     },
     "LUSH_RING": {
-      "health": 3
+      "health": 3,
+      "rift_time": 10
     },
     "LUSH_TALISMAN": {
-      "health": 1
+      "health": 1,
+      "rift_time": 10
     },
     "LYNX_TALISMAN": {
       "speed": 2

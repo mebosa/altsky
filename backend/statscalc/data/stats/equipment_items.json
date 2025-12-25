@@ -581,6 +581,16 @@
       "farming_wisdom": 1,
       "strength": 10,
       "ferocity": 2
+    },
+    "RIFT_NECKLACE_OUTSIDE": {
+      "rift_time": 10,
+      "intelligence": 10,
+      "speed": 2
+    },
+    "RIFT_NECKLACE_INSIDE": {
+      "rift_time": 10,
+      "intelligence": 10,
+      "speed": 2
     }
   }
 }

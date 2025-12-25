@@ -17,8 +17,17 @@ import requests
 from django.core.cache import cache
 
 from .wardrobe import _parse_inventory_items
+from ..http_client import session
 
 LOGGER = logging.getLogger(__name__)
+
+# C++ 확장 모듈 로드 시도
+try:
+    import altsky_cpp
+    USE_CPP_PARSER = True
+except ImportError:
+    USE_CPP_PARSER = False
+    LOGGER.warning("altsky_cpp module not found in networth, using Python implementation")
 
 # Price API endpoints
 MOULBERRY_LOWEST_BIN_URL = "https://moulberry.codes/lowestbin.json"
@@ -225,7 +234,7 @@ def fetch_prices() -> Dict[str, float]:
     
     # Fetch lowest bin prices (auction items)
     try:
-        resp = requests.get(MOULBERRY_LOWEST_BIN_URL, timeout=10)
+        resp = session.get(MOULBERRY_LOWEST_BIN_URL, timeout=10)
         if resp.status_code == 200:
             data = resp.json()
             for item_id, price in data.items():
@@ -236,7 +245,7 @@ def fetch_prices() -> Dict[str, float]:
 
     # Fetch bazaar prices
     try:
-        resp = requests.get(HYPIXEL_BAZAAR_URL, timeout=10)
+        resp = session.get(HYPIXEL_BAZAAR_URL, timeout=10)
         if resp.status_code == 200:
             data = resp.json()
             products = data.get("products", {})
@@ -306,10 +315,20 @@ def is_soulbound(item: Dict[str, Any]) -> bool:
     if extra.get("donated_museum"):
         return True
     
-    # Check lore for SOULBOUND marker (with or without color codes)
-    # SkyBlock uses: "§8§l* §8Co-op Soulbound §8§l*" or "§8§l* §8Soulbound §8§l*"
     lore = item.get("lore", [])
     lore_colored = item.get("lore_colored", [])
+
+    if USE_CPP_PARSER:
+        # Ensure lists are strings (handle potential None or non-string items if any)
+        # C++ expects vector<string>, so we need to be careful.
+        # Assuming lore and lore_colored are lists of strings as per type hint.
+        # But let's be safe.
+        safe_lore = [str(l) for l in lore] if lore else []
+        safe_lore_colored = [str(l) for l in lore_colored] if lore_colored else []
+        return altsky_cpp.is_soulbound(safe_lore, safe_lore_colored)
+
+    # Check lore for SOULBOUND marker (with or without color codes)
+    # SkyBlock uses: "§8§l* §8Co-op Soulbound §8§l*" or "§8§l* §8Soulbound §8§l*"
     
     # Check colored lore first (more accurate)
     if isinstance(lore_colored, list):

@@ -30,6 +30,11 @@
       "per_level": {
         "intelligence": 5
       }
+    },
+    "sweeping_edge": {
+      "per_level": {
+        "sweep": 10
+      }
     }
   }
 }

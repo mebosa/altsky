@@ -16,10 +16,20 @@ import nbtlib
 
 LOGGER = logging.getLogger(__name__)
 
+# C++ 확장 모듈 로드 시도
+try:
+    import altsky_cpp
+    USE_CPP_PARSER = True
+except ImportError:
+    USE_CPP_PARSER = False
+    LOGGER.warning("altsky_cpp module not found, using Python implementation")
+
 # Minecraft 색상 코드 제거를 위한 패턴
 MC_COLOR_PATTERN = re.compile(r'§[0-9a-fk-or]', re.IGNORECASE)
 
 # 스탯 이름 매핑 (lore에서 사용되는 이름 -> 내부 스탯 이름)
+# 주의: 이 맵은 C++ 확장 모듈(cpp_src/lore_parser.cpp)에도 정의되어 있습니다.
+# 변경 시 두 곳 모두 업데이트해야 합니다.
 STAT_NAME_MAP = {
     'health': 'health',
     'defense': 'defense',
@@ -57,6 +67,9 @@ def _parse_lore_stats(lore_lines: List[str]) -> Dict[str, float]:
     예: "Health: +130" -> {'health': 130}
     예: "Farming Fortune: +67 (+25) (+12)" -> {'farming_fortune': 67}
     """
+    if USE_CPP_PARSER:
+        return altsky_cpp.parse_lore_stats(lore_lines)
+
     stats: Dict[str, float] = {}
     
     for line in lore_lines:
@@ -160,6 +173,12 @@ def _parse_item_nbt(item_tag: Any) -> Optional[Dict[str, Any]]:
         
         # Lore에서 스탯 파싱
         display = tag_compound.get('display', {})
+        if 'color' in display:
+            try:
+                item_data['leather_color'] = f"#{int(display['color']):06x}"
+            except (ValueError, TypeError):
+                pass
+
         lore_list = display.get('Lore', [])
         if lore_list:
             lore_strings = [str(line) for line in lore_list]

@@ -160,7 +160,14 @@
 </script>
 
 <div class="museum-container">
-  {#if !museum || !museum.available}
+  {#if museum && 'deferred' in museum}
+    <!-- Museum Loading State -->
+    <div class="museum-loading">
+      <div class="loading-spinner"></div>
+      <h2>Loading Museum Data...</h2>
+      <p>Please wait while museum data is being fetched.</p>
+    </div>
+  {:else if !museum || !museum.available}
     <!-- Museum Not Available State -->
     <div class="museum-unavailable">
       <div class="unavailable-icon">🏛️</div>
@@ -1274,6 +1281,41 @@
       width: 100%;
       text-align: left;
       margin-top: 4px;
+    }
+  }
+
+  /* Loading State */
+  .museum-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    text-align: center;
+  }
+
+  .museum-loading h2 {
+    margin: 16px 0 8px;
+    font-size: 1.5rem;
+    color: var(--theme-text-primary);
+  }
+
+  .museum-loading p {
+    color: var(--theme-text-soft);
+  }
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--theme-surface-border);
+    border-top-color: var(--theme-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
     }
   }
 </style>

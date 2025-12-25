@@ -21,6 +21,7 @@ WORKDIR /app
 # 시스템 패키지 설치
 RUN apt-get update && apt-get install -y \
     gcc \
+    g++ \
     postgresql-client \
     curl \
     fonts-inter \
@@ -36,6 +37,9 @@ COPY furfsky.zip ./furfsky.zip
 COPY backend/ ./backend/
 
 WORKDIR /app/backend
+
+# C++ 확장 모듈 빌드 및 설치
+RUN pip install .
 
 # 환경 변수
 ENV PYTHONUNBUFFERED=1

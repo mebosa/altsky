@@ -33,8 +33,10 @@ from .domain.wardrobe import (
     _extract_leather_color,
 )
 from . import statscalc_client
+from .http_client import session as _SESSION
 
 LOGGER = logging.getLogger(__name__)
+
 
 
 def _read_int_env(name: str, default: int) -> int:
@@ -74,7 +76,9 @@ def serve_furfsky_texture(request, path):
         return HttpResponse(status=404)
 
     content_type, _ = mimetypes.guess_type(path)
-    return HttpResponse(payload, content_type=content_type or "application/octet-stream")
+    response = HttpResponse(payload, content_type=content_type or "application/octet-stream")
+    response["Access-Control-Allow-Origin"] = "*"
+    return response
 
 
 VANILLA_TEXTURE_CACHE_DIR = os.path.join(os.path.dirname(__file__), "domain", "texture_cache")
@@ -103,6 +107,7 @@ def serve_vanilla_texture(request, path):
             content_type, _ = mimetypes.guess_type(path)
             response = HttpResponse(payload, content_type=content_type or "image/png")
             response["Cache-Control"] = "public, max-age=86400"
+            response["Access-Control-Allow-Origin"] = "*"
             return response
         except OSError:
             pass
@@ -127,6 +132,7 @@ def serve_vanilla_texture(request, path):
         content_type, _ = mimetypes.guess_type(path)
         http_response = HttpResponse(payload, content_type=content_type or "image/png")
         http_response["Cache-Control"] = "public, max-age=86400"
+        http_response["Access-Control-Allow-Origin"] = "*"
         return http_response
         
     except requests.RequestException as exc:
@@ -158,7 +164,7 @@ def _fetch_hypixel_profiles(
         return None, {'error': 'hypixel_api_key_missing', 'status': 503, 'fatal': False}
 
     try:
-        response = requests.get(
+        response = _SESSION.get(
             HYPIXEL_PROFILES_URL,
             params={'uuid': uuid},
             headers={'API-Key': api_key},
@@ -240,7 +246,7 @@ def _fetch_player_achievements(uuid: str, *, force_refresh: bool = False) -> Opt
             return cached
 
     try:
-        response = requests.get(
+        response = _SESSION.get(
             HYPIXEL_PLAYER_URL,
             params={'uuid': uuid},
             headers={'API-Key': api_key},
@@ -279,7 +285,7 @@ def _get_player_lookup_result(name: str, *, force_refresh: bool = False) -> Tupl
 
         if not uuid:
             try:
-                result = requests.get(
+                result = _SESSION.get(
                     f'https://api.mojang.com/users/profiles/minecraft/{normalized}',
                     timeout=5,
                 )
@@ -400,7 +406,7 @@ def _fetch_museum_data(
         return None, {'error': 'hypixel_api_key_missing', 'status': 503, 'fatal': False}
 
     try:
-        response = requests.get(
+        response = _SESSION.get(
             HYPIXEL_MUSEUM_URL,
             params={'profile': profile_id},
             headers={'API-Key': api_key},
@@ -476,7 +482,7 @@ def _fetch_player_auctions(
         return None, {'error': 'hypixel_api_key_missing', 'status': 503, 'fatal': False}
 
     try:
-        response = requests.get(
+        response = _SESSION.get(
             HYPIXEL_AUCTION_URL,
             params={'player': uuid},
             headers={'API-Key': api_key},
@@ -1999,4 +2005,4 @@ def get_item_textures_batch(request: Request) -> Response:
         texture_url = resolve_item_icon_for_pack(item_id, None, None, pack=pack)
         textures[item_id] = texture_url
     
-    return Response({"textures": textures})``
+    return Response({"textures": textures})
