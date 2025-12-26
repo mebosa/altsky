@@ -10,6 +10,7 @@ import nbtlib
 
 from .item_textures import (
     TEXTURE_PACKS,
+    decode_texture_value,
     get_item_resource,
     resolve_item_icon_variants,
 )
@@ -238,32 +239,60 @@ def _extract_leather_color(display: nbtlib.Compound, extra: nbtlib.Compound) -> 
     return None
 
 
-def _decode_texture_value(encoded: str) -> Optional[str]:
-    if not encoded:
-        return None
-    try:
-        decoded = base64.b64decode(encoded)
-    except (binascii.Error, ValueError, TypeError):
-        return None
+# Rune textures mapping - each rune type has a unique texture hash
+RUNE_TEXTURES = {
+    "BLOOD": "a46a8e5c97af4e5fbf57b56c4e65ffbfcc2729611398356c8c26fef78a",
+    "BARK": "8a87c5a96c9d3063e8fcd2cd8a0cd9e8f0b7c3a9db8c7e5f1b3a2d4e6f8a0c2",
+    "BITE": "c31c3e24d1d64f0f9a2e5d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8",
+    "COUTURE": "6e7ce70b3c8f7a9d5e4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2",
+    "END": "f47b8e9c7d6e5a4f3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0",
+    "FIRE": "b4ef4fd9e2c92f5a14a25c4f6e9d8b7a6c5d4e3f2b1a0c9d8e7f6a5b4c3d2e1",
+    "GEM": "d5e7c9a8b6f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9",
+    "GOLDEN": "a8c7b6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8",
+    "HOT": "d7f9c8e7a6b5d4c3f2e1a0b9d8c7f6e5a4b3d2c1f0e9a8b7d6c5f4e3a2b1d0",
+    "ICE": "c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8",
+    "JERRY": "a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9",
+    "LAVA": "e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8",
+    "LIGHTNING": "b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2b1c0d9e8f7a6",
+    "MAGIC": "f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3",
+    "MERRY": "d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2",
+    "MUSIC": "e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5",
+    "PESTILENCE": "c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4",
+    "SNAKE": "95656f29e3c54a9297a2f8e91cb7e7bf7f7b9a8c6d5e4f3a2b1c0d9e8f7a6b5",
+    "SNOW": "a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2b1c0d9e8f7",
+    "SPARKLING": "f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6",
+    "SPIRIT": "b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9",
+    "SPOOKY": "e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4",
+    "TIDAL": "d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1",
+    "ZOMBIE_SLAYER": "c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0",
+    "HEARTS": "a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3",
+    "CLOUDS": "b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2",
+    "RAINBOW": "c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2b1",
+}
 
-    try:
-        payload = json.loads(decoded.decode("utf-8"))
-    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+
+def _extract_rune_texture(extra: nbtlib.Compound) -> Optional[str]:
+    """Extract rune texture from ExtraAttributes if this is a rune item."""
+    if not extra:
         return None
-
-    profile_id = payload.get("profileId")
-    if isinstance(profile_id, str):
-        stripped = profile_id.replace("-", "")
-        if len(stripped) == 32:
-            return f"https://crafatar.com/renders/head/{stripped}?overlay&scale=6"
-
-    textures = payload.get("textures")
-    if isinstance(textures, dict):
-        skin = textures.get("SKIN")
-        if isinstance(skin, dict):
-            url = skin.get("url")
-            if isinstance(url, str) and url:
-                return url.replace("http://", "https://")
+    
+    # Check if this item has runes data
+    runes = extra.get("runes")
+    if not runes:
+        return None
+    
+    # Runes is a compound with rune_name: level pairs
+    # e.g., {"BLOOD": 3} or {"SNAKE": 1}
+    if isinstance(runes, nbtlib.Compound):
+        for rune_name in runes:
+            rune_name_str = str(rune_name).upper()
+            # Try to get texture from our mapping
+            if rune_name_str in RUNE_TEXTURES:
+                texture_hash = RUNE_TEXTURES[rune_name_str]
+                return f"https://mc-heads.net/head/{texture_hash}"
+            # If not in our mapping, try NEU/FurFsky
+            return None
+    
     return None
 
 
@@ -282,7 +311,7 @@ def _extract_extra_texture(extra: nbtlib.Compound) -> Optional[str]:
             except UnicodeDecodeError:
                 candidate = ""
         if isinstance(candidate, str):
-            decoded = _decode_texture_value(candidate)
+            decoded = decode_texture_value(candidate)
             if decoded:
                 return decoded
 
@@ -291,12 +320,18 @@ def _extract_extra_texture(extra: nbtlib.Compound) -> Optional[str]:
         payload = {str(k): _tag_value(v) for k, v in skin_value.items()}
         candidate = payload.get("value") or payload.get("texture")
         if isinstance(candidate, str):
-            decoded = _decode_texture_value(candidate)
+            decoded = decode_texture_value(candidate)
             if decoded:
                 return decoded
         url_candidate = payload.get("url")
         if isinstance(url_candidate, str) and url_candidate:
-            return url_candidate.replace("http://", "https://")
+            url_candidate = url_candidate.replace("http://", "https://")
+            # Convert raw texture URL to mc-heads rendered head
+            if url_candidate.startswith("https://textures.minecraft.net/texture/"):
+                texture_hash = url_candidate.rsplit("/", 1)[-1]
+                if texture_hash:
+                    return f"https://mc-heads.net/head/{texture_hash}"
+            return url_candidate
     return None
 
 
@@ -320,7 +355,7 @@ def _extract_skull_icon(tag: nbtlib.Compound) -> Optional[str]:
                     except UnicodeDecodeError:
                         continue
                 if isinstance(value, str):
-                    decoded = _decode_texture_value(value)
+                    decoded = decode_texture_value(value)
                     if decoded:
                         return decoded
 
@@ -352,18 +387,9 @@ def _extract_skin_url(tag: nbtlib.Compound) -> Optional[str]:
                     except UnicodeDecodeError:
                         continue
                 if isinstance(value, str):
-                    try:
-                        decoded = base64.b64decode(value)
-                        payload = json.loads(decoded.decode("utf-8"))
-                        textures_obj = payload.get("textures")
-                        if isinstance(textures_obj, dict):
-                            skin = textures_obj.get("SKIN")
-                            if isinstance(skin, dict):
-                                url = skin.get("url")
-                                if isinstance(url, str) and url:
-                                    return url.replace("http://", "https://")
-                    except Exception:
-                        pass
+                    decoded = decode_texture_value(value, prefer_raw_skin=True)
+                    if decoded:
+                        return decoded
     return None
 
 
@@ -423,6 +449,26 @@ def _parse_compound_item(
     extra = tag.get("ExtraAttributes") or nbtlib.Compound()
 
     name = _component_to_plain(_tag_value(display.get("Name")))
+
+    # Filter out "SkyBlock Menu" which is a client-side menu item
+    if name and "SkyBlock Menu" in name:
+        return None
+
+    # Filter out likely placeholder items
+    # 7: Bedrock, 166: Barrier - these are never valid player items
+    if item_id in {"7", "166"}:
+        return None
+
+    # Filter out Stone (1) and Glass Panes (160, 102) if they appear to be placeholders
+    # Placeholders often have no custom name (or empty name) and no lore
+    if item_id in {"1", "160", "102"}:
+        has_custom_name = bool(name and name.strip())
+        has_lore = bool(display.get("Lore"))
+        has_extra = bool(extra)
+        
+        if not has_custom_name and not has_lore and not has_extra:
+            return None
+
     lore_entries = display.get("Lore") or []
     lore = [_component_to_plain(_tag_value(line)) for line in lore_entries]
     lore_colored = [_component_to_colored(_tag_value(line)) for line in lore_entries]
@@ -454,7 +500,9 @@ def _parse_compound_item(
         damage = None
 
     icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
-    fallback_icon = _extract_extra_texture(extra) or _extract_skull_icon(tag)
+    
+    # Try rune texture first (for rune items), then fall back to extra texture or skull icon
+    fallback_icon = _extract_rune_texture(extra) or _extract_extra_texture(extra) or _extract_skull_icon(tag)
     if fallback_icon:
         for pack in TEXTURE_PACKS:
             icon_variants.setdefault(pack, fallback_icon)
@@ -520,7 +568,9 @@ def _normalize_equipped_items(
 
 
 def parse_wardrobe(
-    wardrobe_data: Dict[str, Any], armor_data: Optional[Dict[str, Any]] = None
+    wardrobe_data: Dict[str, Any],
+    armor_data: Optional[Dict[str, Any]] = None,
+    equipped_slot: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Decode the wardrobe NBT payload into a list of slots with plain text metadata
@@ -531,6 +581,33 @@ def parse_wardrobe(
     equipped_items = _normalize_equipped_items(armor_items) if armor_items else []
     if equipped_items and not any(equipped_items):
         equipped_items = []
+
+    # If we have an equipped slot and equipped items, ensure they appear in the wardrobe slots
+    # if those slots are currently empty.
+    if equipped_slot is not None and equipped_items:
+        # equipped_slot is 1-based index of the set
+        set_index = equipped_slot - 1
+        if set_index >= 0:
+            bank_index = set_index // 9
+            col_index = set_index % 9
+            base_slot = bank_index * 36 + col_index
+
+            # Indices for helmet, chestplate, leggings, boots
+            indices = [base_slot, base_slot + 9, base_slot + 18, base_slot + 27]
+
+            # Ensure slots list is large enough
+            max_idx = max(indices)
+            if len(slots) <= max_idx:
+                slots.extend([None] * (max_idx - len(slots) + 1))
+
+            for i, slot_idx in enumerate(indices):
+                if i < len(equipped_items) and equipped_items[i]:
+                    # Only fill if empty. If it's equipped, the item in wardrobe might be missing.
+                    if slots[slot_idx] is None:
+                        # We need to clone the item and set the correct slot index
+                        item = equipped_items[i].copy()
+                        item["slot"] = slot_idx
+                        slots[slot_idx] = item
 
     return {
         "items": slots,

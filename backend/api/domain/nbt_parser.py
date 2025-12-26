@@ -190,11 +190,11 @@ def _parse_item_nbt(item_tag: Any) -> Optional[Dict[str, Any]]:
     if not item_data.get('id'):
         return None
     
-    # Recombobulated 처리 (Rarity 업그레이드)
-    if item_data.get('extra_attributes', {}).get('recombobulated'):
-        current_rarity = item_data.get('rarity')
-        if current_rarity:
-            item_data['rarity'] = _upgrade_rarity(current_rarity)
+    # Recombobulated 처리 (Rarity 업그레이드) - Lore에 이미 반영되어 있으므로 중복 적용하지 않음
+    # if item_data.get('extra_attributes', {}).get('recombobulated'):
+    #     current_rarity = item_data.get('rarity')
+    #     if current_rarity:
+    #         item_data['rarity'] = _upgrade_rarity(current_rarity)
     
     return item_data
 

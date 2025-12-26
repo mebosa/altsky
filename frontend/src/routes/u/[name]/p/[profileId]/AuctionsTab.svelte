@@ -2,10 +2,19 @@
   import { onMount } from 'svelte';
   import { get } from '$lib/api';
   import { formatNumber, formatLargeNumber } from '$lib/utils';
-  import { rarityToBackground, parseLegacyText, type LegacySegment } from '$lib/utils/wardrobe';
+  import { 
+    rarityToBackground, 
+    parseLegacyText, 
+    type LegacySegment,
+    ensureTintedIcon,
+    peekTintedIcon,
+    isFallbackIcon,
+    formatLeatherColor
+  } from '$lib/utils/wardrobe';
   import { texturePackStore } from '$lib/stores/texturePack';
   import type { TexturePack } from '$lib/stores/texturePack';
   import type { Player } from './profileTypes';
+  import { petTextures, petSkins } from './profileConstants';
 
   export let player: Player;
 
@@ -64,6 +73,33 @@
   );
 
   const TEXTURE_PACK_ORDER: TexturePack[] = ['furfsky', 'vanilla'];
+  const pendingTintKeys = new Set<string>();
+  let tintedIconVersion = 0;
+
+  // Retry logic constants
+  const ICON_RETRY_BASE_DELAY = 400;
+  const ICON_RETRY_BACKOFF = 1.5;
+  const ICON_RETRY_MAX_DELAY = 8000;
+  const pendingRetryTimers = new WeakMap<HTMLImageElement, number>();
+  let failedIcons = new Set<string>();
+
+  function computeRetryDelay(attempt: number) {
+    const delay = ICON_RETRY_BASE_DELAY * Math.pow(ICON_RETRY_BACKOFF, attempt);
+    return Math.min(delay, ICON_RETRY_MAX_DELAY);
+  }
+
+  function clearRetryTimer(img: HTMLImageElement) {
+    const timerId = pendingRetryTimers.get(img);
+    if (timerId) {
+      clearTimeout(timerId);
+      pendingRetryTimers.delete(img);
+    }
+  }
+
+  function buildCacheBustedUrl(url: string, attempt: number) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}_retry=${attempt}`;
+  }
 
   const RARITY_ORDER = [
     'DIVINE',
@@ -117,38 +153,133 @@
       .join(' ');
   }
 
-  function getIconUrl(auction: AuctionItem, pack: TexturePack): string | null {
-    if (!auction.icon_variants) {
-      return auction.icon_url || null;
+  function getPetType(auction: AuctionItem): string | null {
+    // Check if it's a pet based on name pattern
+    // Pattern: [Lvl <number>] <Pet Name>
+    const match = auction.item_name.match(/^\[Lvl \d+\] (.+)$/);
+    if (match) {
+      let petName = match[1];
+      // Remove skin suffix if present (e.g. " ✦")
+      petName = petName.replace(/ ✦$/, '');
+      
+      // Convert to enum format: "Golden Dragon" -> "GOLDEN_DRAGON"
+      return petName.toUpperCase().replace(/ /g, '_');
     }
-    // Try the selected pack first, then fallback through the order
-    if (auction.icon_variants[pack]) {
-      return auction.icon_variants[pack] || null;
+    return null;
+  }
+
+  function getPetTextureUrl(type: string, tier: string): string {
+    const texture = petTextures[type];
+    
+    if (typeof texture === 'object') {
+      // Handle pets with rarity-specific textures (e.g., FLYING_FISH)
+      const suffix = tier.toLowerCase() === 'mythic' ? '_mythic' : '';
+      return `/pets/${type.toLowerCase()}${suffix}.png`;
+    } else if (texture) {
+      // Use local server image
+      return `/pets/${type.toLowerCase()}.png`;
+    } else {
+      return '';
     }
-    for (const fallbackPack of TEXTURE_PACK_ORDER) {
-      if (auction.icon_variants[fallbackPack]) {
-        return auction.icon_variants[fallbackPack] || null;
+  }
+
+  function resolveDisplayIcon(
+    auction: AuctionItem,
+    pack: TexturePack,
+    _version: number
+  ): string | null {
+    // 0. Check if it's a pet
+    const petType = getPetType(auction);
+    if (petType) {
+      const petUrl = getPetTextureUrl(petType, auction.tier || 'COMMON');
+      if (petUrl) return petUrl;
+    }
+
+    let baseIcon: string | null = null;
+    let source: TexturePack | 'legacy' | null = null;
+
+    // 1. Try icon_variants
+    if (auction.icon_variants) {
+      if (auction.icon_variants[pack]) {
+        baseIcon = auction.icon_variants[pack]!;
+        source = pack;
+      } else {
+        for (const fallback of TEXTURE_PACK_ORDER) {
+          if (auction.icon_variants[fallback]) {
+            baseIcon = auction.icon_variants[fallback]!;
+            source = fallback;
+            break;
+          }
+        }
       }
     }
-    return auction.icon_url || null;
+
+    // 2. Fallback to icon_url
+    if (!baseIcon) {
+      baseIcon = auction.icon_url || null;
+      source = 'legacy';
+    }
+
+    if (!baseIcon) return null;
+
+    // 3. Apply tinting if vanilla and leather_color exists
+    if (source === 'vanilla') {
+      const leatherColor = formatLeatherColor(auction.leather_color);
+      if (leatherColor && !isFallbackIcon(baseIcon)) {
+        const key = `${baseIcon}|${leatherColor}`;
+        const cached = peekTintedIcon(baseIcon, leatherColor);
+        if (cached) {
+          return cached;
+        }
+
+        if (!pendingTintKeys.has(key)) {
+          pendingTintKeys.add(key);
+          ensureTintedIcon(baseIcon, leatherColor)
+            .catch(() => baseIcon)
+            .then(() => {
+              pendingTintKeys.delete(key);
+              tintedIconVersion += 1;
+            });
+        }
+        // Return base icon while loading
+        return baseIcon;
+      }
+    }
+
+    return baseIcon;
   }
 
   function handleIconError(event: Event, auction: AuctionItem, currentPack: TexturePack) {
     const target = event.currentTarget as HTMLImageElement | null;
     if (!target) return;
     
-    // Try fallback to other texture packs
-    const fallbackOrder = TEXTURE_PACK_ORDER.filter((p) => p !== currentPack);
-    for (const pack of fallbackOrder) {
-      const fallbackUrl = auction.icon_variants?.[pack];
-      if (fallbackUrl && target.src !== fallbackUrl) {
-        target.src = fallbackUrl;
-        return;
-      }
+    const attempt = Number(target.dataset.retryCount ?? '0');
+    
+    // Retry up to 3 times with backoff
+    if (attempt < 3) {
+      const nextAttempt = attempt + 1;
+      target.dataset.retryCount = String(nextAttempt);
+      
+      clearRetryTimer(target);
+      const delay = computeRetryDelay(attempt);
+      
+      const timerId = setTimeout(() => {
+        pendingRetryTimers.delete(target);
+        if (!target.isConnected) return;
+        
+        // Re-resolve URL to be safe
+        const resolvedUrl = resolveDisplayIcon(auction, currentPack, tintedIconVersion);
+        if (resolvedUrl) {
+          target.src = buildCacheBustedUrl(resolvedUrl, nextAttempt);
+        }
+      }, delay);
+      pendingRetryTimers.set(target, timerId);
+      return;
     }
     
-    // Hide the image if all fallbacks fail
-    target.style.display = 'none';
+    // If retries failed, mark as failed to show fallback
+    failedIcons.add(auction.uuid);
+    failedIcons = failedIcons;
   }
 
   function formatTimeRemaining(endTime: number): string {
@@ -241,6 +372,13 @@
   });
 
   $: currentPack = $texturePackStore;
+  $: {
+    // Clear failed icons when texture pack changes
+    if (currentPack) {
+      failedIcons.clear();
+      failedIcons = failedIcons;
+    }
+  }
   $: activeAuctions = auctions.filter((a) => a.end > now && !a.claimed);
   $: endedAuctions = auctions.filter((a) => a.end <= now || a.claimed);
 </script>
@@ -504,17 +642,7 @@
     <div class="header-row">
       <h2 class="section-title">
         Auctions
-        {#if !loading}
-          <span class="count">({auctions.length} total)</span>
-        {/if}
       </h2>
-      <button 
-        class="refresh-btn" 
-        on:click={() => fetchAuctions(true)} 
-        disabled={loading}
-      >
-        {loading ? 'Loading...' : 'Refresh'}
-      </button>
     </div>
 
     {#if loading}
@@ -538,14 +666,14 @@
         </h3>
         <div class="auctions-grid">
           {#each activeAuctions as auction (auction.uuid)}
-            {@const iconUrl = getIconUrl(auction, currentPack)}
+            {@const iconUrl = resolveDisplayIcon(auction, currentPack, tintedIconVersion)}
             <div class="auction-card">
               <div class="auction-header">
                 <div 
                   class="item-icon" 
                   style="background: {getRarityBackground(auction.tier)}"
                 >
-                  {#if iconUrl}
+                  {#if iconUrl && !failedIcons.has(auction.uuid)}
                     <img 
                       src={iconUrl} 
                       alt={auction.item_name}

@@ -278,16 +278,15 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
     inventory_data = member.get("inventory", {}) or {}
     wardrobe_inventory = inventory_data.get("wardrobe_contents") or {}
     armor_inventory = inventory_data.get("inv_armor")
-    wardrobe = parse_wardrobe(wardrobe_inventory, armor_inventory)
+
     equipped_slot = member.get("inventory", {}).get("wardrobe_equipped_slot")
     equipped_slot = _safe_int(equipped_slot) if equipped_slot is not None else None
     if equipped_slot is not None:
         # Hypixel uses -1 for "no wardrobe slot"; normalize to None.
         if equipped_slot < 0:
             equipped_slot = None
-        # Convert 1-based wardrobe slot indices to 0-based for UI usage.
-        elif equipped_slot > 0:
-            equipped_slot -= 1
+
+    wardrobe = parse_wardrobe(wardrobe_inventory, armor_inventory, equipped_slot=equipped_slot)
 
     # Extract collections data
     collections = extract_collections_from_profile(member)

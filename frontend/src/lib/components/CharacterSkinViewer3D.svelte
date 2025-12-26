@@ -54,8 +54,8 @@
 				const response = await fetch(`https://api.capes.dev/load/${cleanUuid}`);
 				if (response.ok) {
 					const data = await response.json();
-					// Priority: Minecraft > Optifine > LabyMod > MinecraftCapes > etc.
-					const capeTypes = ['minecraft', 'optifine', 'labymod', 'minecraftcapes', 'tlauncher', '5zig'];
+					// Priority: Minecraft > Optifine > MinecraftCapes > etc. > LabyMod
+					const capeTypes = ['minecraft', 'optifine', 'minecraftcapes', 'tlauncher', '5zig', 'cloaksplus', 'mantle', 'labymod'];
 					let capeUrl = null;
 					
 					for (const type of capeTypes) {
@@ -253,22 +253,31 @@
 					// Use our API or CDN directly
 					// success = await loadSkinToPlayerObject(model, texInfo.url);
 					
-					// Manual fetch to debug and ensure freshness
-					try {
-						console.log(`[Armor] Fetching ${texInfo.url}`);
-						const resp = await fetch(texInfo.url);
-						if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-						const blob = await resp.blob();
-						const blobUrl = URL.createObjectURL(blob);
-						
-						// Load the blob URL
-						success = await loadSkinToPlayerObject(model, blobUrl);
-						
-						// Clean up
-						URL.revokeObjectURL(blobUrl);
-					} catch (err) {
-						console.error(`[Armor] Failed to fetch ${texInfo.url}`, err);
-						success = false;
+					// Manual fetch with retry
+					const maxRetries = 3;
+					for (let attempt = 1; attempt <= maxRetries; attempt++) {
+						try {
+							console.log(`[Armor] Fetching ${texInfo.url} (Attempt ${attempt}/${maxRetries})`);
+							const resp = await fetch(texInfo.url);
+							if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+							const blob = await resp.blob();
+							const blobUrl = URL.createObjectURL(blob);
+							
+							// Load the blob URL
+							success = await loadSkinToPlayerObject(model, blobUrl);
+							
+							// Clean up
+							URL.revokeObjectURL(blobUrl);
+							
+							if (success) break; // Exit retry loop on success
+						} catch (err) {
+							console.error(`[Armor] Failed to fetch ${texInfo.url} (Attempt ${attempt}/${maxRetries})`, err);
+							success = false;
+							if (attempt < maxRetries) {
+								// Wait before retrying
+								await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+							}
+						}
 					}
 
 					if (!success) {

@@ -17,6 +17,7 @@
     collections: () => import('./CollectionsTab.svelte'),
     pets: () => import('./PetsTab.svelte'),
     accessories: () => import('./AccessoriesTab.svelte'),
+    weapons: () => import('./WeaponsTab.svelte'),
     wardrobe: () => import('./WardrobeTab.svelte'),
     inventory: () => import('./InventoryTab.svelte'),
     museum: () => import('./MuseumTab.svelte'),
@@ -65,6 +66,7 @@
     { id: 'collections', label: 'Collections' },
     { id: 'pets', label: 'Pets' },
     { id: 'accessories', label: 'Accessories' },
+    { id: 'weapons', label: 'Weapons' },
     { id: 'wardrobe', label: 'Wardrobe' },
     { id: 'inventory', label: 'Inventory' },
     { id: 'networth', label: 'Networth' },
@@ -330,6 +332,8 @@
       <svelte:component this={loadedTabs.pets} {summary} />
     {:else if activeTab === 'accessories' && loadedTabs.accessories}
       <svelte:component this={loadedTabs.accessories} {summary} />
+    {:else if activeTab === 'weapons' && loadedTabs.weapons}
+      <svelte:component this={loadedTabs.weapons} {summary} on:weaponchange={handleWeaponChange} />
     {:else if activeTab === 'wardrobe' && loadedTabs.wardrobe}
       <svelte:component this={loadedTabs.wardrobe} {summary} />
     {:else if activeTab === 'inventory' && loadedTabs.inventory}

@@ -32,6 +32,7 @@ from .domain.wardrobe import (
     _extract_skull_icon,
     _detect_rarity,
     _extract_leather_color,
+    _parse_inventory_items,
 )
 from . import statscalc_client
 from .http_client import session as _SESSION
@@ -560,9 +561,6 @@ def _enrich_auction_item(auction: Dict[str, Any]) -> Dict[str, Any]:
     """
     Parse auction item_bytes to extract icon information.
     """
-    import io
-    import nbtlib
-    
     result = dict(auction)
     item_bytes = auction.get('item_bytes')
     if not item_bytes:
@@ -577,68 +575,22 @@ def _enrich_auction_item(auction: Dict[str, Any]) -> Dict[str, Any]:
     if not item_bytes_str:
         return result
     
-    payload = _decode_bytes(item_bytes_str)
-    if not payload:
+    # Use centralized parsing logic from wardrobe
+    # This handles NBT decoding, texture resolution, and color parsing consistently
+    parsed_items = _parse_inventory_items({'data': item_bytes_str})
+    
+    if not parsed_items or not parsed_items[0]:
         return result
+        
+    item = parsed_items[0]
     
-    try:
-        file = nbtlib.File.from_fileobj(io.BytesIO(payload))
-    except Exception:
-        return result
-    
-    items = file.get('i', [])
-    if not items:
-        return result
-    
-    compound = items[0]
-    if not compound or 'id' not in compound:
-        return result
-    
-    item_id_raw = _tag_value(compound.get('id'))
-    item_id = str(item_id_raw) if item_id_raw is not None else ''
-    
-    tag = compound.get('tag') or nbtlib.Compound()
-    display = tag.get('display') or nbtlib.Compound()
-    extra = tag.get('ExtraAttributes') or nbtlib.Compound()
-    
-    extra_id_raw = _tag_value(extra.get('id')) if extra else None
-    extra_id = str(extra_id_raw) if extra_id_raw else None
-    
-    damage_raw = _tag_value(compound.get('Damage'))
-    try:
-        damage = int(damage_raw)
-    except (TypeError, ValueError):
-        damage = None
-    
-    # Get icon variants for each texture pack
-    icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
-    
-    # Check for custom textures (skulls, etc.)
-    fallback_icon = _extract_extra_texture(extra) or _extract_skull_icon(tag)
-    if fallback_icon:
-        for pack in TEXTURE_PACKS:
-            icon_variants.setdefault(pack, fallback_icon)
-    
-    icon_url = next(
-        (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
-        None,
-    )
-    
-    # Extract leather color if applicable
-    leather_color = _extract_leather_color(display, extra)
-    
-    # Parse lore for colored display
-    lore_entries = display.get('Lore') or []
-    lore = [_component_to_plain(_tag_value(line)) for line in lore_entries]
-    lore_colored = [_component_to_colored(_tag_value(line)) for line in lore_entries]
-    
-    result['skyblock_id'] = extra_id or item_id
-    result['mc_id'] = item_id
-    result['icon_url'] = icon_url
-    result['icon_variants'] = {pack: url for pack, url in icon_variants.items() if url}
-    result['leather_color'] = leather_color
-    result['lore'] = lore
-    result['lore_colored'] = lore_colored
+    result['skyblock_id'] = item.get('id')
+    result['mc_id'] = item.get('mc_id')
+    result['icon_url'] = item.get('icon_url')
+    result['icon_variants'] = item.get('icon_variants')
+    result['leather_color'] = item.get('leather_color')
+    result['lore'] = item.get('lore')
+    result['lore_colored'] = item.get('lore_colored')
     
     return result
 

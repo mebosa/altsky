@@ -299,6 +299,15 @@
     return Math.abs(diff) > 0.1 ? diff : null;
   };
 
+  $: statValues = [...primaryStatOrder, ...additionalStatOrder].reduce((acc, key) => {
+    acc[key] = {
+      value: getStatValue(key),
+      calcValue: getComputedValue(key),
+      diff: getDifference(key)
+    };
+    return acc;
+  }, {} as Record<string, { value: any, calcValue: any, diff: any }>);
+
   const handleWeaponChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
     const value = target?.value ?? '';
@@ -350,9 +359,11 @@
         <select id="weapon-select" bind:value={weaponSlot} on:change={handleWeaponChange}>
           <option value="">Auto</option>
           {#each summary.weapon_candidates as weapon}
-            <option value={weapon.slot}>
-              {weapon.name ?? weapon.id} (Slot {weapon.slot + 1})
-            </option>
+            {#if weapon.id !== 'SKYBLOCK_MENU'}
+              <option value={weapon.slot}>
+                {weapon.name ?? weapon.id} (Slot {weapon.slot + 1})
+              </option>
+            {/if}
           {/each}
         </select>
       </div>
@@ -368,7 +379,9 @@
         />
         <datalist id="weapon-catalog">
           {#each summary.weapon_catalog as weapon}
-            <option value={weapon.id}>{weapon.name ?? weapon.id}</option>
+            {#if weapon.id !== 'SKYBLOCK_MENU'}
+              <option value={weapon.id}>{weapon.name ?? weapon.id}</option>
+            {/if}
           {/each}
         </datalist>
       </div>
@@ -378,9 +391,10 @@
   <!-- Primary Stats Grid -->
   <div class="primary-grid">
     {#each primaryStatOrder as key}
-      {@const value = getStatValue(key)}
-      {@const calcValue = getComputedValue(key)}
-      {@const diff = getDifference(key)}
+      {@const stat = statValues[key]}
+      {@const value = stat.value}
+      {@const calcValue = stat.calcValue}
+      {@const diff = stat.diff}
       {@const hasBreakdown = !!breakdown[key]}
       {@const color = statColors[key] || '#fff'}
       {@const icon = statIcons[key] || ''}
@@ -445,8 +459,9 @@
     <h3>Misc Stats</h3>
     <div class="secondary-grid">
       {#each additionalStatOrder as key}
-        {@const value = getStatValue(key)}
-        {@const calcValue = getComputedValue(key)}
+        {@const stat = statValues[key]}
+        {@const value = stat.value}
+        {@const calcValue = stat.calcValue}
         {@const displayValue = calcValue ?? value}
         
         {#if displayValue && Number(displayValue) !== 0}

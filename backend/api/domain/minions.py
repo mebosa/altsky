@@ -121,6 +121,8 @@ MINION_MATERIALS = {
     "ACACIA": ("LOG_2", "ENCHANTED_ACACIA_LOG"),
     "JUNGLE": ("LOG:3", "ENCHANTED_JUNGLE_LOG"),
     "FLOWER": ("RED_ROSE", "ENCHANTED_RED_ROSE"),
+    "SUNFLOWER": ("SUNFLOWER", "ENCHANTED_SUNFLOWER"),
+    "MOONFLOWER": ("MOONFLOWER", "ENCHANTED_MOONFLOWER"),
     # Fishing
     "FISHING": ("RAW_FISH", "ENCHANTED_RAW_FISH"),
     "CLAY": ("CLAY_BALL", "ENCHANTED_CLAY_BALL"),
@@ -278,6 +280,8 @@ MINIONS = {
         "ACACIA": {"name": "Acacia", "maxTier": 11, "texture": "42183eaf5b133b838db13d145247e389ab4b4f33c67846363792dc3d82b524c0"},
         "JUNGLE": {"name": "Jungle", "maxTier": 11, "texture": "2fe73d981690c1be346a16331819c4e8800859fcdc3e5153718c6ad45861924c"},
         "FLOWER": {"name": "Flower", "maxTier": 12, "texture": "baa7c59b2f792d8d091aecacf47a19f8ab93f3fd3c48f6930b1c2baeb09e0f9b"},
+        "SUNFLOWER": {"name": "Sunflower", "maxTier": 12, "texture": "baa7c59b2f792d8d091aecacf47a19f8ab93f3fd3c48f6930b1c2baeb09e0f9b"},
+        "MOONFLOWER": {"name": "Moonflower", "maxTier": 12, "texture": "baa7c59b2f792d8d091aecacf47a19f8ab93f3fd3c48f6930b1c2baeb09e0f9b"},
     },
     "fishing": {
         "FISHING": {"name": "Fishing", "maxTier": 12, "texture": "53ea0fd89524db3d7a3544904933830b4fc8899ef60c113d948bb3c4fe7aabb1"},

@@ -19,6 +19,8 @@ from typing import Any, Dict, List, Optional, Tuple, Set
 from ..http_client import session
 from .nbt_parser import decode_inventory_data
 from .item_textures import resolve_item_icon_variants
+from .wardrobe import _parse_inventory_items
+from .networth import calculate_item_value
 
 LOGGER = logging.getLogger(__name__)
 
@@ -333,6 +335,8 @@ class MuseumItem:
     damage: Optional[int] = None
     icon_url: Optional[str] = None
     icon_variants: Optional[Dict[str, Optional[str]]] = None
+    item_data: Optional[Dict[str, Any]] = None
+    value: float = 0.0
 
 
 @dataclass 
@@ -473,15 +477,11 @@ def _extract_damage(item_data: Dict[str, Any]) -> Optional[int]:
 
 def _process_museum_items(
     raw_items: Any,
-    category: str = "unknown"
-) -> tuple[List[MuseumItem], List[Dict[str, Any]]]:
-    """Process raw museum item entries into MuseumItem objects and parsed items for networth.
-    
-    Returns:
-        Tuple of (museum_items, parsed_items_for_networth)
-    """
+    category: str = "unknown",
+    prices: Optional[Dict[str, float]] = None
+) -> List[MuseumItem]:
+    """Process raw museum item entries into MuseumItem objects."""
     items = []
-    parsed_items = []
     
     # Handle both dict and list formats
     if isinstance(raw_items, list):
@@ -503,26 +503,24 @@ def _process_museum_items(
             lore = []
             mc_id = None
             damage = None
+            item_data_parsed = None
+            value = 0.0
             
             if raw_data:
                 try:
-                    decoded_items = decode_inventory_data(raw_data)
-                    if decoded_items and len(decoded_items) > 0:
-                        first_item = decoded_items[0]
+                    # Use wardrobe's parser which is more robust and handles textures
+                    parsed_list = _parse_inventory_items({'data': raw_data})
+                    if parsed_list and len(parsed_list) > 0:
+                        first_item = parsed_list[0]
                         if first_item:
-                            item_name = _extract_item_name(first_item) or item_name
-                            rarity = _extract_rarity(first_item)
-                            lore = _extract_lore(first_item)
-                            mc_id = _extract_mc_id(first_item)
-                            damage = _extract_damage(first_item)
+                            item_name = first_item.get('name') or item_name
+                            rarity = first_item.get('rarity')
+                            lore = first_item.get('lore', [])
+                            mc_id = first_item.get('mc_id')
+                            item_data_parsed = first_item
                             
-                            # Parse item for networth calculation
-                            try:
-                                parsed = _parse_inventory_items({'data': raw_data})
-                                if parsed and len(parsed) > 0:
-                                    parsed_items.append(parsed[0])
-                            except Exception as e2:
-                                LOGGER.debug(f"Failed to parse museum item {item_id} for networth: {e2}")
+                            if prices:
+                                value, _ = calculate_item_value(first_item, prices)
                 except Exception as e:
                     LOGGER.debug(f"Failed to decode museum item {item_id}: {e}")
             
@@ -541,7 +539,9 @@ def _process_museum_items(
                 mc_id=mc_id,
                 damage=damage,
                 icon_url=icon_url,
-                icon_variants=icon_variants
+                icon_variants=icon_variants,
+                item_data=item_data_parsed,
+                value=value
             )
             items.append(museum_item)
     elif isinstance(raw_items, dict):
@@ -562,20 +562,24 @@ def _process_museum_items(
             lore = []
             mc_id = None
             damage = None
+            item_data_parsed = None
+            value = 0.0
             
             if raw_data:
                 try:
-                    # Decode base64 + gzip NBT data - pass raw_data directly as it's already base64
-                    decoded_items = decode_inventory_data(raw_data)
-                    
-                    if decoded_items and len(decoded_items) > 0:
-                        first_item = decoded_items[0]
+                    # Use wardrobe's parser
+                    parsed_list = _parse_inventory_items({'data': raw_data})
+                    if parsed_list and len(parsed_list) > 0:
+                        first_item = parsed_list[0]
                         if first_item:
-                            item_name = _extract_item_name(first_item) or item_name
-                            rarity = _extract_rarity(first_item)
-                            lore = _extract_lore(first_item)
-                            mc_id = _extract_mc_id(first_item)
-                            damage = _extract_damage(first_item)
+                            item_name = first_item.get('name') or item_name
+                            rarity = first_item.get('rarity')
+                            lore = first_item.get('lore', [])
+                            mc_id = first_item.get('mc_id')
+                            item_data_parsed = first_item
+                            
+                            if prices:
+                                value, _ = calculate_item_value(first_item, prices)
                 except Exception as e:
                     LOGGER.debug(f"Failed to decode museum item {item_id}: {e}")
             
@@ -594,7 +598,9 @@ def _process_museum_items(
                 mc_id=mc_id,
                 damage=damage,
                 icon_url=icon_url,
-                icon_variants=icon_variants
+                icon_variants=icon_variants,
+                item_data=item_data_parsed,
+                value=value
             )
             items.append(museum_item)
     
