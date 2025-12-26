@@ -53,6 +53,7 @@
     leather_color?: string | null;
     lore?: string[];
     lore_colored?: string[];
+    recombobulated?: boolean;
   };
 
   type AuctionsResponse = {
@@ -459,6 +460,18 @@
     position: relative;
   }
 
+  .item-icon.recombobulated::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(225deg, #ffaa00 50%, transparent 50%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
   .item-icon img {
     width: 100%;
     height: 100%;
@@ -671,6 +684,7 @@
               <div class="auction-header">
                 <div 
                   class="item-icon" 
+                  class:recombobulated={auction.recombobulated}
                   style="background: {getRarityBackground(auction.tier)}"
                 >
                   {#if iconUrl && !failedIcons.has(auction.uuid)}

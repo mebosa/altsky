@@ -304,6 +304,7 @@
             class:placeholder={!iconSrc}
             class:isometric={isIsometric}
             class:furfsky={$texturePackStore === 'furfsky'}
+            class:recombobulated={item.recombobulated}
             style={rarityColor ? `--rarity-color:${rarityColor}` : undefined}
             aria-label={item.name}
           >
@@ -608,6 +609,7 @@
   }
 
   .accessory-icon {
+    position: relative;
     width: 64px;
     height: 64px;
     border-radius: 18px;
@@ -620,6 +622,19 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     padding: 0;
     perspective: 500px;
+  }
+
+  .accessory-icon.recombobulated::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(225deg, #ffaa00 50%, transparent 50%);
+    pointer-events: none;
+    z-index: 2;
+    border-top-right-radius: 18px;
   }
 
   .accessory-icon.placeholder {

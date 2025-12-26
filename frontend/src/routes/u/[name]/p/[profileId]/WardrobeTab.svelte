@@ -846,7 +846,7 @@
               {@const slotFallbackIcon = resolveFallbackIcon(item ?? null, slotIcon)}
               <button class="slot-shell" data-piece={pieceLabelFromIndex(index)} type="button">
                 <div
-                  class={`slot-icon ${slotIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''}`}
+                  class={`slot-icon ${slotIcon ? '' : 'placeholder'} ${item?.leather_color ? 'leather' : ''} ${item?.rarity ? rarityClass(item.rarity) : ''} ${item?.recombobulated ? 'recombobulated' : ''}`}
                   style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
                 >
                   {#if slotIcon}
@@ -1205,6 +1205,7 @@
   }
 
   .slot-icon {
+    position: relative;
     border-radius: 16px;
     border: 1px solid rgba(148, 163, 184, 0.28);
     background: rgba(15, 23, 42, 0.5);
@@ -1216,6 +1217,19 @@
     justify-content: center;
     transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     flex-shrink: 0;
+  }
+
+  .slot-icon.recombobulated::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(225deg, #ffaa00 50%, transparent 50%);
+    pointer-events: none;
+    z-index: 2;
+    border-top-right-radius: 16px;
   }
 
   .slot-icon.placeholder {

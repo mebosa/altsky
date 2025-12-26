@@ -63,6 +63,7 @@
     icon_variants?: Partial<Record<TexturePack, string>>;
     lore?: string[];
     lore_colored?: string[];
+    recombobulated?: boolean;
   };
 
   type CatalogWeapon = {
@@ -87,7 +88,8 @@
       icon_variants: inventoryItem?.icon_variants ?? {},
       lore: inventoryItem?.lore ?? [],
       lore_colored: inventoryItem?.lore_colored ?? [],
-      leather_color: inventoryItem?.leather_color ?? null
+      leather_color: inventoryItem?.leather_color ?? null,
+      recombobulated: inventoryItem?.recombobulated
     };
   });
 
@@ -448,7 +450,7 @@
           on:mouseenter={() => (hoveredWeapon = weapon)}
           on:mouseleave={() => (hoveredWeapon = null)}
         >
-          <div class="weapon-icon-wrapper" style={rarityToBackground(weapon.rarity)}>
+          <div class="weapon-icon-wrapper" class:recombobulated={weapon.recombobulated} style={rarityToBackground(weapon.rarity)}>
             {#if getIconUrl(weapon)}
               <img
                 src={getIconUrl(weapon)}
@@ -838,6 +840,18 @@
     border-radius: 12px;
     background: var(--theme-secondary-alpha-16);
     overflow: hidden;
+  }
+
+  .weapon-icon-wrapper.recombobulated::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(225deg, #ffaa00 50%, transparent 50%);
+    pointer-events: none;
+    z-index: 2;
   }
 
   .weapon-icon {
