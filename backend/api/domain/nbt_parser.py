@@ -68,12 +68,12 @@ def _parse_lore_stats(lore_lines: List[str]) -> Dict[str, float]:
     예: "Farming Fortune: +67 (+25) (+12)" -> {'farming_fortune': 67}
     """
     if USE_CPP_PARSER:
-        LOGGER.warning("Using C++ parser for lore stats")
+        # LOGGER.warning("Using C++ parser for lore stats")
         stats = altsky_cpp.parse_lore_stats(lore_lines)
-        LOGGER.warning(f"C++ parser result: {stats} (from {len(lore_lines)} lines)")
+        # LOGGER.warning(f"C++ parser result: {stats} (from {len(lore_lines)} lines)")
         return stats
 
-    LOGGER.warning("Using Python parser for lore stats")
+    # LOGGER.warning("Using Python parser for lore stats")
     stats: Dict[str, float] = {}
     
     for line in lore_lines:

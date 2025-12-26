@@ -18,11 +18,11 @@ def calculate_stats(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if not _BASE_URL:
         return None
 
-    LOGGER.warning(f"Calling statscalc at {_BASE_URL} with payload keys: {list(payload.keys())}")
+    # LOGGER.warning(f"Calling statscalc at {_BASE_URL} with payload keys: {list(payload.keys())}")
     try:
         response = session.post(f"{_BASE_URL}/stats", json=payload, timeout=_TIMEOUT)
         response.raise_for_status()
-        LOGGER.warning("Statscalc response received")
+        # LOGGER.warning("Statscalc response received")
     except requests.RequestException as exc:
         if exc.response is not None:
              LOGGER.warning("Stats calc error response: %s", exc.response.text)

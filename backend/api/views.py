@@ -707,7 +707,7 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
         while "__" in weapon_id:
             weapon_id = weapon_id.replace("__", "_")
     if not skip_stats:
-        LOGGER.warning(f"Building statscalc payload for weapon_slot={weapon_slot}, weapon_id={weapon_id}")
+        # LOGGER.warning(f"Building statscalc payload for weapon_slot={weapon_slot}, weapon_id={weapon_id}")
         stats_payload = _build_statscalc_payload(
             summary,
             normalized_member_uuid,
@@ -717,7 +717,7 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
             weapon_id=weapon_id,
         )
         if stats_payload:
-            LOGGER.warning("Calling statscalc_client.calculate_stats")
+            # LOGGER.warning("Calling statscalc_client.calculate_stats")
             calc_result = statscalc_client.calculate_stats(stats_payload)
             if calc_result:
                 stats_block = calc_result.get('stats')
