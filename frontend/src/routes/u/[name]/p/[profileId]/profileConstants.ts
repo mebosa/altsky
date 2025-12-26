@@ -164,6 +164,7 @@ export const petTextures: Record<string, string | Record<string, string>> = {
   MAMMOTH: '6b10715732cd1fd49fa1b6187947c307dd4687105cf033840607f9d6234743ad',
   MOLE: '727baaafc09978d4bda73e16afdde85ec13b0f95ad989524c5fcaa717cf06b4a',
   GLACITE_GOLEM: 'af132a6593876d3c377d503fd66eca3fb938743251f7b16a9870c60b7388c8a3',
+  HEDGEHOG: 'cf7cde75b4f34621a4d31d5e37f4321497164d11591124336986c43e527548',
 };
 
 // Pet skins data (skin name -> texture hash)
