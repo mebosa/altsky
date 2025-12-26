@@ -765,7 +765,12 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
         museum_body, museum_error = _fetch_museum_data(profile_id, force_refresh=force_refresh)
         if museum_body and not museum_error:
             museum_members = museum_body.get('members') or {}
-            parsed_museum = parse_museum(museum_members, normalized_member_uuid)
+            
+            # Fetch prices for networth calculation
+            from .domain.networth import fetch_prices
+            prices = fetch_prices()
+            
+            parsed_museum = parse_museum(museum_members, normalized_member_uuid, prices)
             if parsed_museum:
                 museum_summary = get_museum_summary(parsed_museum)
                 # Add missing items with prices
@@ -773,58 +778,12 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
                 museum_summary['missing'] = missing_items
                 response_body['museum'] = museum_summary
                 
-                # Calculate actual museum value with modifiers (enchants, stars, HPB, etc.)
-                # Hypixel's museum value only counts base item prices
-                from .domain.networth import calculate_items_value, fetch_prices, _parse_inventory_items
-                try:
-                    prices = fetch_prices()
-                    museum_items_data = []
-                    
-                    # Extract museum items from API response
-                    member_museum = museum_members.get(normalized_member_uuid) or museum_members.get(normalized_member_uuid.replace("-", ""))
-                    if member_museum:
-                        raw_items = member_museum.get("items", {})
-                        raw_list = raw_items.values() if isinstance(raw_items, dict) else (raw_items if isinstance(raw_items, list) else [])
-
-                        def _maybe_add(blob):
-                            if isinstance(blob, str) and blob:
-                                return [blob]
-                            return []
-
-                        for item_entry in raw_list:
-                            if not isinstance(item_entry, dict):
-                                continue
-                            candidates = []
-                            candidates += _maybe_add(item_entry.get("data"))
-                            candidates += _maybe_add(item_entry.get("item_data") or item_entry.get("itemData") or item_entry.get("itemBytes"))
-                            items_data = item_entry.get("items")
-                            if isinstance(items_data, dict):
-                                candidates += _maybe_add(items_data.get("data"))
-                            elif isinstance(items_data, list):
-                                for sub in items_data:
-                                    if isinstance(sub, dict):
-                                        candidates += _maybe_add(sub.get("data"))
-
-                            for raw_data in candidates:
-                                try:
-                                    parsed_items = _parse_inventory_items({'data': raw_data})
-                                    museum_items_data.extend(parsed_items)
-                                except Exception as e:
-                                    LOGGER.debug(f"Failed to parse museum item: {e}")
-                    
-                    # Calculate actual value with all modifiers
-                    if museum_items_data:
-                        museum_value, _, _ = calculate_items_value(museum_items_data, prices)
-                        LOGGER.info(f"Museum actual value: {museum_value:,.0f} (Hypixel base: {museum_summary.get('value', 0):,.0f})")
-                        if museum_value <= 0:
-                            LOGGER.info("Museum computed as 0; falling back to Hypixel base value")
-                            museum_value = museum_summary.get('value', 0)
-                    else:
-                        # Fallback to Hypixel's base value
-                        museum_value = museum_summary.get('value', 0)
-                except Exception as e:
-                    LOGGER.warning(f"Failed to calculate actual museum value: {e}")
-                    museum_value = museum_summary.get('value', 0)
+                # Use calculated value from museum summary
+                museum_value = museum_summary.get('calculated_value', 0)
+                
+                # Fallback to Hypixel base value if calculated is 0
+                if museum_value <= 0:
+                     museum_value = museum_summary.get('value', 0)
                 
                 if museum_value and response_body.get('networth'):
                     nw = response_body['networth']

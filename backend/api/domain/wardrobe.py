@@ -239,35 +239,18 @@ def _extract_leather_color(display: nbtlib.Compound, extra: nbtlib.Compound) -> 
     return None
 
 
-# Rune textures mapping - each rune type has a unique texture hash
+# Rune textures mapping - each rune type has a unique texture hash from NEU repo
+# These are actual textures from NotEnoughUpdates-REPO
 RUNE_TEXTURES = {
-    "BLOOD": "a46a8e5c97af4e5fbf57b56c4e65ffbfcc2729611398356c8c26fef78a",
-    "BARK": "8a87c5a96c9d3063e8fcd2cd8a0cd9e8f0b7c3a9db8c7e5f1b3a2d4e6f8a0c2",
-    "BITE": "c31c3e24d1d64f0f9a2e5d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8",
-    "COUTURE": "6e7ce70b3c8f7a9d5e4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2",
-    "END": "f47b8e9c7d6e5a4f3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0",
-    "FIRE": "b4ef4fd9e2c92f5a14a25c4f6e9d8b7a6c5d4e3f2b1a0c9d8e7f6a5b4c3d2e1",
-    "GEM": "d5e7c9a8b6f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9",
-    "GOLDEN": "a8c7b6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8",
-    "HOT": "d7f9c8e7a6b5d4c3f2e1a0b9d8c7f6e5a4b3d2c1f0e9a8b7d6c5f4e3a2b1d0",
-    "ICE": "c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8",
-    "JERRY": "a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9",
-    "LAVA": "e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8",
-    "LIGHTNING": "b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2b1c0d9e8f7a6",
-    "MAGIC": "f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3",
-    "MERRY": "d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2",
-    "MUSIC": "e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5",
-    "PESTILENCE": "c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4",
-    "SNAKE": "95656f29e3c54a9297a2f8e91cb7e7bf7f7b9a8c6d5e4f3a2b1c0d9e8f7a6b5",
-    "SNOW": "a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2b1c0d9e8f7",
-    "SPARKLING": "f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6",
-    "SPIRIT": "b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9",
-    "SPOOKY": "e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4",
-    "TIDAL": "d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1",
-    "ZOMBIE_SLAYER": "c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0",
-    "HEARTS": "a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3",
-    "CLOUDS": "b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2",
-    "RAINBOW": "c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0e9a8b7c6d5e4f3a2b1",
+    "ANTLERS": "3c3b15ff40b381d6084f677c7864610c53b25a6aaa840696fcdc0da630b35f37",
+    "AXE_FADING_GREEN": "d56d420b2b904debd7be3a157d330e17264f1cf302a2d2022b9e46538653b8b0",
+    "AXE_FADING_WHITE": "771cadef7545fcb881a4eebaaec93ef2fa5f1e0e99b60d26805cf9c60113f49",
+    "AXE_SOUL_SLICE": "5911d19c29f29a11a2a2a231d2dafaaed078cfa78a1f4bd94ef5625b076ebcb7",
+    "BARK_TUNES": "d56d1157226e10c63dff08cfb59104873c9315dba128ef62e18a27d4dba04a42",
+    "BITE": "43a1ad4fcc42fb63c681328e42d63c83ca193b333af2a426728a25a8cc600692",
+    "BLAZING_SUN": "7e817ce13016e9c3d90ca9d3d46c74efd81ad1c210c177a3cddb2cd4954fcb0e",
+    "BLOOD_2": "e02677053dc54245dac4b399d14aae21ee71a010bd9c336c8ecee1a0dbe8f58b",
+    "BLOOMING": "1f9203e46ad838b21c806c787dbba63cfed62849a82cd7e7233e5b44af19d8f8",
 }
 
 
@@ -290,7 +273,7 @@ def _extract_rune_texture(extra: nbtlib.Compound) -> Optional[str]:
             if rune_name_str in RUNE_TEXTURES:
                 texture_hash = RUNE_TEXTURES[rune_name_str]
                 return f"https://mc-heads.net/head/{texture_hash}"
-            # If not in our mapping, try NEU/FurFsky
+            # If not in our mapping, the item's own texture will be used via _extract_extra_texture
             return None
     
     return None

@@ -607,14 +607,15 @@ def _process_museum_items(
     return items
 
 
-def _process_special_items(raw_special: Dict[str, Any]) -> List[MuseumItem]:
+def _process_special_items(raw_special: Dict[str, Any], prices: Optional[Dict[str, float]] = None) -> List[MuseumItem]:
     """Process special museum items (unique/limited items)."""
-    return _process_museum_items(raw_special, category=SPECIAL_CATEGORY)
+    return _process_museum_items(raw_special, category=SPECIAL_CATEGORY, prices=prices)
 
 
 def parse_museum(
     museum_data: Optional[Dict[str, Any]],
-    member_uuid: str
+    member_uuid: str,
+    prices: Optional[Dict[str, float]] = None
 ) -> Optional[Dict[str, Any]]:
     """
     Parse museum data from Hypixel API response.
@@ -622,6 +623,7 @@ def parse_museum(
     Args:
         museum_data: Raw museum API response containing member data
         member_uuid: The UUID of the player to get museum data for
+        prices: Optional dictionary of item prices for networth calculation
         
     Returns:
         Processed museum data dictionary or None if not available
@@ -656,14 +658,17 @@ def parse_museum(
     armor_items = []
     rarities_items = []
     
-    all_items = _process_museum_items(raw_items, "items")
-    special_items = _process_special_items(raw_special)
+    all_items = _process_museum_items(raw_items, "items", prices)
+    special_items = _process_special_items(raw_special, prices)
     
     # For now, all regular items go into a flat list
     # In a full implementation, you'd categorize based on MUSEUM constants
     
     total_donated = len(all_items)
     special_donated = len(special_items)
+    
+    # Calculate total value
+    calculated_value = sum(item.value for item in all_items) + sum(item.value for item in special_items)
     
     return {
         "value": value,
@@ -676,11 +681,13 @@ def parse_museum(
                     "donated_time": item.donated_time,
                     "borrowing": item.borrowing,
                     "rarity": item.rarity,
-                    "category": item.category
+                    "category": item.category,
+                    "value": item.value
                 }
                 for item in all_items
             ],
-            "count": total_donated
+            "count": total_donated,
+            "total_value": sum(item.value for item in all_items)
         },
         "special": {
             "items": [
@@ -689,17 +696,20 @@ def parse_museum(
                     "name": item.name,
                     "donated_time": item.donated_time,
                     "borrowing": item.borrowing,
-                    "rarity": item.rarity
+                    "rarity": item.rarity,
+                    "value": item.value
                 }
                 for item in special_items
             ],
-            "count": special_donated
+            "count": special_donated,
+            "total_value": sum(item.value for item in special_items)
         },
         "summary": {
             "total_donated": total_donated + special_donated,
             "regular_items": total_donated,
             "special_items": special_donated,
             "museum_value": value,
+            "calculated_value": calculated_value,
             "has_appraisal": appraisal
         }
     }
@@ -727,6 +737,7 @@ def get_museum_summary(museum: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return {
         "available": True,
         "value": museum.get("value", 0),
+        "calculated_value": museum.get("summary", {}).get("calculated_value", 0),
         "appraisal": museum.get("appraisal", False),
         "total_donated": museum.get("summary", {}).get("total_donated", 0),
         "regular_items": museum.get("items", {}).get("count", 0),

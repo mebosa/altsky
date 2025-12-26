@@ -634,6 +634,13 @@ export const PET_DATA = {
     maxLevel: 100,
     emoji: "🗿",
   },
+  HEDGEHOG: {
+    head: "/head/cf7cde75b4f34621a4d31d5e37f4321497164d11591124336986c43e527548",
+    type: "farming",
+    maxTier: "legendary",
+    maxLevel: 100,
+    emoji: "🦔",
+  },
 };
 
 export const PET_VALUE = {
