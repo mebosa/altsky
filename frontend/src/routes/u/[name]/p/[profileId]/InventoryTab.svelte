@@ -718,6 +718,7 @@
                   class="mc-slot"
                   class:filled={!!item}
                   class:leather={!!leatherColor}
+                  class:recombobulated={item?.recombobulated}
                   style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
                   type="button"
                 >
@@ -784,6 +785,7 @@
                   class="mc-slot"
                   class:filled={!!item}
                   class:leather={!!leatherColor}
+                  class:recombobulated={item?.recombobulated}
                   style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
                   type="button"
                 >
@@ -850,6 +852,7 @@
                   class="mc-slot"
                   class:filled={!!item}
                   class:leather={!!leatherColor}
+                  class:recombobulated={item?.recombobulated}
                   style={leatherColor ? `--leather-color:${leatherColor}` : undefined}
                   type="button"
                 >
