@@ -295,12 +295,38 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
     inventory = parse_inventory(member)
 
     # Calculate networth
+    networth = None
     try:
-        networth_result = calculate_networth(member, profile)
-        networth = networth_result.to_dict()
+        # Try SkyHelper API first
+        from ..skyhelper_client import fetch_networth
+        networth_data = fetch_networth(profile_id, player_uuid)
+        
+        if networth_data:
+            networth = {
+                "total": networth_data.get("networth", 0),
+                "unsoulbound": networth_data.get("unsoulboundNetworth", 0),
+                "purse": networth_data.get("purse", 0),
+                "bank": networth_data.get("bank", 0),
+                "categories": {}
+            }
+            
+            types = networth_data.get("types", {})
+            for key, data in types.items():
+                networth["categories"][key] = {
+                    "name": key.replace("_", " ").title(),
+                    "total": data.get("total", 0),
+                    "item_count": len(data.get("items", []))
+                }
     except Exception as e:
-        NW_LOGGER.warning("Failed to calculate networth: %s", e)
-        networth = None
+        NW_LOGGER.warning("Failed to fetch networth from SkyHelper API: %s", e)
+
+    if not networth:
+        try:
+            networth_result = calculate_networth(member, profile)
+            networth = networth_result.to_dict()
+        except Exception as e:
+            NW_LOGGER.warning("Failed to calculate networth locally: %s", e)
+            networth = None
 
     return {
         "profile": {

@@ -260,6 +260,10 @@ def fetch_prices() -> Dict[str, float]:
     except Exception as e:
         LOGGER.warning("Failed to fetch bazaar prices: %s", e)
 
+    # Manual overrides for missing essences
+    if "ESSENCE_FOREST" not in prices:
+        prices["ESSENCE_FOREST"] = 10.0  # Default price for Forest Essence
+
     if prices:
         cache.set(PRICES_CACHE_KEY, prices, PRICES_CACHE_TTL)
     

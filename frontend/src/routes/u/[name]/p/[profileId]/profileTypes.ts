@@ -37,6 +37,7 @@ export type WardrobeItem = {
   icon_variants?: Partial<Record<TexturePack, string>>;
   leather_color?: string | null;
   skin_url?: string | null;
+  recombobulated?: boolean;
 };
 
 export type AccessoryItem = {

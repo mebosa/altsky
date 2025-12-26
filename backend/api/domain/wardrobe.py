@@ -482,13 +482,21 @@ def _parse_compound_item(
     except (TypeError, ValueError):
         damage = None
 
-    icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
+    # For skull items (id 397 with damage 3), prioritize extracting textures from NBT first
+    # These have their textures in SkullOwner, not from material lookup
+    is_player_head = (item_id == "397" and damage == 3) or item_id == "minecraft:player_head"
     
     # Try rune texture first (for rune items), then fall back to extra texture or skull icon
-    fallback_icon = _extract_rune_texture(extra) or _extract_extra_texture(extra) or _extract_skull_icon(tag)
-    if fallback_icon:
-        for pack in TEXTURE_PACKS:
-            icon_variants.setdefault(pack, fallback_icon)
+    skull_texture = _extract_rune_texture(extra) or _extract_extra_texture(extra) or _extract_skull_icon(tag)
+    
+    if is_player_head and skull_texture:
+        # For player heads, always use the skull texture, don't even try material lookup
+        icon_variants = {pack: skull_texture for pack in TEXTURE_PACKS}
+    else:
+        icon_variants = resolve_item_icon_variants(extra_id or item_id, item_id or None, damage)
+        if skull_texture:
+            for pack in TEXTURE_PACKS:
+                icon_variants.setdefault(pack, skull_texture)
 
     icon_url = next(
         (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),

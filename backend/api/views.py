@@ -787,9 +787,10 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
                 
                 if museum_value and response_body.get('networth'):
                     nw = response_body['networth']
-                    nw['total'] = nw.get('total', 0) + museum_value
-                    # Museum items are soulbound, so they don't add to unsoulbound
-                    if 'categories' in nw:
+                    # Only add if not already present (e.g. from SkyHelper API)
+                    if 'categories' in nw and 'museum' not in nw['categories']:
+                        nw['total'] = nw.get('total', 0) + museum_value
+                        # Museum items are soulbound, so they don't add to unsoulbound
                         nw['categories']['museum'] = {
                             'name': 'Museum',
                             'total': museum_value

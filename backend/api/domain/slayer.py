@@ -8,8 +8,9 @@ BOSS_LEVELS = {
     "wolf": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
     "enderman": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
     "blaze": [0, 5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
-    # Vampire (Riftstalker) caps at 5 (claimed_levels preferred, this is only a fallback)
-    "vampire": [0, 15, 200, 1000, 5000, 20000],
+    # Vampire (Riftstalker) caps at 5.
+    # Wiki: https://wiki.hypixel.net/Vampire_Slayer#Leveling_Rewards
+    "vampire": [0, 20, 75, 240, 840, 2400],
 }
 
 
