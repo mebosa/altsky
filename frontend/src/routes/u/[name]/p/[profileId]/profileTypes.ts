@@ -70,6 +70,7 @@ export type MissingAccessory = {
 export type DungeonFloor = {
   name: string;
   completions: number;
+  attempts: number;
   fastest_time: number;
   best_score: number;
 };

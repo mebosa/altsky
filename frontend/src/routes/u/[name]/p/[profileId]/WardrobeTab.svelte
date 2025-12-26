@@ -448,9 +448,10 @@
     pack?: TexturePack
   ): { url: string; source: IconSource } | null {
     if (!item) return null;
-    if (item.skin_url) {
+    // skin_url is the raw texture (unfolded), we don't want to use it as an icon
+    /* if (item.skin_url) {
       return { url: item.skin_url, source: 'legacy' };
-    }
+    } */
     const variants = item.icon_variants ?? {};
     if (pack && variants[pack]) {
       return { url: variants[pack]!, source: pack };

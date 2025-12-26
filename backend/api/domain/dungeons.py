@@ -126,6 +126,7 @@ def _safe_int(value: Any) -> int:
 def _extract_floors(dungeon_type_data: Dict[str, Any]) -> Dict[str, Any]:
     floors_out = {}
     tier_completions = dungeon_type_data.get("tier_completions", {})
+    times_played = dungeon_type_data.get("times_played", {})
     fastest_time = dungeon_type_data.get("fastest_time", {})
     best_runs = dungeon_type_data.get("best_runs", {})
     best_score_map = dungeon_type_data.get("best_score", {})
@@ -137,6 +138,7 @@ def _extract_floors(dungeon_type_data: Dict[str, Any]) -> Dict[str, Any]:
         # Check if we have any data for this floor
         has_data = (
             floor_key in tier_completions or 
+            floor_key in times_played or
             floor_key in fastest_time or 
             floor_key in best_runs or 
             floor_key in best_score_map
@@ -146,6 +148,7 @@ def _extract_floors(dungeon_type_data: Dict[str, Any]) -> Dict[str, Any]:
             continue
 
         completions = _safe_int(tier_completions.get(floor_key, 0))
+        attempts = _safe_int(times_played.get(floor_key, 0))
         time = _safe_int(fastest_time.get(floor_key, 0))
         
         score = 0
@@ -167,6 +170,7 @@ def _extract_floors(dungeon_type_data: Dict[str, Any]) -> Dict[str, Any]:
         floors_out[f"floor_{i}"] = {
             "name": "Entrance" if i == 0 else f"Floor {i}",
             "completions": completions,
+            "attempts": attempts,
             "fastest_time": time,
             "best_score": score,
         }

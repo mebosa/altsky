@@ -231,6 +231,21 @@ def summarize_currencies(member: Dict[str, Any], profile: Dict[str, Any]) -> Dic
         for k, v in essence_raw.items()
     }
 
+    # Check for Forest Essence in other locations if not present
+    if "FOREST" not in essence:
+        # Check inside essence_raw for case variations
+        if "forest" in essence_raw:
+             val = essence_raw["forest"]
+             essence["FOREST"] = _safe_int(val.get("current", 0) if isinstance(val, dict) else val)
+        
+        # Check currencies top level for various keys
+        if "FOREST" not in essence:
+            for key in ["forest_essence", "FOREST_ESSENCE", "essence_forest", "ESSENCE_FOREST", "forest", "FOREST"]:
+                val = currencies.get(key)
+                if val is not None:
+                    essence["FOREST"] = _safe_int(val.get("current", 0) if isinstance(val, dict) else val)
+                    break
+
     essence_total = sum(essence.values()) if essence else 0
 
     return {

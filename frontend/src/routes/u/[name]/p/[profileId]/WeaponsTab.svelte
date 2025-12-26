@@ -615,6 +615,7 @@
 
   .search-input {
     width: 100%;
+    box-sizing: border-box;
     padding: 10px 12px 10px 40px;
     border: 1px solid var(--theme-surface-border);
     border-radius: 10px;
@@ -645,6 +646,7 @@
     font-size: 0.85rem;
     cursor: pointer;
     transition: border-color 0.2s;
+    box-sizing: border-box;
   }
 
   .filter-select:hover {
@@ -662,6 +664,7 @@
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
     flex-shrink: 0;
+    box-sizing: border-box;
   }
 
   .catalog-toggle:hover {
