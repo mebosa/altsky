@@ -64,6 +64,7 @@
     lore?: string[];
     lore_colored?: string[];
     recombobulated?: boolean;
+    skin_url?: string | null;
   };
 
   type CatalogWeapon = {
@@ -89,7 +90,8 @@
       lore: inventoryItem?.lore ?? [],
       lore_colored: inventoryItem?.lore_colored ?? [],
       leather_color: inventoryItem?.leather_color ?? null,
-      recombobulated: inventoryItem?.recombobulated
+      recombobulated: inventoryItem?.recombobulated,
+      skin_url: inventoryItem?.skin_url ?? null
     };
   });
 
@@ -268,6 +270,9 @@
     weapon: WeaponCandidate,
     pack?: TexturePack
   ): { url: string; source: IconSource } | null {
+    if (weapon.skin_url) {
+      return { url: weapon.skin_url, source: 'legacy' };
+    }
     const variants = weapon.icon_variants ?? {};
     if (pack && variants[pack]) {
       return { url: variants[pack]!, source: pack };
@@ -582,7 +587,7 @@
 
   .search-box {
     position: relative;
-    flex: 1;
+    flex: 1 1 250px;
     min-width: 200px;
   }
 
@@ -595,6 +600,7 @@
     height: 18px;
     color: var(--theme-text-soft);
     pointer-events: none;
+    z-index: 1;
   }
 
   .search-input {
@@ -617,6 +623,7 @@
   .filter-controls {
     display: flex;
     gap: 8px;
+    flex-shrink: 0;
   }
 
   .filter-select {
@@ -644,6 +651,7 @@
     font-size: 0.85rem;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
   }
 
   .catalog-toggle:hover {

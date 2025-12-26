@@ -742,10 +742,11 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
             selected_weapon = extract_weapon_from_profile(member_data, preferred_slot=weapon_slot)
             if selected_weapon:
                 response_body['weapon_selected_slot'] = selected_weapon.get('slot')
-        else:
-            response_body['weapon_catalog'] = _load_weapon_catalog()
-            if weapon_id:
-                response_body['weapon_selected_id'] = weapon_id
+        
+        # Always include weapon catalog
+        response_body['weapon_catalog'] = _load_weapon_catalog()
+        if weapon_id:
+            response_body['weapon_selected_id'] = weapon_id
         
         # Extract pets data for frontend
         pets = extract_pets_from_profile(member_data)
@@ -911,10 +912,11 @@ def hypixel_profile_summary_by_name(request: Request, name: str, profile_id: str
             selected_weapon = extract_weapon_from_profile(member_data, preferred_slot=weapon_slot)
             if selected_weapon:
                 response_body['weapon_selected_slot'] = selected_weapon.get('slot')
-        else:
-            response_body['weapon_catalog'] = _load_weapon_catalog()
-            if weapon_id:
-                response_body['weapon_selected_id'] = weapon_id
+        
+        # Always include weapon catalog
+        response_body['weapon_catalog'] = _load_weapon_catalog()
+        if weapon_id:
+            response_body['weapon_selected_id'] = weapon_id
         
         pets = extract_pets_from_profile(member_data)
         if pets:

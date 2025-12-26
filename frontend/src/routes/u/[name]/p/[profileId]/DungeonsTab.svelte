@@ -5,6 +5,14 @@
 
   export let summary: ProfileSummaryResponse;
   export let dungeonClassLabels: Record<string, string>;
+
+  function formatTime(ms: number) {
+    if (!ms) return '-';
+    const seconds = Math.floor(ms / 1000);
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
 </script>
 
 <section id="dungeons" class="grid dungeon-grid">
@@ -53,9 +61,49 @@
   {/each}
 </section>
 
+{#if summary.dungeons.catacombs.floors}
+  <h3 class="section-title">Catacombs Floors</h3>
+  <section class="grid dungeon-grid">
+    {#each Object.entries(summary.dungeons.catacombs.floors) as [key, floor]}
+      <div class="card dungeon-card">
+        <div class="skill-header">
+           <span class="dungeon-name">{floor.name}</span>
+        </div>
+        <div class="sub">Completions: {formatNumber(floor.completions)}</div>
+        <div class="sub">Best Score: {floor.best_score}</div>
+        <div class="sub">Fastest: {formatTime(floor.fastest_time)}</div>
+      </div>
+    {/each}
+  </section>
+{/if}
+
+{#if summary.dungeons.master_catacombs && summary.dungeons.master_catacombs.floors}
+  <h3 class="section-title">Master Mode Floors</h3>
+  <section class="grid dungeon-grid">
+    {#each Object.entries(summary.dungeons.master_catacombs.floors) as [key, floor]}
+      <div class="card dungeon-card">
+        <div class="skill-header">
+           <span class="dungeon-name">{floor.name}</span>
+        </div>
+        <div class="sub">Completions: {formatNumber(floor.completions)}</div>
+        <div class="sub">Best Score: {floor.best_score}</div>
+        <div class="sub">Fastest: {formatTime(floor.fastest_time)}</div>
+      </div>
+    {/each}
+  </section>
+{/if}
+
 <style>
   .dungeon-grid {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 2rem 0 1rem;
+    color: var(--theme-text-primary);
   }
 
   .dungeon-card {

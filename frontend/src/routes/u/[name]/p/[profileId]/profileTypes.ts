@@ -67,6 +67,13 @@ export type MissingAccessory = {
   icon_variants?: Partial<Record<TexturePack, string>>;
 };
 
+export type DungeonFloor = {
+  name: string;
+  completions: number;
+  fastest_time: number;
+  best_score: number;
+};
+
 export type ProfileSummaryResponse = {
   ok: boolean;
   last_updated?: string | number;
@@ -124,6 +131,10 @@ export type ProfileSummaryResponse = {
       current: number;
       to_next: number;
       overflow: number;
+      floors: Record<string, DungeonFloor>;
+    };
+    master_catacombs: {
+      floors: Record<string, DungeonFloor>;
     };
     classes: Record<
       string,

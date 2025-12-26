@@ -116,6 +116,18 @@
     'double_hook_chance'
   ]);
 
+  const essenceColors: Record<string, string> = {
+    WITHER: '#a0a0a0',
+    SPIDER: '#9d9dff',
+    UNDEAD: '#fcd34d',
+    DRAGON: '#d8b4fe',
+    GOLD: '#fbbf24',
+    DIAMOND: '#67e8f9',
+    ICE: '#e2e8f0',
+    CRIMSON: '#f87171',
+    FOREST: '#22c55e'
+  };
+
   const statColors: Partial<Record<KnownStatKey, string>> = {
     health: '#ef4444',      // Red
     defense: '#22c55e',     // Green

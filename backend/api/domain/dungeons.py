@@ -123,12 +123,66 @@ def _safe_int(value: Any) -> int:
             return 0
 
 
+def _extract_floors(dungeon_type_data: Dict[str, Any]) -> Dict[str, Any]:
+    floors_out = {}
+    tier_completions = dungeon_type_data.get("tier_completions", {})
+    fastest_time = dungeon_type_data.get("fastest_time", {})
+    best_runs = dungeon_type_data.get("best_runs", {})
+    best_score_map = dungeon_type_data.get("best_score", {})
+
+    # Floors 0-7 (Entrance is 0)
+    for i in range(8):
+        floor_key = str(i)
+        
+        # Check if we have any data for this floor
+        has_data = (
+            floor_key in tier_completions or 
+            floor_key in fastest_time or 
+            floor_key in best_runs or 
+            floor_key in best_score_map
+        )
+        
+        if not has_data:
+            continue
+
+        completions = _safe_int(tier_completions.get(floor_key, 0))
+        time = _safe_int(fastest_time.get(floor_key, 0))
+        
+        score = 0
+        if floor_key in best_score_map:
+            score = _safe_int(best_score_map[floor_key])
+        elif floor_key in best_runs:
+             # Calculate from best_runs
+             runs = best_runs[floor_key]
+             for run in runs:
+                run_score = (
+                    run.get("score_exploration", 0) + 
+                    run.get("score_speed", 0) + 
+                    run.get("score_skill", 0) + 
+                    run.get("score_bonus", 0)
+                )
+                if run_score > score:
+                    score = run_score
+
+        floors_out[f"floor_{i}"] = {
+            "name": "Entrance" if i == 0 else f"Floor {i}",
+            "completions": completions,
+            "fastest_time": time,
+            "best_score": score,
+        }
+    return floors_out
+
+
 def extract_dungeons(member: Dict[str, Any]) -> Dict[str, Any]:
     dungeon_data = member.get("dungeons", {}) or {}
 
     catacombs_raw = dungeon_data.get("dungeon_types", {}).get("catacombs", {}) or {}
     catacombs_xp = _safe_int(catacombs_raw.get("experience"))
     catacombs = xp_to_stat(catacombs_xp)
+    catacombs_floors = _extract_floors(catacombs_raw)
+
+    master_catacombs_raw = dungeon_data.get("dungeon_types", {}).get("master_catacombs", {}) or {}
+    master_catacombs_floors = _extract_floors(master_catacombs_raw)
 
     classes_raw = dungeon_data.get("player_classes", {}) or {}
     classes_out: Dict[str, Dict[str, int]] = {}
@@ -152,6 +206,10 @@ def extract_dungeons(member: Dict[str, Any]) -> Dict[str, Any]:
             "current": catacombs.current,
             "to_next": catacombs.to_next,
             "overflow": catacombs.overflow,
+            "floors": catacombs_floors,
+        },
+        "master_catacombs": {
+            "floors": master_catacombs_floors,
         },
         "classes": classes_out,
     }

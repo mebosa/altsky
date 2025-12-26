@@ -51,6 +51,9 @@
     pack?: TexturePack
   ): { url: string; source: IconSource } | null {
     if (!item) return null;
+    if (item.skin_url) {
+      return { url: item.skin_url, source: 'legacy' };
+    }
     const variants = item.icon_variants ?? {};
     if (pack && variants[pack]) {
       return { url: variants[pack]!, source: pack };
