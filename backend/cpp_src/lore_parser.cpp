@@ -44,8 +44,8 @@ std::map<std::string, std::string> STAT_NAME_MAP = {
 // Regex for color codes: §[0-9a-fk-or]
 std::regex COLOR_CODE_REGEX("§[0-9a-fk-or]", std::regex_constants::icase);
 
-// Regex for stat line: ^([A-Za-z ]+):\s*([+-]?\d+(?:\.\d+)?)
-std::regex STAT_LINE_REGEX("^([A-Za-z ]+):\\s*([+-]?\\d+(?:\\.\\d+)?)");
+// Regex for stat line: ^[^A-Za-z]*([A-Za-z ]+):\s*([+-]?\d+(?:\.\d+)?)
+std::regex STAT_LINE_REGEX("^[^A-Za-z]*([A-Za-z ]+):\\s*([+-]?\\d+(?:\\.\\d+)?)");
 
 std::map<std::string, double> parse_lore_stats(const std::vector<std::string>& lore_lines) {
     std::map<std::string, double> stats;

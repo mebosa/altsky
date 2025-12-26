@@ -82,7 +82,8 @@ def _parse_lore_stats(lore_lines: List[str]) -> Dict[str, float]:
             
         # "스탯이름: +값" 또는 "스탯이름: 값" 패턴 매칭
         # 예: "Health: +130", "Defense: +40", "Farming Fortune: +67 (+25) (+12)"
-        match = re.match(r'^([A-Za-z ]+):\s*([+-]?\d+(?:\.\d+)?)', clean_line)
+        # 예: "❁ Strength: +50" (심볼 포함)
+        match = re.match(r'^[^A-Za-z]*([A-Za-z ]+):\s*([+-]?\d+(?:\.\d+)?)', clean_line)
         if match:
             stat_name = match.group(1).strip().lower()
             try:

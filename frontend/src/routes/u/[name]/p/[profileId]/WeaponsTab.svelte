@@ -127,10 +127,11 @@
   // Filtered catalog
   $: filteredCatalog = weaponCatalog.filter((w) => {
     if (!catalogSearch) return true;
-    const query = catalogSearch.toLowerCase();
+    const query = catalogSearch.trim().toLowerCase();
+    if (!query) return true;
     return (
       w.id.toLowerCase().includes(query) ||
-      w.name?.toLowerCase().includes(query)
+      (w.name ?? '').toLowerCase().includes(query)
     );
   });
 
@@ -425,6 +426,15 @@
         />
       </div>
       <div class="catalog-grid">
+        {#if filteredCatalog.length === 0}
+          <div class="catalog-empty">
+            {#if weaponCatalog.length === 0}
+              Loading catalog...
+            {:else}
+              No weapons found matching "{catalogSearch}"
+            {/if}
+          </div>
+        {/if}
         {#each filteredCatalog.slice(0, 50) as catalogWeapon (catalogWeapon.id)}
           <button
             class="catalog-item"
@@ -751,6 +761,14 @@
     max-height: 300px;
     overflow-y: auto;
     padding-right: 8px;
+  }
+
+  .catalog-empty {
+    grid-column: 1 / -1;
+    padding: 20px;
+    text-align: center;
+    color: var(--theme-text-soft);
+    font-style: italic;
   }
 
   .catalog-item {

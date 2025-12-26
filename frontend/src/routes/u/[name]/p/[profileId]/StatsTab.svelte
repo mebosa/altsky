@@ -502,8 +502,10 @@
       <div class="essence-list">
         {#each Object.entries(summary.currencies.essence) as [key, value]}
           {#if Number(value) > 0}
-            <div class="essence-item">
-              <span class="ess-name">{key}</span>
+            <div class="essence-item" style="border-color: {essenceColors[key] ? essenceColors[key] + '40' : 'rgba(255, 255, 255, 0.08)'}">
+              <span class="ess-name" style="color: {essenceColors[key] || 'var(--theme-text-secondary)'}">
+                {key.toLowerCase().replace(/_/g, ' ')}
+              </span>
               <span class="ess-val">{formatNumber(Number(value), 0)}</span>
             </div>
           {/if}

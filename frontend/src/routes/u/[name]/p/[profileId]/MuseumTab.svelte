@@ -205,7 +205,7 @@
         <div class="stat-card value">
           <div class="stat-icon">💰</div>
           <div class="stat-content">
-            <div class="stat-value">{formatCoins(museum.value)}</div>
+            <div class="stat-value">{formatCoins(museum.calculated_value || museum.value)}</div>
             <div class="stat-label">Museum Value</div>
             <div class="stat-sub">Total coin value of donated items</div>
           </div>

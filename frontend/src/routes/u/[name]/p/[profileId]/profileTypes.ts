@@ -312,6 +312,7 @@ export type MuseumCategory = {
 export type MuseumData = {
   available: boolean;
   value: number;
+  calculated_value?: number;
   appraisal: boolean;
   total_donated: number;
   regular_items: number;
