@@ -2011,7 +2011,12 @@ def _bazaar_quality(
 
     # Penalize extreme spreads and tiny prices (common snapshot outlier patterns).
     spread_penalty = 1.0 / (1.0 + (spread_pct / 50.0) ** 2)
-    price_penalty = _clamp01(sell_price / 5.0) if sell_price < 5.0 else 1.0
+    # Stronger penalty for cheap items (inventory management cost)
+    # Items under 500 coins are heavily penalized.
+    price_penalty = _clamp01(sell_price / 500.0) if sell_price < 500.0 else 1.0
+    # Square the price penalty to make it very harsh for cheap items
+    price_penalty = price_penalty * price_penalty
+    
     confidence_score = _clamp01(liquidity_score * spread_penalty * price_penalty)
 
     if confidence_score >= 0.66:
@@ -2028,8 +2033,8 @@ def _bazaar_quality(
         notes.append('low_volume')
     if total_orders < 10.0:
         notes.append('few_orders')
-    if sell_price < 5.0:
-        notes.append('tiny_price')
+    if sell_price < 500.0:
+        notes.append('low_price_inventory_drag')
 
     return {
         'spread': round(float(spread), 4),
@@ -2212,12 +2217,6 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
         margin = buy_price * (1.0 - tau) - sell_price
         margin_percent = (margin / sell_price * 100) if sell_price > 0 else 0
         
-        # Calculate potential profit using Moving Week volume (velocity)
-        # We estimate we can capture 1% of the weekly volume
-        # Use the minimum of buy/sell moving week to be conservative (bottleneck)
-        volume_velocity = min(buy_moving_week, sell_moving_week)
-        potential_profit = margin * volume_velocity * 0.01
-
         try:
             quality = _bazaar_quality(
                 buy_price=float(buy_price),
@@ -2229,6 +2228,30 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
             )
         except Exception:
             quality = {'confidence_label': 'Unknown', 'confidence_score': 0.0, 'notes': ['quality_calc_failed']}
+        
+        # Filter out low quality items (likely market manipulation or dead items)
+        if quality.get('confidence_score', 0) < 0.1:
+            continue
+
+        # Calculate potential profit (Hourly Estimate)
+        # 1. Get hourly volume from weekly moving average (7 days * 24 hours = 168)
+        hourly_vol = min(buy_moving_week, sell_moving_week) / 168.0
+        
+        # 2. Estimate our capture rate. We assume we can capture ~20% of the market volume
+        #    if we are active.
+        capture_rate = 0.20
+        my_hourly_vol = hourly_vol * capture_rate
+        
+        # 3. Cap physical throughput.
+        #    - Stackable items: ~2300 items/inventory. 
+        #      Realistically managing orders, maybe 2-3 inventories per hour per item is a safe upper bound 
+        #      for a single order slot? Let's say 5000 items/hour.
+        my_hourly_vol = min(my_hourly_vol, 5000)
+        
+        confidence = quality.get('confidence_score', 0.0)
+        
+        # Profit = Margin * Volume * Confidence^2
+        potential_profit = margin * my_hourly_vol * (confidence ** 2)
         
         recommendations.append({
             'product_id': product_id,
@@ -2278,7 +2301,13 @@ def bazaar_flips(request: Request) -> Response:
     }
     """
     force_refresh = _should_bypass_cache(request.query_params)
-    limit = min(int(request.query_params.get('limit', 20)), 100)
+    # Allow up to 2000 items (effectively all relevant items)
+    try:
+        limit = int(request.query_params.get('limit', 20))
+        limit = max(1, min(limit, 2000))
+    except (ValueError, TypeError):
+        limit = 20
+
     sort_by = request.query_params.get('sort', 'margin_percent')
     # Optional override of bazaar tax (default 1.25%)
     tau = 0.0125
