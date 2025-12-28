@@ -142,6 +142,29 @@
   const MISSING_PREVIEW_LIMIT = 24;
   const RECOMMENDATION_LIMIT = 8;
   let showAllMissing = false;
+  let activeAccessorySlot: number | null = null;
+  let tooltipClearTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  function activateAccessoryTooltip(slot: number) {
+    activeAccessorySlot = slot;
+    if (tooltipClearTimeout) {
+      clearTimeout(tooltipClearTimeout);
+      tooltipClearTimeout = null;
+    }
+  }
+
+  function scheduleClearAccessoryTooltip(slot: number) {
+    if (tooltipClearTimeout) {
+      clearTimeout(tooltipClearTimeout);
+      tooltipClearTimeout = null;
+    }
+    tooltipClearTimeout = setTimeout(() => {
+      if (activeAccessorySlot === slot) {
+        activeAccessorySlot = null;
+      }
+      tooltipClearTimeout = null;
+    }, 80);
+  }
 
   $: missingDisplayList = (() => {
     const source = recommendations.length ? recommendations : missingAccessories;
@@ -307,6 +330,10 @@
             class:recombobulated={item.recombobulated}
             style={rarityColor ? `--rarity-color:${rarityColor}` : undefined}
             aria-label={item.name}
+            on:mouseenter={() => activateAccessoryTooltip(item.slot)}
+            on:mouseleave={() => scheduleClearAccessoryTooltip(item.slot)}
+            on:focus={() => activateAccessoryTooltip(item.slot)}
+            on:blur={() => scheduleClearAccessoryTooltip(item.slot)}
           >
             {#if iconSrc}
               <img
@@ -321,7 +348,12 @@
               <span class="initial">{item.name.slice(0, 1).toUpperCase()}</span>
             {/if}
           </button>
-          <div class="accessory-tooltip">
+          <div
+            class="accessory-tooltip"
+            role="tooltip"
+            on:mouseenter={() => activateAccessoryTooltip(item.slot)}
+            on:mouseleave={() => scheduleClearAccessoryTooltip(item.slot)}
+          >
             <div class="tooltip-header">
               <span class="tooltip-name">{item.name}</span>
               <span class="tooltip-rarity">{rarityLabel(item.rarity) ?? 'Unknown'}</span>
@@ -338,32 +370,34 @@
                 <span class="highlight">Recombobulated</span>
               {/if}
             </div>
-            {#if item.lore_colored?.length}
-              <div class="tooltip-lore">
-                {#each item.lore_colored as line, lineIndex (lineIndex)}
-                  {@const segments = parseLegacyText(line)}
-                  <p>
-                    {#if segments.length}
-                      {#each segments as segment, segIndex (segIndex)}
-                        <span
-                          class={legacySegmentClasses(segment)}
-                          style={legacySegmentStyle(segment)}
-                        >
-                          {segment.text}
-                        </span>
-                      {/each}
-                    {:else}
-                      <span class="mc-span">&nbsp;</span>
-                    {/if}
-                  </p>
-                {/each}
-              </div>
-            {:else if item.lore.length}
-              <div class="tooltip-lore">
-                {#each item.lore as line, index (index)}
-                  <p>{line}</p>
-                {/each}
-              </div>
+            {#if activeAccessorySlot === item.slot}
+              {#if item.lore_colored?.length}
+                <div class="tooltip-lore">
+                  {#each item.lore_colored as line, lineIndex (lineIndex)}
+                    {@const segments = parseLegacyText(line)}
+                    <p>
+                      {#if segments.length}
+                        {#each segments as segment, segIndex (segIndex)}
+                          <span
+                            class={legacySegmentClasses(segment)}
+                            style={legacySegmentStyle(segment)}
+                          >
+                            {segment.text}
+                          </span>
+                        {/each}
+                      {:else}
+                        <span class="mc-span">&nbsp;</span>
+                      {/if}
+                    </p>
+                  {/each}
+                </div>
+              {:else if item.lore.length}
+                <div class="tooltip-lore">
+                  {#each item.lore as line, index (index)}
+                    <p>{line}</p>
+                  {/each}
+                </div>
+              {/if}
             {/if}
           </div>
         </div>
@@ -910,11 +944,6 @@
 
   .missing-chip .price {
     font-weight: 600;
-  }
-
-  .missing-chip .price.muted {
-    color: var(--theme-text-soft);
-    font-weight: 500;
   }
 
   .missing-chip .ppm {
