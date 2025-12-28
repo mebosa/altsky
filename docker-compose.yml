@@ -149,11 +149,18 @@ services:
     container_name: altsky-tunnel
     profiles: ["tunnel"]
     # Set CLOUDFLARED_TOKEN in your environment to enable the tunnel.
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN:-}
+    command: >-
+      tunnel --no-autoupdate run
+      --dns-resolver-addrs 1.1.1.1:53
+      --dns-resolver-addrs 8.8.8.8:53
+      --token ${CLOUDFLARED_TOKEN:-}
     depends_on:
       - nginx
     networks:
       - altsky-network
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     restart: unless-stopped
 
 volumes:
