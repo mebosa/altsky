@@ -66,17 +66,37 @@ def compute_item_metrics(
 
     E = (Q * m * (1.0 - r_i)) / T_i - gp.lambda_slot * (l_b + l_s) - gp.mu * K_bar
 
+    spread = market.buy_price - market.sell_price
+    spread_pct = abs(spread) / market.sell_price * 100.0 if market.sell_price > 0 else 0.0
+    min_vol = float(min(market.buy_volume, market.sell_volume))
+    liquidity_score = min(1.0, max(0.0, math.log10(min_vol + 1.0) / 6.0))
+    spread_penalty = 1.0 / (1.0 + (spread_pct / 50.0) ** 2)
+    price_penalty = min(1.0, max(0.0, market.sell_price / 5.0)) if market.sell_price < 5.0 else 1.0
+    confidence_score = min(1.0, max(0.0, liquidity_score * spread_penalty * price_penalty))
+    if confidence_score >= 0.66:
+        confidence_label = "High"
+    elif confidence_score >= 0.33:
+        confidence_label = "Medium"
+    else:
+        confidence_label = "Low"
+    notes = []
+    if spread_pct >= 200.0:
+        notes.append("extreme_spread")
+    if min_vol < 200.0:
+        notes.append("low_volume")
+    if market.sell_price < 5.0:
+        notes.append("tiny_price")
+
     debug = {
         "quality": {
             # Non-filtering diagnostics only (UI can use these to flag suspicious outliers)
-            "spread": market.buy_price - market.sell_price,
-            "spread_percent": (
-                abs(market.buy_price - market.sell_price) / market.sell_price * 100.0
-                if market.sell_price > 0
-                else 0.0
-            ),
-            "min_volume": float(min(market.buy_volume, market.sell_volume)),
-            "liquidity_score": min(1.0, max(0.0, math.log10(min(market.buy_volume, market.sell_volume) + 1.0) / 6.0)),
+            "spread": spread,
+            "spread_percent": spread_pct,
+            "min_volume": min_vol,
+            "liquidity_score": liquidity_score,
+            "confidence_score": confidence_score,
+            "confidence_label": confidence_label,
+            "notes": notes,
         },
         "prices": {
             # Hypixel semantics

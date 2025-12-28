@@ -14,6 +14,13 @@
     buy_orders: number;
     sell_orders: number;
     potential_profit: number;
+    quality?: {
+      confidence_label?: string;
+      confidence_score?: number;
+      liquidity_score?: number;
+      spread_percent?: number;
+      notes?: string[];
+    };
   }
 
   interface BazaarResponse {
@@ -155,6 +162,7 @@
             <th class="col-price">Sell (Instant)</th>
             <th class="col-margin">Margin</th>
             <th class="col-percent">Margin %</th>
+            <th class="col-quality">Quality</th>
             <th class="col-volume">Buy Vol</th>
             <th class="col-volume">Sell Vol</th>
           </tr>
@@ -172,6 +180,12 @@
               </td>
               <td class="col-percent" class:positive={item.margin_percent > 0} class:negative={item.margin_percent < 0}>
                 {item.margin_percent.toFixed(2)}%
+              </td>
+              <td class="col-quality">
+                <span class="quality-label">{item.quality?.confidence_label ?? '—'}</span>
+                {#if typeof item.quality?.confidence_score === 'number'}
+                  <span class="quality-score">{item.quality.confidence_score.toFixed(2)}</span>
+                {/if}
               </td>
               <td class="col-volume">{formatNumber(item.buy_volume)}</td>
               <td class="col-volume">{formatNumber(item.sell_volume)}</td>
@@ -237,6 +251,17 @@
     color: var(--theme-text-soft);
     margin: 0;
     font-size: 14px;
+  }
+
+  .quality-label {
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .quality-score {
+    margin-left: 6px;
+    font-size: 12px;
+    color: var(--theme-text-soft);
   }
 
   .badge {
