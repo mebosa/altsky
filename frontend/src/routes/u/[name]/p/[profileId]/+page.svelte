@@ -24,7 +24,8 @@
     auctions: () => import('./AuctionsTab.svelte'),
     dropcalc: () => import('./DropCalcTab.svelte'),
     networth: () => import('./NetworthTab.svelte'),
-    shards: () => import('./ShardsTab.svelte')
+    shards: () => import('./ShardsTab.svelte'),
+    hotm: () => import('./HOTMTab.svelte')
   };
 
   // Cache loaded components
@@ -63,6 +64,7 @@
     { id: 'stats', label: 'Stats' },
     { id: 'slayer', label: 'Slayer' },
     { id: 'dungeons', label: 'Dungeons' },
+    { id: 'hotm', label: 'HOTM' },
     { id: 'minions', label: 'Minions' },
     { id: 'collections', label: 'Collections' },
     { id: 'pets', label: 'Pets' },

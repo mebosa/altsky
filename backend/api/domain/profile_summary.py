@@ -15,6 +15,7 @@ from .collections import extract_collections_from_profile
 from .inventory import parse_inventory
 from .networth import calculate_networth
 from .shards import extract_player_shards
+from .nbt_parser import extract_hotm_from_profile
 from django.core.cache import cache
 
 NW_LOGGER = logging.getLogger(__name__)
@@ -390,6 +391,7 @@ def summarize_profile(
         "inventory": inventory,
         "networth": networth,
         "shards": {} if skip_shards else extract_player_shards(member),
+        "hotm": extract_hotm_from_profile(member),
     }
 
 

@@ -538,22 +538,50 @@ def extract_hotm_from_profile(member_data: Dict[str, Any]) -> Optional[Dict[str,
     if not isinstance(mining, dict):
         return None
     
+    # 파우더 데이터 - 현재 보유량과 총 획득량
     hotm = {
         'tier': mining.get('tier', 0),
+        'experience': mining.get('experience', 0),
         'perks': {},
         'powder': {
             'mithril': mining.get('powder_mithril', 0),
             'gemstone': mining.get('powder_gemstone', 0),
             'glacite': mining.get('powder_glacite', 0),
-        }
+            'mithril_total': mining.get('powder_mithril_total', 0),
+            'gemstone_total': mining.get('powder_gemstone_total', 0),
+            'glacite_total': mining.get('powder_glacite_total', 0),
+        },
+        'selected_ability': mining.get('selected_pickaxe_ability'),
+        'tokens_spent': 0,
     }
     
-    # 퍽 데이터 추출
+    # 퍽 데이터 추출 (toggle_ 접두사 제외)
     nodes = mining.get('nodes', {})
+    tokens_spent = 0
     if isinstance(nodes, dict):
         for perk_name, perk_level in nodes.items():
-            if isinstance(perk_level, (int, float)):
+            # toggle_ 접두사가 있는 것은 활성화 상태이므로 제외
+            if perk_name.startswith('toggle_'):
+                continue
+            if isinstance(perk_level, (int, float)) and perk_level > 0:
                 hotm['perks'][perk_name] = int(perk_level)
+                tokens_spent += 1
+    
+    hotm['tokens_spent'] = tokens_spent
+    
+    # Crystal Hollows 크리스탈 데이터
+    crystals = mining.get('crystals', {})
+    if isinstance(crystals, dict) and crystals:
+        crystal_data = {}
+        for crystal_name, crystal_info in crystals.items():
+            if isinstance(crystal_info, dict):
+                crystal_data[crystal_name.lower()] = {
+                    'state': crystal_info.get('state', 'NOT_FOUND'),
+                    'total_found': crystal_info.get('total_found', 0),
+                    'total_placed': crystal_info.get('total_placed', 0),
+                }
+        if crystal_data:
+            hotm['crystals'] = crystal_data
     
     return hotm if hotm['tier'] > 0 else None
 
