@@ -35,7 +35,7 @@
   let error = '';
   let lastUpdated = '';
   let sortBy = 'margin_percent';
-  let limit = 20;
+  let limit = 100; // Default to showing more items
 
   const sortOptions = [
     { value: 'margin_percent', label: 'Margin %' },
@@ -107,6 +107,11 @@
 
   function handleRefresh() {
     fetchFlips(true);
+  }
+  
+  function loadMore() {
+    limit += 100;
+    fetchFlips();
   }
 
   onMount(() => {
@@ -215,10 +220,43 @@
         </tbody>
       </table>
     </div>
+    
+    <div class="load-more-container">
+      <button class="load-more-btn" on:click={loadMore} disabled={isLoading}>
+        {isLoading ? 'Loading...' : 'Load More'}
+      </button>
+    </div>
   {/if}
 </div>
 
 <style>
+  .load-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .load-more-btn {
+    background: var(--theme-surface-2);
+    color: var(--theme-text-primary);
+    border: 1px solid var(--theme-border);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .load-more-btn:hover:not(:disabled) {
+    background: var(--theme-surface-3);
+    transform: translateY(-1px);
+  }
+
+  .load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .wrap {
     max-width: 1200px;
     margin: 40px auto 64px;
