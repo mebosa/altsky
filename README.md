@@ -38,9 +38,15 @@ go run ./cmd/statscalc -data ./data -addr :8082
 
 ## Docker
 ```powershell
-Copy-Item .env.docker .env
+Copy-Item .env.docker backend/.env
 docker-compose up -d
 docker-compose exec backend python manage.py migrate
+```
+
+Optional Cloudflare Tunnel:
+```powershell
+$env:CLOUDFLARED_TOKEN="your-cloudflare-tunnel-token"
+docker-compose --profile tunnel up -d cloudflared
 ```
 
 Service endpoints:
@@ -54,6 +60,9 @@ Main env vars (see `.env.example` and `.env.docker`):
 - `HYPIXEL_API_KEY`
 - `DB_PASSWORD` (Docker)
 - `VITE_API_BASE` (frontend API base URL)
+
+Docker Compose optional:
+- `CLOUDFLARED_TOKEN` (only if you enable the `tunnel` profile)
 
 ## Docs
 - `DOCKER_GUIDE_KO.md`

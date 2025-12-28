@@ -46,6 +46,8 @@
         message = 'Hypixel API rate limit hit. Please try again in a moment.';
       } else if (payload.error === 'hypixel_api_key_missing') {
         message = 'Hypixel API key is missing on the server.';
+      } else if (payload.error === 'hypixel_forbidden') {
+        message = 'Hypixel API key is invalid or blocked. Update HYPIXEL_API_KEY on the server.';
       } else {
         message = payload.error;
       }

@@ -33,6 +33,10 @@ cd c:\altskydev\altsky
 # 이미지 빌드 + 컨테이너 시작 (백그라운드)
 docker-compose up -d
 
+# (선택) Cloudflare Tunnel을 쓸 때만
+$env:CLOUDFLARED_TOKEN="your-cloudflare-tunnel-token"
+docker-compose --profile tunnel up -d cloudflared
+
 # 또는 로그를 보면서 시작
 docker-compose up
 ```

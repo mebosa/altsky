@@ -2021,7 +2021,7 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
 
 
 @api_view(['GET'])
-@rate_limit(requests_per_minute=30)
+@rate_limit('bazaar_flips', requests=30, window=60)
 def bazaar_flips(request: Request) -> Response:
     """
     Get bazaar flip recommendations.

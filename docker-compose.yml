@@ -126,7 +126,9 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: altsky-tunnel
-    command: tunnel --no-autoupdate run --token eyJhIjoiZGZiODUzYzg0YzU4YjU4ZmY3MDQyYWJlZDdmMWIwYTciLCJ0IjoiMTcxZDg0ZTktOTQ4OC00Y2UzLWFlNzctZWFiYmQ2ZGRhNmVkIiwicyI6Ik1UWmhabU01TnpZdE56Y3hOQzAwWmpReUxUaGtNemt0WW1JNVpUSmpaakF3WTJRMyJ9
+    profiles: ["tunnel"]
+    # Set CLOUDFLARED_TOKEN in your environment to enable the tunnel.
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN:-}
     depends_on:
       - nginx
     networks:

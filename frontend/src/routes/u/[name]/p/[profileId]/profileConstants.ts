@@ -168,8 +168,6 @@ export const petTextures: Record<string, string | Record<string, string>> = {
 };
 
 // Pet skins data (skin name -> texture hash)
-export const petSkins: Record<string, string> = {
-  ENDERMAN_SLAYER: '2e9f9b1fc014166cb46a093e5349b2bf6edd201b680d62e48dbf3af9b0459116',
-  WOLF_GOLDEN: 'b4a0f3a3c6b8e7d9c2e1f0a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4',
-  // Add more skins as needed
-};
+// Generated from SkyCrypt constants via tools/generate_pet_skins_json.py
+import petSkinsData from './petSkins.json';
+export const petSkins = petSkinsData as Record<string, string>;
