@@ -1931,3 +1931,136 @@ def get_item_textures_batch(request: Request) -> Response:
         textures[item_id] = texture_url
     
     return Response({"textures": textures})
+
+
+# ===== Bazaar Flip Recommendations =====
+HYPIXEL_BAZAAR_URL = 'https://api.hypixel.net/v2/skyblock/bazaar'
+BAZAAR_CACHE_SECONDS = _read_int_env('BAZAAR_CACHE_SECONDS', 60)
+
+
+def _fetch_bazaar_data(*, force_refresh: bool = False) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """Fetch bazaar data from Hypixel API with caching."""
+    cache_key = 'hypixel_bazaar_data'
+    if not force_refresh and BAZAAR_CACHE_SECONDS > 0:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached, None
+
+    try:
+        response = _SESSION.get(HYPIXEL_BAZAAR_URL, timeout=12)
+    except requests.RequestException as exc:
+        return None, {'error': 'bazaar_request_failed', 'detail': str(exc), 'status': 502}
+
+    if response.status_code != 200:
+        return None, {'error': 'bazaar_fetch_failed', 'status': response.status_code}
+
+    try:
+        data = response.json()
+    except ValueError:
+        return None, {'error': 'bazaar_invalid_json', 'status': 502}
+
+    if not data.get('success'):
+        return None, {'error': 'bazaar_api_error', 'status': 502}
+
+    products = data.get('products', {})
+    if BAZAAR_CACHE_SECONDS > 0:
+        cache.set(cache_key, products, timeout=BAZAAR_CACHE_SECONDS)
+
+    return products, None
+
+
+def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -> List[Dict[str, Any]]:
+    """
+    Calculate flip recommendations based on bazaar data.
+    This is a placeholder - the actual calculation logic will be provided by the user.
+    
+    Returns a list of recommended items with flip data.
+    """
+    recommendations = []
+    
+    for product_id, product_data in products.items():
+        quick_status = product_data.get('quick_status', {})
+        
+        buy_price = quick_status.get('buyPrice', 0)
+        sell_price = quick_status.get('sellPrice', 0)
+        buy_volume = quick_status.get('buyVolume', 0)
+        sell_volume = quick_status.get('sellVolume', 0)
+        buy_orders = quick_status.get('buyOrders', 0)
+        sell_orders = quick_status.get('sellOrders', 0)
+        
+        # Skip items with no data
+        if buy_price <= 0 or sell_price <= 0:
+            continue
+        
+        # Calculate margin
+        margin = buy_price - sell_price
+        margin_percent = (margin / sell_price * 100) if sell_price > 0 else 0
+        
+        # Calculate potential profit (simplified)
+        # This is where the user's custom logic will go
+        potential_profit = margin * min(buy_volume, sell_volume) * 0.01  # Conservative estimate
+        
+        recommendations.append({
+            'product_id': product_id,
+            'name': product_id.replace('_', ' ').title(),
+            'buy_price': round(buy_price, 2),
+            'sell_price': round(sell_price, 2),
+            'margin': round(margin, 2),
+            'margin_percent': round(margin_percent, 2),
+            'buy_volume': buy_volume,
+            'sell_volume': sell_volume,
+            'buy_orders': buy_orders,
+            'sell_orders': sell_orders,
+            'potential_profit': round(potential_profit, 2),
+        })
+    
+    # Sort by margin_percent descending (can be customized)
+    recommendations.sort(key=lambda x: x['margin_percent'], reverse=True)
+    
+    return recommendations[:limit]
+
+
+@api_view(['GET'])
+@rate_limit(requests_per_minute=30)
+def bazaar_flips(request: Request) -> Response:
+    """
+    Get bazaar flip recommendations.
+    
+    Query params:
+    - limit: Number of recommendations to return (default 20, max 100)
+    - sort: Sort by 'margin', 'margin_percent', 'profit', 'volume' (default 'margin_percent')
+    - refresh: Force refresh cache
+    
+    Returns:
+    {
+        "success": true,
+        "recommendations": [...],
+        "last_updated": "2024-01-01T00:00:00Z"
+    }
+    """
+    force_refresh = _should_bypass_cache(request.query_params)
+    limit = min(int(request.query_params.get('limit', 20)), 100)
+    sort_by = request.query_params.get('sort', 'margin_percent')
+    
+    products, error = _fetch_bazaar_data(force_refresh=force_refresh)
+    if error:
+        return Response(error, status=error.get('status', 500))
+    
+    recommendations = _calculate_flip_recommendations(products, limit=limit)
+    
+    # Apply sorting
+    sort_keys = {
+        'margin': 'margin',
+        'margin_percent': 'margin_percent',
+        'profit': 'potential_profit',
+        'volume': 'buy_volume',
+    }
+    sort_key = sort_keys.get(sort_by, 'margin_percent')
+    recommendations.sort(key=lambda x: x.get(sort_key, 0), reverse=True)
+    
+    return Response({
+        'success': True,
+        'recommendations': recommendations,
+        'last_updated': datetime.now(timezone.utc).isoformat(),
+        'total_products': len(products) if products else 0,
+    })

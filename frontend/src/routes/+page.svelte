@@ -211,9 +211,13 @@
     letter-spacing: 0.01em;
     box-shadow: var(--neu-elevated);
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
 
-  button:hover {
+  button:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 14px 28px rgba(5, 7, 14, 0.35);
   }
@@ -221,6 +225,12 @@
   button:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--theme-accent) 80%, #ffffff 20%);
     outline-offset: 3px;
+  }
+
+  button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
   }
 
   .chips {
@@ -323,6 +333,48 @@
   gap: 8px;
 }
 
+.tools-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-surface-border) 80%, transparent);
+  text-decoration: none;
+  color: var(--theme-text-primary);
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: var(--neu-soft);
+  backdrop-filter: blur(14px);
+}
+
+.tool-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--theme-accent) 60%, #ffffff 10%);
+  box-shadow: 0 12px 24px rgba(5, 7, 14, 0.3);
+}
+
+.tool-card:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.tool-icon {
+  font-size: 20px;
+}
+
+.tool-label {
+  letter-spacing: 0.01em;
+}
+
   @media (max-width: 640px) {
     .row {
       flex-direction: column;
@@ -349,6 +401,13 @@
     <span class="badge">Version {appVersion}</span>
   </div>
 
+  <div class="tools-row">
+    <a href="/bazaar" class="tool-card">
+      <span class="tool-icon">📊</span>
+      <span class="tool-label">Bazaar Flips</span>
+    </a>
+  </div>
+
   <div class="panel">
     <div class="input-label">Enter a Minecraft username.</div>
     <div class="row">
@@ -358,7 +417,13 @@
         on:input={() => (searchError = '')}
         on:keydown={onKey}
       />
-      <button type="button" on:click={handleSearch}>Search</button>
+      <button type="button" on:click={handleSearch} disabled={isLoading}>
+        {#if isLoading}
+          Searching...
+        {:else}
+          Search
+        {/if}
+      </button>
     </div>
     <p class="hint">Usernames are not case-sensitive on Hypixel.</p>
     
