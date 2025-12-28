@@ -7,8 +7,12 @@ from typing import Any, Dict, List, Optional
 @dataclass(frozen=True)
 class ItemMarket:
     item_id: str
-    buy_price: float  # p_b: buy order price (cost)
-    sell_price: float  # p_s: sell offer price (revenue before tax)
+    # Hypixel quick_status semantics (kept as-is across the codebase):
+    # - buy_price  == buyPrice  (price to BUY instantly; lowest sell offer / ask)
+    # - sell_price == sellPrice (price to SELL instantly; highest buy order / bid)
+    # v3 model mapping is handled explicitly in model.after_tax_margin().
+    buy_price: float
+    sell_price: float
     buy_volume: float
     sell_volume: float
 

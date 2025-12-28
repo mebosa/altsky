@@ -170,7 +170,11 @@
     
     statsLoading = true;
     try {
-      const query: Record<string, string | number> = {};
+      const query: Record<string, string | number> = {
+        skip_networth: 1,
+        skip_collections: 1,
+        skip_minions: 1,
+      };
       if (weaponId) {
         query.weapon_id = weaponId;
       } else if (weaponSlot !== null && weaponSlot !== undefined) {

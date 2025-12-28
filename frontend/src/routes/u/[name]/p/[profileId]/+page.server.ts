@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
     // skip_stats=1, skip_museum=1로 SSR에서는 무거운 호출 생략 (빠른 초기 렌더링)
     // 클라이언트에서 필요할 때 추가 로드
     const summaryRes = await fetch(
-      `${apiBase}/api/hypixel/profile-by-name/${encodeURIComponent(name)}/${encodeURIComponent(profileId)}?skip_stats=1&skip_museum=1`
+      `${apiBase}/api/hypixel/profile-by-name/${encodeURIComponent(name)}/${encodeURIComponent(profileId)}?skip_stats=1&skip_museum=1&skip_networth=1&skip_inventory=1&skip_wardrobe=1&skip_collections=1&skip_minions=1&skip_accessories=1`
     );
 
     if (!summaryRes.ok) {

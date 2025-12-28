@@ -1,4 +1,5 @@
 import base64
+import math
 import json
 import logging
 import mimetypes
@@ -676,8 +677,25 @@ def hypixel_profile_summary(request: Request, uuid: str, profile_id: str) -> Res
     # Fetch player achievements from Hypixel main player endpoint to align with SkyCrypt logic
     achievements = _fetch_player_achievements(uuid, force_refresh=force_refresh)
 
-    if force_refresh:
-        summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
+    skip_networth = _is_truthy(request.query_params.get('skip_networth'))
+    skip_inventory = _is_truthy(request.query_params.get('skip_inventory'))
+    skip_wardrobe = _is_truthy(request.query_params.get('skip_wardrobe'))
+    skip_collections = _is_truthy(request.query_params.get('skip_collections'))
+    skip_minions = _is_truthy(request.query_params.get('skip_minions'))
+    skip_accessories = _is_truthy(request.query_params.get('skip_accessories'))
+
+    if force_refresh or skip_networth or skip_inventory or skip_wardrobe or skip_collections or skip_minions or skip_accessories:
+        summary = summarize_profile(
+            normalized_member_uuid,
+            target,
+            achievements=achievements,
+            skip_networth=skip_networth,
+            skip_inventory=skip_inventory,
+            skip_wardrobe=skip_wardrobe,
+            skip_collections=skip_collections,
+            skip_minions=skip_minions,
+            skip_accessories=skip_accessories,
+        )
     else:
         summary = get_cached_profile_summary(normalized_member_uuid, target, achievements=achievements)
 
@@ -849,7 +867,24 @@ def hypixel_profile_summary_by_name(request: Request, name: str, profile_id: str
     normalized_member_uuid = (uuid or "").replace("-", "")
     achievements = _fetch_player_achievements(uuid, force_refresh=force_refresh)
 
-    summary = summarize_profile(normalized_member_uuid, target, achievements=achievements)
+    skip_networth = _is_truthy(request.query_params.get('skip_networth'))
+    skip_inventory = _is_truthy(request.query_params.get('skip_inventory'))
+    skip_wardrobe = _is_truthy(request.query_params.get('skip_wardrobe'))
+    skip_collections = _is_truthy(request.query_params.get('skip_collections'))
+    skip_minions = _is_truthy(request.query_params.get('skip_minions'))
+    skip_accessories = _is_truthy(request.query_params.get('skip_accessories'))
+
+    summary = summarize_profile(
+        normalized_member_uuid,
+        target,
+        achievements=achievements,
+        skip_networth=skip_networth,
+        skip_inventory=skip_inventory,
+        skip_wardrobe=skip_wardrobe,
+        skip_collections=skip_collections,
+        skip_minions=skip_minions,
+        skip_accessories=skip_accessories,
+    )
     if not summary:
         return Response({'error': 'member_not_in_profile'}, status=404)
     
@@ -1991,6 +2026,69 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
     # This function assumes tau=0.0125 unless overwritten by caller.
     tau = 0.0125
 
+    def _clamp01(x: float) -> float:
+        return max(0.0, min(1.0, float(x)))
+
+    def _quality(
+        *,
+        buy_price: float,
+        sell_price: float,
+        buy_volume: float,
+        sell_volume: float,
+        buy_orders: float,
+        sell_orders: float,
+    ) -> Dict[str, Any]:
+        # NOTE: This does NOT filter or remove items.
+        # It only provides a hint signal so the UI can expose outlier risk.
+        spread = buy_price - sell_price
+        mid = (buy_price + sell_price) / 2.0
+        spread_pct = (abs(spread) / sell_price * 100.0) if sell_price > 0 else 0.0
+        spread_bps_mid = (abs(spread) / mid * 10000.0) if mid > 0 else 0.0
+
+        min_vol = float(min(buy_volume, sell_volume))
+        total_orders = float(max(0.0, buy_orders) + max(0.0, sell_orders))
+
+        # Liquidity score from volume + order book depth (log-scaled).
+        # Tuned to be conservative and stable across the whole bazaar.
+        vol_score = _clamp01((math.log10(min_vol + 1.0)) / 6.0)  # ~1 at 1e6+
+        ord_score = _clamp01((math.log10(total_orders + 1.0)) / 4.0)  # ~1 at 1e4+
+        liquidity_score = _clamp01(0.75 * vol_score + 0.25 * ord_score)
+
+        # Penalize extreme spreads and tiny prices (common snapshot outlier patterns).
+        spread_penalty = 1.0 / (1.0 + (spread_pct / 50.0) ** 2)
+        price_penalty = _clamp01(sell_price / 5.0) if sell_price < 5.0 else 1.0
+        confidence_score = _clamp01(liquidity_score * spread_penalty * price_penalty)
+
+        if confidence_score >= 0.66:
+            label = 'High'
+        elif confidence_score >= 0.33:
+            label = 'Medium'
+        else:
+            label = 'Low'
+
+        notes: List[str] = []
+        if spread_pct >= 200.0:
+            notes.append('extreme_spread')
+        if min_vol < 200.0:
+            notes.append('low_volume')
+        if total_orders < 10.0:
+            notes.append('few_orders')
+        if sell_price < 5.0:
+            notes.append('tiny_price')
+
+        return {
+            'spread': round(float(spread), 4),
+            'spread_percent': round(float(spread_pct), 4),
+            'spread_bps_mid': round(float(spread_bps_mid), 2),
+            'mid_price': round(float(mid), 4),
+            'min_volume': round(float(min_vol), 2),
+            'total_orders': int(total_orders),
+            'liquidity_score': round(float(liquidity_score), 4),
+            'confidence_score': round(float(confidence_score), 4),
+            'confidence_label': label,
+            'notes': notes,
+        }
+
     for product_id, product_data in products.items():
         quick_status = product_data.get('quick_status', {})
         
@@ -2012,6 +2110,18 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
         # Calculate potential profit (simplified)
         # This is where the user's custom logic will go
         potential_profit = margin * min(buy_volume, sell_volume) * 0.01  # Placeholder
+
+        try:
+            quality = _quality(
+                buy_price=float(buy_price),
+                sell_price=float(sell_price),
+                buy_volume=float(buy_volume or 0.0),
+                sell_volume=float(sell_volume or 0.0),
+                buy_orders=float(buy_orders or 0.0),
+                sell_orders=float(sell_orders or 0.0),
+            )
+        except Exception:
+            quality = {'confidence_label': 'Unknown', 'confidence_score': 0.0, 'notes': ['quality_calc_failed']}
         
         recommendations.append({
             'product_id': product_id,
@@ -2030,6 +2140,7 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
             'buy_orders': buy_orders,
             'sell_orders': sell_orders,
             'potential_profit': round(potential_profit, 2),
+            'quality': quality,
         })
     
     # Sort by margin_percent descending (can be customized)

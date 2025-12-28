@@ -67,6 +67,17 @@ def compute_item_metrics(
     E = (Q * m * (1.0 - r_i)) / T_i - gp.lambda_slot * (l_b + l_s) - gp.mu * K_bar
 
     debug = {
+        "quality": {
+            # Non-filtering diagnostics only (UI can use these to flag suspicious outliers)
+            "spread": market.buy_price - market.sell_price,
+            "spread_percent": (
+                abs(market.buy_price - market.sell_price) / market.sell_price * 100.0
+                if market.sell_price > 0
+                else 0.0
+            ),
+            "min_volume": float(min(market.buy_volume, market.sell_volume)),
+            "liquidity_score": min(1.0, max(0.0, math.log10(min(market.buy_volume, market.sell_volume) + 1.0) / 6.0)),
+        },
         "prices": {
             # Hypixel semantics
             "buy_price": market.buy_price,   # buyPrice (ask)

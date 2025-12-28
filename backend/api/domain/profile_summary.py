@@ -262,7 +262,18 @@ def summarize_currencies(member: Dict[str, Any], profile: Dict[str, Any]) -> Dic
     }
 
 
-def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+def summarize_profile(
+    player_uuid: str,
+    profile: Dict[str, Any],
+    *,
+    achievements: Optional[Dict[str, Any]] = None,
+    skip_networth: bool = False,
+    skip_inventory: bool = False,
+    skip_wardrobe: bool = False,
+    skip_collections: bool = False,
+    skip_minions: bool = False,
+    skip_accessories: bool = False,
+) -> Optional[Dict[str, Any]]:
     members = profile.get("members") or {}
     member = members.get(player_uuid)
     if not member:
@@ -301,47 +312,52 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
         if equipped_slot < 0:
             equipped_slot = None
 
-    wardrobe = parse_wardrobe(wardrobe_inventory, armor_inventory, equipped_slot=equipped_slot)
+    if skip_wardrobe:
+        # Only parse equipped armor if wardrobe is skipped
+        wardrobe = parse_wardrobe({}, armor_inventory, equipped_slot=equipped_slot)
+    else:
+        wardrobe = parse_wardrobe(wardrobe_inventory, armor_inventory, equipped_slot=equipped_slot)
 
     # Extract collections data
-    collections = extract_collections_from_profile(member)
+    collections = {} if skip_collections else extract_collections_from_profile(member)
 
     # Extract inventory data
-    inventory = parse_inventory(member)
+    inventory = {} if skip_inventory else parse_inventory(member)
 
     # Calculate networth
     networth = None
-    try:
-        # Try SkyHelper API first
-        from ..skyhelper_client import fetch_networth
-        networth_data = fetch_networth(profile_id, player_uuid)
-        
-        if networth_data:
-            networth = {
-                "total": networth_data.get("networth", 0),
-                "unsoulbound": networth_data.get("unsoulboundNetworth", 0),
-                "purse": networth_data.get("purse", 0),
-                "bank": networth_data.get("bank", 0),
-                "categories": {}
-            }
-            
-            types = networth_data.get("types", {})
-            for key, data in types.items():
-                networth["categories"][key] = {
-                    "name": key.replace("_", " ").title(),
-                    "total": data.get("total", 0),
-                    "item_count": len(data.get("items", []))
-                }
-    except Exception as e:
-        NW_LOGGER.warning("Failed to fetch networth from SkyHelper API: %s", e)
-
-    if not networth:
+    if not skip_networth:
         try:
-            networth_result = calculate_networth(member, profile)
-            networth = networth_result.to_dict()
+            # Try SkyHelper API first
+            from ..skyhelper_client import fetch_networth
+            networth_data = fetch_networth(profile_id, player_uuid)
+            
+            if networth_data:
+                networth = {
+                    "total": networth_data.get("networth", 0),
+                    "unsoulbound": networth_data.get("unsoulboundNetworth", 0),
+                    "purse": networth_data.get("purse", 0),
+                    "bank": networth_data.get("bank", 0),
+                    "categories": {}
+                }
+                
+                types = networth_data.get("types", {})
+                for key, data in types.items():
+                    networth["categories"][key] = {
+                        "name": key.replace("_", " ").title(),
+                        "total": data.get("total", 0),
+                        "item_count": len(data.get("items", []))
+                    }
         except Exception as e:
-            NW_LOGGER.warning("Failed to calculate networth locally: %s", e)
-            networth = None
+            NW_LOGGER.warning("Failed to fetch networth from SkyHelper API: %s", e)
+
+        if not networth:
+            try:
+                networth_result = calculate_networth(member, profile)
+                networth = networth_result.to_dict()
+            except Exception as e:
+                NW_LOGGER.warning("Failed to calculate networth locally: %s", e)
+                networth = None
 
     return {
         "profile": {
@@ -366,8 +382,8 @@ def summarize_profile(player_uuid: str, profile: Dict[str, Any], *, achievements
             "equipped_slot": equipped_slot,
             **wardrobe,
         },
-        "accessories": parse_accessories(member),
-        "minions": parse_minions(member, profile),
+        "accessories": {} if skip_accessories else parse_accessories(member),
+        "minions": {} if skip_minions else parse_minions(member, profile),
         "collections": collections,
         "inventory": inventory,
         "networth": networth,
