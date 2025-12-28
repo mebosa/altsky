@@ -10,6 +10,7 @@ import nbtlib
 
 from .item_textures import (
     TEXTURE_PACKS,
+    cache_item_texture,
     decode_texture_value,
     get_item_resource,
     resolve_item_icon_variants,
@@ -502,6 +503,10 @@ def _parse_compound_item(
         (icon_variants.get(pack) for pack in TEXTURE_PACKS if icon_variants.get(pack)),
         None,
     )
+    
+    # Cache discovered skull textures for items not in Hypixel API (e.g., Attribute Shards)
+    if extra_id and skull_texture:
+        cache_item_texture(extra_id, skull_texture)
 
     skin_url = _extract_skin_url(tag)
 

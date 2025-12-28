@@ -199,6 +199,7 @@ export type ProfileSummaryResponse = {
   inventory?: InventoryData | null;
   networth?: NetworthData | null;
   shards?: ShardsData | null;
+  hotm?: HOTMData | null;
 };
 
 // ===== Networth Types =====
@@ -418,4 +419,25 @@ export type ShardsData = {
   shards: ShardItem[];
   total_owned: number;
   total_shards: number;
+};
+
+// ===== HOTM Types =====
+
+export type HOTMPowder = {
+  mithril: number;
+  gemstone: number;
+  glacite: number;
+  mithril_total?: number;
+  gemstone_total?: number;
+  glacite_total?: number;
+};
+
+export type HOTMData = {
+  tier: number;
+  experience?: number;
+  perks: Record<string, number>;
+  powder: HOTMPowder;
+  tokens_spent?: number;
+  selected_ability?: string;
+  crystals?: Record<string, { state: string; total_found?: number; total_placed?: number }>;
 };

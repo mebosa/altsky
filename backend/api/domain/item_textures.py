@@ -30,6 +30,62 @@ NEU_ICON_BASE_URL = (
 )
 NEU_TEXTURE_CACHE = os.path.join(os.path.dirname(__file__), "texture_cache")
 
+# Dynamic texture cache for items discovered from player inventories
+DYNAMIC_TEXTURE_CACHE_FILE = os.path.join(
+    os.path.dirname(__file__), "dynamic_texture_cache.json"
+)
+_dynamic_texture_cache: Dict[str, str] = {}
+_dynamic_cache_loaded = False
+
+
+def _load_dynamic_cache() -> None:
+    """Load dynamic texture cache from disk."""
+    global _dynamic_texture_cache, _dynamic_cache_loaded
+    if _dynamic_cache_loaded:
+        return
+    _dynamic_cache_loaded = True
+    if os.path.exists(DYNAMIC_TEXTURE_CACHE_FILE):
+        try:
+            with open(DYNAMIC_TEXTURE_CACHE_FILE, "r", encoding="utf-8") as f:
+                _dynamic_texture_cache = json.load(f)
+            LOGGER.info("Loaded %d items from dynamic texture cache", len(_dynamic_texture_cache))
+        except Exception as e:
+            LOGGER.warning("Failed to load dynamic texture cache: %s", e)
+
+
+def _save_dynamic_cache() -> None:
+    """Save dynamic texture cache to disk."""
+    try:
+        with open(DYNAMIC_TEXTURE_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(_dynamic_texture_cache, f)
+    except Exception as e:
+        LOGGER.warning("Failed to save dynamic texture cache: %s", e)
+
+
+def cache_item_texture(item_id: str, texture_url: str) -> None:
+    """Cache a discovered item texture (e.g., from player inventory)."""
+    _load_dynamic_cache()
+    if item_id and texture_url and item_id not in _dynamic_texture_cache:
+        _dynamic_texture_cache[item_id] = texture_url
+        _save_dynamic_cache()
+        LOGGER.debug("Cached texture for %s: %s", item_id, texture_url[:60])
+        # Note: LRU cache will be cleared lazily when resolve_item_icon_for_pack is called
+
+
+def _clear_icon_lru_cache() -> None:
+    """Clear the LRU cache for resolve_item_icon_for_pack. Call after adding to dynamic cache."""
+    try:
+        resolve_item_icon_for_pack.cache_clear()
+    except Exception:
+        pass  # Function not yet defined or no cache
+
+
+def get_cached_item_texture(item_id: str) -> Optional[str]:
+    """Get a cached item texture URL."""
+    _load_dynamic_cache()
+    return _dynamic_texture_cache.get(item_id)
+
+
 SESSION = requests.Session()
 _ASSET_CACHE: Dict[str, Optional[str]] = {}
 _TALL_TEXTURE_NOTICE_EMITTED = False
@@ -1161,12 +1217,20 @@ def resolve_item_icon_for_pack(
     """
     Resolve an icon URL for the requested texture pack.
     Preference order:
+        0. Dynamic cache (discovered from player inventories)
         1. Hypixel custom skin texture
         2. Pack-specific overrides (FurSky only)
         3. Vanilla material texture, using Hypixel material hints/durability
         4. Vanilla material texture derived from the raw mc_id/damage combo
     """
     normalized_pack = _normalize_pack(pack)
+    
+    # Check dynamic cache first (for items not in Hypixel API)
+    if item_id:
+        cached_url = get_cached_item_texture(item_id)
+        if cached_url:
+            return cached_url
+    
     resource_map = _load_item_resource_map()
     icon_url: Optional[str] = None
 
