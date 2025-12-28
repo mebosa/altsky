@@ -75,6 +75,27 @@ services:
       timeout: 10s
       retries: 3
 
+  # Bazaar history collector (persistent time-series)
+  bazaar-collector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    container_name: altsky-bazaar-collector
+    profiles: ["collector"]
+    env_file:
+      - ./backend/.env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    command: ["python", "backend/manage.py", "bazaar_collect_history", "--interval", "60", "--retention_days", "30"]
+    volumes:
+      - ./backend:/app/backend
+    depends_on:
+      - redis
+    networks:
+      - altsky-network
+    restart: unless-stopped
+
   # Statscalc Service (Go)
   statscalc:
     build:

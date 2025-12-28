@@ -59,7 +59,14 @@
       
       if (data.success) {
         recommendations = data.recommendations;
-        lastUpdated = new Date(data.last_updated).toLocaleString();
+        lastUpdated = new Date(data.last_updated).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
       } else {
         error = 'Failed to fetch bazaar data';
       }
@@ -79,6 +86,18 @@
 
   function formatCoins(num: number): string {
     return num.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
+
+  function qualityTooltip(item: FlipRecommendation): string {
+    const q = item.quality;
+    if (!q) return '';
+    const parts: string[] = [];
+    if (q.confidence_label) parts.push(`Confidence: ${q.confidence_label}`);
+    if (typeof q.confidence_score === 'number') parts.push(`Score: ${q.confidence_score.toFixed(2)}`);
+    if (typeof q.liquidity_score === 'number') parts.push(`Liquidity: ${q.liquidity_score.toFixed(2)}`);
+    if (typeof q.spread_percent === 'number') parts.push(`Spread %: ${q.spread_percent.toFixed(2)}`);
+    if (q.notes && q.notes.length) parts.push(`Notes: ${q.notes.join(', ')}`);
+    return parts.join('\n');
   }
 
   function handleSort(newSort: string) {
@@ -171,7 +190,7 @@
           {#each recommendations as item}
             <tr>
               <td class="col-item">
-                <span class="item-name">{item.name}</span>
+                <a class="item-link" href={`/bazaar/${encodeURIComponent(item.product_id)}`}>{item.name}</a>
               </td>
               <td class="col-price buy-price">{formatCoins(item.buy_price)}</td>
               <td class="col-price sell-price">{formatCoins(item.sell_price)}</td>
@@ -182,10 +201,12 @@
                 {item.margin_percent.toFixed(2)}%
               </td>
               <td class="col-quality">
-                <span class="quality-label">{item.quality?.confidence_label ?? '—'}</span>
-                {#if typeof item.quality?.confidence_score === 'number'}
-                  <span class="quality-score">{item.quality.confidence_score.toFixed(2)}</span>
-                {/if}
+                <span class="quality-wrap" title={qualityTooltip(item)}>
+                  <span class="quality-label">{item.quality?.confidence_label ?? '—'}</span>
+                  {#if typeof item.quality?.confidence_score === 'number'}
+                    <span class="quality-score">{item.quality.confidence_score.toFixed(2)}</span>
+                  {/if}
+                </span>
               </td>
               <td class="col-volume">{formatNumber(item.buy_volume)}</td>
               <td class="col-volume">{formatNumber(item.sell_volume)}</td>
@@ -251,6 +272,23 @@
     color: var(--theme-text-soft);
     margin: 0;
     font-size: 14px;
+  }
+
+  .item-link {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .item-link:hover {
+    text-decoration: underline;
+  }
+
+  .quality-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: help;
   }
 
   .quality-label {

@@ -41,6 +41,7 @@ from .domain.bazaar_allocator.calibrator import Calibrator, default_global_param
 from .domain.bazaar_allocator.data import load_caps_from_dict, to_market_snapshot
 from .domain.bazaar_allocator.optimizer import allocate
 from .domain.bazaar_allocator.types import AllocatorConfig
+from .models import BazaarPricePoint
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1977,6 +1978,170 @@ HYPIXEL_BAZAAR_URL = 'https://api.hypixel.net/v2/skyblock/bazaar'
 BAZAAR_CACHE_SECONDS = _read_int_env('BAZAAR_CACHE_SECONDS', 60)
 
 
+def _clamp01(x: float) -> float:
+    return max(0.0, min(1.0, float(x)))
+
+
+def _bazaar_quality(
+    *,
+    buy_price: float,
+    sell_price: float,
+    buy_volume: float,
+    sell_volume: float,
+    buy_orders: float,
+    sell_orders: float,
+) -> Dict[str, Any]:
+    """Non-filtering quality/confidence indicators for UI.
+
+    This is intentionally heuristic and conservative.
+    It must NOT be used to exclude items (no filtering).
+    """
+    spread = buy_price - sell_price
+    mid = (buy_price + sell_price) / 2.0
+    spread_pct = (abs(spread) / sell_price * 100.0) if sell_price > 0 else 0.0
+    spread_bps_mid = (abs(spread) / mid * 10000.0) if mid > 0 else 0.0
+
+    min_vol = float(min(buy_volume, sell_volume))
+    total_orders = float(max(0.0, buy_orders) + max(0.0, sell_orders))
+
+    # Liquidity score from volume + order book depth (log-scaled).
+    vol_score = _clamp01((math.log10(min_vol + 1.0)) / 6.0)  # ~1 at 1e6+
+    ord_score = _clamp01((math.log10(total_orders + 1.0)) / 4.0)  # ~1 at 1e4+
+    liquidity_score = _clamp01(0.75 * vol_score + 0.25 * ord_score)
+
+    # Penalize extreme spreads and tiny prices (common snapshot outlier patterns).
+    spread_penalty = 1.0 / (1.0 + (spread_pct / 50.0) ** 2)
+    price_penalty = _clamp01(sell_price / 5.0) if sell_price < 5.0 else 1.0
+    confidence_score = _clamp01(liquidity_score * spread_penalty * price_penalty)
+
+    if confidence_score >= 0.66:
+        label = 'High'
+    elif confidence_score >= 0.33:
+        label = 'Medium'
+    else:
+        label = 'Low'
+
+    notes: List[str] = []
+    if spread_pct >= 200.0:
+        notes.append('extreme_spread')
+    if min_vol < 200.0:
+        notes.append('low_volume')
+    if total_orders < 10.0:
+        notes.append('few_orders')
+    if sell_price < 5.0:
+        notes.append('tiny_price')
+
+    return {
+        'spread': round(float(spread), 4),
+        'spread_percent': round(float(spread_pct), 4),
+        'spread_bps_mid': round(float(spread_bps_mid), 2),
+        'mid_price': round(float(mid), 4),
+        'min_volume': round(float(min_vol), 2),
+        'total_orders': int(total_orders),
+        'liquidity_score': round(float(liquidity_score), 4),
+        'confidence_score': round(float(confidence_score), 4),
+        'confidence_label': label,
+        'notes': notes,
+    }
+
+
+def _bazaar_history_cache_key(product_id: str) -> str:
+    return f"hypixel_bazaar_history:{product_id}"
+
+
+def _record_bazaar_history_point(
+    *,
+    product_id: str,
+    ts_iso: str,
+    buy_price: float,
+    sell_price: float,
+    max_points: int = 720,
+    ttl_seconds: int = 6 * 60 * 60,
+) -> None:
+    """Append one point to per-product history in cache.
+
+    Uses cache only (no DB). History exists only while cache persists.
+    """
+    cache_key = _bazaar_history_cache_key(product_id)
+    existing = cache.get(cache_key)
+    points: List[Dict[str, Any]]
+    if isinstance(existing, list):
+        points = existing
+    else:
+        points = []
+
+    # De-dup rapid calls: if last point is within ~10s, replace it.
+    if points and isinstance(points[-1], dict) and points[-1].get('ts'):
+        try:
+            prev_ts = datetime.fromisoformat(str(points[-1].get('ts')))
+            cur_ts = datetime.fromisoformat(ts_iso)
+            if abs((cur_ts - prev_ts).total_seconds()) < 10.0:
+                points[-1] = {
+                    'ts': ts_iso,
+                    'buy_price': float(buy_price),
+                    'sell_price': float(sell_price),
+                }
+                cache.set(cache_key, points[-max_points:], timeout=ttl_seconds)
+                return
+        except Exception:
+            pass
+
+    points.append({'ts': ts_iso, 'buy_price': float(buy_price), 'sell_price': float(sell_price)})
+    cache.set(cache_key, points[-max_points:], timeout=ttl_seconds)
+
+
+def _round_ts_to_minute(ts: datetime) -> datetime:
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    return ts.replace(second=0, microsecond=0)
+
+
+def _persist_bazaar_points(points: List[Dict[str, Any]]) -> None:
+    """Persist history points to DB (best-effort).
+
+    Expected keys per point:
+      product_id, recorded_at (datetime), buy_price, sell_price,
+      buy_volume, sell_volume, buy_orders, sell_orders
+    """
+    rows: List[BazaarPricePoint] = []
+    for p in points:
+        try:
+            product_id = str(p.get('product_id') or '').strip()
+            if not product_id:
+                continue
+            recorded_at = p.get('recorded_at')
+            if not isinstance(recorded_at, datetime):
+                continue
+            recorded_at = _round_ts_to_minute(recorded_at)
+            buy_price = float(p.get('buy_price') or 0.0)
+            sell_price = float(p.get('sell_price') or 0.0)
+            if buy_price <= 0 or sell_price <= 0:
+                continue
+            rows.append(
+                BazaarPricePoint(
+                    product_id=product_id,
+                    recorded_at=recorded_at,
+                    buy_price=buy_price,
+                    sell_price=sell_price,
+                    buy_volume=float(p.get('buy_volume') or 0.0),
+                    sell_volume=float(p.get('sell_volume') or 0.0),
+                    buy_orders=int(p.get('buy_orders') or 0),
+                    sell_orders=int(p.get('sell_orders') or 0),
+                )
+            )
+        except Exception:
+            continue
+
+    if not rows:
+        return
+
+    try:
+        BazaarPricePoint.objects.bulk_create(rows, ignore_conflicts=True, batch_size=1000)
+    except Exception:
+        # Best-effort only; never break API on DB issues.
+        pass
+
+
 def _fetch_bazaar_data(*, force_refresh: bool = False) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
     """Fetch bazaar data from Hypixel API with caching."""
     cache_key = 'hypixel_bazaar_data'
@@ -2026,68 +2191,6 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
     # This function assumes tau=0.0125 unless overwritten by caller.
     tau = 0.0125
 
-    def _clamp01(x: float) -> float:
-        return max(0.0, min(1.0, float(x)))
-
-    def _quality(
-        *,
-        buy_price: float,
-        sell_price: float,
-        buy_volume: float,
-        sell_volume: float,
-        buy_orders: float,
-        sell_orders: float,
-    ) -> Dict[str, Any]:
-        # NOTE: This does NOT filter or remove items.
-        # It only provides a hint signal so the UI can expose outlier risk.
-        spread = buy_price - sell_price
-        mid = (buy_price + sell_price) / 2.0
-        spread_pct = (abs(spread) / sell_price * 100.0) if sell_price > 0 else 0.0
-        spread_bps_mid = (abs(spread) / mid * 10000.0) if mid > 0 else 0.0
-
-        min_vol = float(min(buy_volume, sell_volume))
-        total_orders = float(max(0.0, buy_orders) + max(0.0, sell_orders))
-
-        # Liquidity score from volume + order book depth (log-scaled).
-        # Tuned to be conservative and stable across the whole bazaar.
-        vol_score = _clamp01((math.log10(min_vol + 1.0)) / 6.0)  # ~1 at 1e6+
-        ord_score = _clamp01((math.log10(total_orders + 1.0)) / 4.0)  # ~1 at 1e4+
-        liquidity_score = _clamp01(0.75 * vol_score + 0.25 * ord_score)
-
-        # Penalize extreme spreads and tiny prices (common snapshot outlier patterns).
-        spread_penalty = 1.0 / (1.0 + (spread_pct / 50.0) ** 2)
-        price_penalty = _clamp01(sell_price / 5.0) if sell_price < 5.0 else 1.0
-        confidence_score = _clamp01(liquidity_score * spread_penalty * price_penalty)
-
-        if confidence_score >= 0.66:
-            label = 'High'
-        elif confidence_score >= 0.33:
-            label = 'Medium'
-        else:
-            label = 'Low'
-
-        notes: List[str] = []
-        if spread_pct >= 200.0:
-            notes.append('extreme_spread')
-        if min_vol < 200.0:
-            notes.append('low_volume')
-        if total_orders < 10.0:
-            notes.append('few_orders')
-        if sell_price < 5.0:
-            notes.append('tiny_price')
-
-        return {
-            'spread': round(float(spread), 4),
-            'spread_percent': round(float(spread_pct), 4),
-            'spread_bps_mid': round(float(spread_bps_mid), 2),
-            'mid_price': round(float(mid), 4),
-            'min_volume': round(float(min_vol), 2),
-            'total_orders': int(total_orders),
-            'liquidity_score': round(float(liquidity_score), 4),
-            'confidence_score': round(float(confidence_score), 4),
-            'confidence_label': label,
-            'notes': notes,
-        }
 
     for product_id, product_data in products.items():
         quick_status = product_data.get('quick_status', {})
@@ -2096,6 +2199,8 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
         sell_price = quick_status.get('sellPrice', 0) # instant sell (bid)
         buy_volume = quick_status.get('buyVolume', 0)
         sell_volume = quick_status.get('sellVolume', 0)
+        buy_moving_week = quick_status.get('buyMovingWeek', 0)
+        sell_moving_week = quick_status.get('sellMovingWeek', 0)
         buy_orders = quick_status.get('buyOrders', 0)
         sell_orders = quick_status.get('sellOrders', 0)
         
@@ -2107,12 +2212,14 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
         margin = buy_price * (1.0 - tau) - sell_price
         margin_percent = (margin / sell_price * 100) if sell_price > 0 else 0
         
-        # Calculate potential profit (simplified)
-        # This is where the user's custom logic will go
-        potential_profit = margin * min(buy_volume, sell_volume) * 0.01  # Placeholder
+        # Calculate potential profit using Moving Week volume (velocity)
+        # We estimate we can capture 1% of the weekly volume
+        # Use the minimum of buy/sell moving week to be conservative (bottleneck)
+        volume_velocity = min(buy_moving_week, sell_moving_week)
+        potential_profit = margin * volume_velocity * 0.01
 
         try:
-            quality = _quality(
+            quality = _bazaar_quality(
                 buy_price=float(buy_price),
                 sell_price=float(sell_price),
                 buy_volume=float(buy_volume or 0.0),
@@ -2137,6 +2244,9 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
             'margin_percent': round(margin_percent, 2),
             'buy_volume': buy_volume,
             'sell_volume': sell_volume,
+            'buy_moving_week': buy_moving_week,
+            'sell_moving_week': sell_moving_week,
+            'total_volume': buy_moving_week + sell_moving_week,
             'buy_orders': buy_orders,
             'sell_orders': sell_orders,
             'potential_profit': round(potential_profit, 2),
@@ -2205,16 +2315,157 @@ def bazaar_flips(request: Request) -> Response:
         'margin': 'margin',
         'margin_percent': 'margin_percent',
         'profit': 'potential_profit',
-        'volume': 'buy_volume',
+        'volume': 'total_volume',
     }
     sort_key = sort_keys.get(sort_by, 'margin_percent')
     recommendations.sort(key=lambda x: x.get(sort_key, 0), reverse=True)
     
+    # Persist (best-effort) history points for the returned list.
+    try:
+        now = datetime.now(timezone.utc)
+        _persist_bazaar_points(
+            [
+                {
+                    'product_id': rec.get('product_id'),
+                    'recorded_at': now,
+                    'buy_price': rec.get('buy_price'),
+                    'sell_price': rec.get('sell_price'),
+                    'buy_volume': rec.get('buy_volume'),
+                    'sell_volume': rec.get('sell_volume'),
+                    'buy_orders': rec.get('buy_orders'),
+                    'sell_orders': rec.get('sell_orders'),
+                }
+                for rec in recommendations
+            ]
+        )
+    except Exception:
+        pass
+
     return Response({
         'success': True,
         'recommendations': recommendations,
         'last_updated': datetime.now(timezone.utc).isoformat(),
         'total_products': len(products) if products else 0,
+    })
+
+
+@api_view(['GET'])
+@rate_limit('bazaar_history', requests=60, window=60)
+def bazaar_history(request: Request) -> Response:
+    """Get buy/sell price history for a single product.
+
+    This endpoint does NOT filter items. It only provides time-series points
+    and a quality hint for UI.
+
+    Query params:
+    - product_id: string (required)
+    - window_seconds: int (default 21600 = 6h)
+    - max_points: int (default 360, max 1440)
+    - refresh: bypass bazaar cache
+    """
+    product_id = (request.query_params.get('product_id') or '').strip()
+    if not product_id:
+        return Response({'error': 'invalid_params', 'detail': 'product_id is required'}, status=400)
+
+    try:
+        window_seconds = int(request.query_params.get('window_seconds', 21600) or 21600)
+    except (TypeError, ValueError):
+        window_seconds = 21600
+    window_seconds = max(60, min(7 * 24 * 3600, window_seconds))
+
+    try:
+        max_points = int(request.query_params.get('max_points', 360) or 360)
+    except (TypeError, ValueError):
+        max_points = 360
+    max_points = max(10, min(1440, max_points))
+
+    force_refresh = _should_bypass_cache(request.query_params)
+    products, error = _fetch_bazaar_data(force_refresh=force_refresh)
+    if error:
+        return Response(error, status=error.get('status', 500))
+
+    product = (products or {}).get(product_id)
+    if not isinstance(product, dict):
+        return Response({'error': 'not_found', 'detail': f'Unknown product_id: {product_id}'}, status=404)
+
+    quick_status = product.get('quick_status')
+    if not isinstance(quick_status, dict):
+        return Response({'error': 'not_found', 'detail': f'No quick_status for product_id: {product_id}'}, status=404)
+
+    try:
+        buy_price = float(quick_status.get('buyPrice') or 0.0)
+        sell_price = float(quick_status.get('sellPrice') or 0.0)
+        buy_volume = float(quick_status.get('buyVolume') or 0.0)
+        sell_volume = float(quick_status.get('sellVolume') or 0.0)
+        buy_orders = float(quick_status.get('buyOrders') or 0.0)
+        sell_orders = float(quick_status.get('sellOrders') or 0.0)
+    except (TypeError, ValueError):
+        return Response({'error': 'invalid_data', 'detail': 'Invalid quick_status numeric fields'}, status=502)
+
+    if buy_price <= 0 or sell_price <= 0:
+        return Response({'error': 'invalid_data', 'detail': 'buy/sell price <= 0'}, status=502)
+
+    now = datetime.now(timezone.utc)
+    now_iso = now.isoformat()
+
+    # Persist the current point (best-effort)
+    try:
+        _persist_bazaar_points(
+            [
+                {
+                    'product_id': product_id,
+                    'recorded_at': now,
+                    'buy_price': buy_price,
+                    'sell_price': sell_price,
+                    'buy_volume': buy_volume,
+                    'sell_volume': sell_volume,
+                    'buy_orders': buy_orders,
+                    'sell_orders': sell_orders,
+                }
+            ]
+        )
+    except Exception:
+        pass
+
+    cutoff_dt = datetime.fromtimestamp(now.timestamp() - float(window_seconds), tz=timezone.utc)
+    rows = list(
+        BazaarPricePoint.objects.filter(product_id=product_id, recorded_at__gte=cutoff_dt)
+        .order_by('-recorded_at')[:max_points]
+    )
+    rows.reverse()
+
+    filtered: List[Dict[str, Any]] = [
+        {'ts': p.recorded_at.isoformat(), 'buy_price': float(p.buy_price), 'sell_price': float(p.sell_price)}
+        for p in rows
+    ]
+
+    try:
+        quality = _bazaar_quality(
+            buy_price=buy_price,
+            sell_price=sell_price,
+            buy_volume=buy_volume,
+            sell_volume=sell_volume,
+            buy_orders=buy_orders,
+            sell_orders=sell_orders,
+        )
+    except Exception:
+        quality = {'confidence_label': 'Unknown', 'confidence_score': 0.0, 'notes': ['quality_calc_failed']}
+
+    return Response({
+        'success': True,
+        'product_id': product_id,
+        'name': product_id.replace('_', ' ').title(),
+        'current': {
+            'buy_price': round(buy_price, 4),
+            'sell_price': round(sell_price, 4),
+            'buy_volume': buy_volume,
+            'sell_volume': sell_volume,
+            'buy_orders': int(buy_orders),
+            'sell_orders': int(sell_orders),
+            'quality': quality,
+        },
+        'points': filtered,
+        'last_updated': now_iso,
     })
 
 

@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path("health", views.health),
     path("bazaar/flips", views.bazaar_flips),
+    path("bazaar/history", views.bazaar_history),
     path("bazaar/allocate", views.bazaar_allocate),
     path("player/<str:name>", views.player_lookup),
     path("profile/<str:uuid>", views.hypixel_profile),
