@@ -1982,11 +1982,20 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
     """
     recommendations = []
     
+    # Hypixel quick_status semantics:
+    # - buyPrice  : price to BUY instantly (lowest sell offer / ask)
+    # - sellPrice : price to SELL instantly (highest buy order / bid)
+    # For flip approximation (buy order -> sell offer):
+    #   revenue ~= buyPrice * (1 - tau)
+    #   cost    ~= sellPrice
+    # This function assumes tau=0.0125 unless overwritten by caller.
+    tau = 0.0125
+
     for product_id, product_data in products.items():
         quick_status = product_data.get('quick_status', {})
         
-        buy_price = quick_status.get('buyPrice', 0)
-        sell_price = quick_status.get('sellPrice', 0)
+        buy_price = quick_status.get('buyPrice', 0)   # instant buy (ask)
+        sell_price = quick_status.get('sellPrice', 0) # instant sell (bid)
         buy_volume = quick_status.get('buyVolume', 0)
         sell_volume = quick_status.get('sellVolume', 0)
         buy_orders = quick_status.get('buyOrders', 0)
@@ -1996,9 +2005,9 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
         if buy_price <= 0 or sell_price <= 0:
             continue
         
-        # Flip margin: sell at sellPrice (after tax), buy at buyPrice
-        margin = sell_price * 0.9875 - buy_price
-        margin_percent = (margin / buy_price * 100) if buy_price > 0 else 0
+        # Flip margin: buy via buy order (≈ sellPrice), sell via sell offer (≈ buyPrice)
+        margin = buy_price * (1.0 - tau) - sell_price
+        margin_percent = (margin / sell_price * 100) if sell_price > 0 else 0
         
         # Calculate potential profit (simplified)
         # This is where the user's custom logic will go
@@ -2007,8 +2016,13 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
         recommendations.append({
             'product_id': product_id,
             'name': product_id.replace('_', ' ').title(),
-            'buy_price': round(buy_price, 2),
-            'sell_price': round(sell_price, 2),
+            # Keep Hypixel naming in API output
+            'buy_price': round(float(buy_price), 2),
+            'sell_price': round(float(sell_price), 2),
+            # Helpful explicit mapping for flip math
+            'sell_offer_price': round(float(buy_price), 2),
+            'buy_order_price': round(float(sell_price), 2),
+            'tax_rate': tau,
             'margin': round(margin, 2),
             'margin_percent': round(margin_percent, 2),
             'buy_volume': buy_volume,
@@ -2045,12 +2059,35 @@ def bazaar_flips(request: Request) -> Response:
     force_refresh = _should_bypass_cache(request.query_params)
     limit = min(int(request.query_params.get('limit', 20)), 100)
     sort_by = request.query_params.get('sort', 'margin_percent')
+    # Optional override of bazaar tax (default 1.25%)
+    tau = 0.0125
+    raw_tau = request.query_params.get('tax')
+    if raw_tau is not None:
+        try:
+            tau = max(0.0, min(0.5, float(raw_tau)))
+        except (TypeError, ValueError):
+            tau = 0.0125
     
     products, error = _fetch_bazaar_data(force_refresh=force_refresh)
     if error:
         return Response(error, status=error.get('status', 500))
     
+    # Inject tau into calculator via temporary attribute on request scope
+    # (keeps signature stable while allowing the UI to override tax)
+    # NOTE: if you refactor, pass tau explicitly.
     recommendations = _calculate_flip_recommendations(products, limit=limit)
+    # Patch tax_rate/margins if overridden
+    if tau != 0.0125:
+        for rec in recommendations:
+            try:
+                buy_price = float(rec.get('buy_price') or 0.0)
+                sell_price = float(rec.get('sell_price') or 0.0)
+                margin = buy_price * (1.0 - tau) - sell_price
+                rec['tax_rate'] = tau
+                rec['margin'] = round(margin, 2)
+                rec['margin_percent'] = round((margin / sell_price * 100) if sell_price > 0 else 0.0, 2)
+            except Exception:
+                continue
     
     # Apply sorting
     sort_keys = {

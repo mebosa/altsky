@@ -110,7 +110,7 @@
   <div class="controls panel">
     <div class="control-row">
       <div class="control-group">
-        <label class="control-label">Sort by</label>
+        <span class="control-label">Sort by</span>
         <div class="chips">
           {#each sortOptions as option}
             <button
@@ -151,8 +151,8 @@
         <thead>
           <tr>
             <th class="col-item">Item</th>
-            <th class="col-price">Buy Price</th>
-            <th class="col-price">Sell Price</th>
+            <th class="col-price">Buy (Instant)</th>
+            <th class="col-price">Sell (Instant)</th>
             <th class="col-margin">Margin</th>
             <th class="col-percent">Margin %</th>
             <th class="col-volume">Buy Vol</th>

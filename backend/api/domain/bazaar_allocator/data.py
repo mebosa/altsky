@@ -29,16 +29,14 @@ def to_market_snapshot(products: Dict[str, Any]) -> List[ItemMarket]:
         if not isinstance(quick, dict):
             continue
         try:
-            # Hypixel naming:
-            # - buyPrice: price to buy instantly (lowest sell offer)  -> p_s (sell offer price)
-            # - sellPrice: price to sell instantly (highest buy order) -> p_b (buy order price)
-            # For flip modeling we treat p_b as acquisition cost via buy order, p_s as revenue via sell offer.
-            buy_price = float(quick.get("sellPrice") or 0.0)
-            sell_price = float(quick.get("buyPrice") or 0.0)
+            # Hypixel naming (keep as-is for readability):
+            # - buyPrice: price to buy instantly (lowest sell offer)
+            # - sellPrice: price to sell instantly (highest buy order)
+            buy_price = float(quick.get("buyPrice") or 0.0)
+            sell_price = float(quick.get("sellPrice") or 0.0)
 
-            # Volumes: approximate fill-rate symmetry by swapping sides
-            buy_volume = float(quick.get("sellVolume") or 0.0)
-            sell_volume = float(quick.get("buyVolume") or 0.0)
+            buy_volume = float(quick.get("buyVolume") or 0.0)
+            sell_volume = float(quick.get("sellVolume") or 0.0)
         except (TypeError, ValueError):
             continue
         if buy_price <= 0 or sell_price <= 0:

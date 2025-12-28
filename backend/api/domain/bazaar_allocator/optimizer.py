@@ -32,8 +32,8 @@ def best_Q_for_slots(
 ) -> Tuple[int, float, float, float, Dict[str, Any]]:
     best: Tuple[int, float, float, float, Dict[str, Any]] = (0, -1e18, 0.0, 0.0, {})
 
-    # Affordability cap by raw price
-    affordable = int(cfg.W_free // max(1e-9, market.buy_price))
+    # Affordability cap by cost-side price (p_b ≈ Hypixel sellPrice)
+    affordable = int(cfg.W_free // max(1e-9, market.sell_price))
     q_cap_eff = max(0, min(q_cap, affordable))
     if q_cap_eff <= 0:
         return best
