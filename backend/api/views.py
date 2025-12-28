@@ -2147,6 +2147,102 @@ def _persist_bazaar_points(points: List[Dict[str, Any]]) -> None:
         pass
 
 
+def _parse_skycofl_ts(ts: Any) -> Optional[datetime]:
+    if not isinstance(ts, str) or not ts:
+        return None
+    try:
+        # SkyCofl timestamps are usually ISO without timezone; treat as UTC.
+        s = ts.strip()
+        if s.endswith('Z'):
+            s = s[:-1] + '+00:00'
+        dt = datetime.fromisoformat(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return _round_ts_to_minute(dt.astimezone(timezone.utc))
+    except Exception:
+        return None
+
+
+def _skycofl_mode_for_window(window_seconds: int) -> str:
+    if window_seconds <= 3600:
+        return 'hour'
+    if window_seconds <= 24 * 3600:
+        return 'day'
+    return 'week'
+
+
+def _try_skycofl_backfill(
+    *,
+    product_id: str,
+    window_seconds: int,
+    cutoff_dt: datetime,
+    now: datetime,
+    max_points: int,
+) -> None:
+    """Best-effort: fetch a matching time window from SkyCofl and persist to DB."""
+    try:
+        mode = _skycofl_mode_for_window(window_seconds)
+        url = f"https://sky.coflnet.com/api/bazaar/{product_id}/history/{mode}"
+        resp = requests.get(
+            url,
+            timeout=20,
+            headers={
+                'Accept': 'application/json',
+                'User-Agent': 'altsky (bazaar history backfill)',
+            },
+        )
+        if resp.status_code != 200:
+            return
+        payload = resp.json()
+        if not isinstance(payload, list):
+            return
+
+        points: List[Dict[str, Any]] = []
+        for p in payload:
+            if not isinstance(p, dict):
+                continue
+            recorded_at = _parse_skycofl_ts(p.get('timestamp'))
+            if recorded_at is None:
+                continue
+            if recorded_at < cutoff_dt or recorded_at > now:
+                continue
+
+            # SkyCofl semantics: buy=instant buy (ask), sell=instant sell (bid)
+            try:
+                buy_price = float(p.get('buy') or 0.0)
+                sell_price = float(p.get('sell') or 0.0)
+                buy_volume = float(p.get('buyVolume') or 0.0)
+                sell_volume = float(p.get('sellVolume') or 0.0)
+            except (TypeError, ValueError):
+                continue
+
+            if buy_price <= 0 or sell_price <= 0:
+                continue
+
+            points.append(
+                {
+                    'product_id': product_id,
+                    'recorded_at': recorded_at,
+                    'buy_price': buy_price,
+                    'sell_price': sell_price,
+                    'buy_volume': buy_volume,
+                    'sell_volume': sell_volume,
+                    'buy_orders': 0,
+                    'sell_orders': 0,
+                }
+            )
+
+        if not points:
+            return
+
+        # Keep only the most recent N points to avoid huge inserts for hour mode.
+        points.sort(key=lambda x: x['recorded_at'])
+        points = points[-max_points:]
+        _persist_bazaar_points(points)
+    except Exception:
+        return
+
+
 def _fetch_bazaar_data(*, force_refresh: bool = False) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
     """Fetch bazaar data from Hypixel API with caching."""
     cache_key = 'hypixel_bazaar_data'
@@ -2408,6 +2504,8 @@ def bazaar_history(request: Request) -> Response:
         max_points = 360
     max_points = max(10, min(1440, max_points))
 
+    want_backfill = _is_truthy(request.query_params.get('backfill'))
+
     force_refresh = _should_bypass_cache(request.query_params)
     products, error = _fetch_bazaar_data(force_refresh=force_refresh)
     if error:
@@ -2457,10 +2555,19 @@ def bazaar_history(request: Request) -> Response:
         pass
 
     cutoff_dt = datetime.fromtimestamp(now.timestamp() - float(window_seconds), tz=timezone.utc)
-    rows = list(
-        BazaarPricePoint.objects.filter(product_id=product_id, recorded_at__gte=cutoff_dt)
-        .order_by('-recorded_at')[:max_points]
-    )
+    qs = BazaarPricePoint.objects.filter(product_id=product_id, recorded_at__gte=cutoff_dt).order_by('-recorded_at')
+    rows = list(qs[:max_points])
+
+    # Optional external backfill (best-effort) when history is thin.
+    if want_backfill and len(rows) < min(60, max_points):
+        _try_skycofl_backfill(
+            product_id=product_id,
+            window_seconds=window_seconds,
+            cutoff_dt=cutoff_dt,
+            now=now,
+            max_points=max_points,
+        )
+        rows = list(qs[:max_points])
     rows.reverse()
 
     filtered: List[Dict[str, Any]] = [
