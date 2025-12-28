@@ -89,6 +89,7 @@
   let loading = !summary && !errorMsg;
   let refreshing = false;
   let statsLoading = false; // stats 별도 로딩 상태
+  let inventoryLoading = false; // inventory/wardrobe 로딩 상태
   let activeTab: TabId = 'summary';
   let selectedWeaponSlot: number | null = null;
   let selectedWeaponId: string | null = null;
@@ -112,6 +113,14 @@
     // If museum tab is selected and museum data is deferred, load stats to fetch museum data
     if (activeTab === 'museum' && summary?.museum && 'deferred' in summary.museum && !statsLoading) {
       loadStats(selectedWeaponSlot, selectedWeaponId);
+    }
+    
+    // If inventory or wardrobe tab is selected and inventory data is empty, load it
+    if ((activeTab === 'inventory' || activeTab === 'wardrobe') && 
+        summary && 
+        (!summary.inventory?.player_inventory?.length) && 
+        !inventoryLoading) {
+      loadInventory();
     }
   }
 
@@ -207,6 +216,41 @@
       console.error('Failed to load stats:', err);
     } finally {
       statsLoading = false;
+    }
+  }
+
+  // inventory, wardrobe 등의 데이터를 로드하는 함수
+  async function loadInventory() {
+    if (!player || inventoryLoading) return;
+    
+    inventoryLoading = true;
+    try {
+      const query: Record<string, string | number> = {
+        skip_stats: 1,
+        skip_museum: 1,
+        skip_networth: 1,
+        skip_collections: 1,
+        skip_minions: 1,
+        skip_accessories: 1,
+      };
+      
+      const fullSummary = await get<ProfileSummaryResponse>(
+        `/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(params.profileId)}`,
+        { query }
+      );
+      
+      // 기존 summary에 inventory, wardrobe 업데이트
+      if (fullSummary && summary) {
+        summary = {
+          ...summary,
+          inventory: fullSummary.inventory,
+          wardrobe: fullSummary.wardrobe,
+        };
+      }
+    } catch (err) {
+      console.error('Failed to load inventory:', err);
+    } finally {
+      inventoryLoading = false;
     }
   }
 

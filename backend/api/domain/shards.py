@@ -230,7 +230,7 @@ def decode_inventory_data(b64_data: str) -> List[str]:
         except gzip.BadGzipFile:
             decompressed = decoded
             
-        nbt_file = nbtlib.File.from_buffer(io.BytesIO(decompressed))
+        nbt_file = nbtlib.File.from_fileobj(io.BytesIO(decompressed))
         
         item_ids = []
         root = nbt_file.root

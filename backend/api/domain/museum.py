@@ -16,6 +16,8 @@ import requests
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Set
 
+from django.core.cache import cache
+
 from ..http_client import session
 from .nbt_parser import decode_inventory_data
 from .item_textures import resolve_item_icon_variants
