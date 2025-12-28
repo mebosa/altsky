@@ -5,8 +5,9 @@
     loadHypixelItems,
     getItemTextureUrl,
     itemsLoaded,
-    loadFurfskytextures,
-    furfskyCacheLoaded
+    loadItemTextures,
+    furfskyCacheLoaded,
+    vanillaCacheLoaded
   } from '$lib/stores/hypixelItems';
 
   interface HistoryPoint {
@@ -46,7 +47,7 @@
   };
 
   $: itemsReady = $itemsLoaded;
-  $: furfskReady = $furfskyCacheLoaded;
+  $: texturesCacheReady = $texturePackStore === 'furfsky' ? $furfskyCacheLoaded : $vanillaCacheLoaded;
 
   $: history = (data?.history && 'success' in data.history && data.history.success) ? (data.history as HistoryResponse) : null;
   $: error = history ? '' : (data?.history as any)?.detail || (data?.history as any)?.error || '';
@@ -65,13 +66,30 @@
     loadHypixelItems();
   });
 
-  // Preload this item's furfsky texture if needed.
-  $: if ($texturePackStore === 'furfsky' && data?.productId) {
-    loadFurfskytextures([data.productId]);
+  // Preload this item's texture using the selected pack.
+  $: if (data?.productId) {
+    loadItemTextures([data.productId], $texturePackStore);
   }
 
-  $: headerIcon = itemsReady ? getItemTextureUrl(data.productId, $texturePackStore) : null;
-  $: void furfskReady;
+  $: headerIcon = texturesCacheReady ? getItemTextureUrl(data.productId, $texturePackStore) : null;
+
+  // Get fallback emoji for items without textures
+  function getFallbackEmoji(productId: string): string {
+    const id = productId.toUpperCase();
+    if (id.startsWith('SHARD_')) return '💎';
+    if (id.startsWith('ENCHANTMENT_') || id.startsWith('ENCHANTED_')) return '✨';
+    if (id.includes('RUNE')) return '🔮';
+    if (id.includes('ESSENCE')) return '⭐';
+    if (id.includes('GEM') || id.includes('GEMSTONE')) return '💠';
+    if (id.includes('FLOWER') || id.includes('ROSE')) return '🌸';
+    if (id.includes('FISH') || id.includes('SHARK')) return '🐟';
+    if (id.includes('POTION') || id.includes('BREW')) return '🧪';
+    if (id.includes('BOOK')) return '📖';
+    if (id.includes('FRAGMENT')) return '🔹';
+    if (id.includes('CRYSTAL')) return '💎';
+    if (id.includes('INK')) return '🖤';
+    return '📦';
+  }
 
   function formatNumber(num: number): string {
     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + 'B';
@@ -281,7 +299,7 @@
           {#if headerIcon}
             <img class="item-icon" src={headerIcon} alt="" loading="lazy" decoding="async" />
           {:else}
-            <span class="item-icon placeholder" aria-hidden="true"></span>
+            <span class="item-icon placeholder" aria-hidden="true">{getFallbackEmoji(data.productId)}</span>
           {/if}
           <h1>{history?.name ?? data.productId}</h1>
         </div>
@@ -524,7 +542,11 @@
   }
 
   .item-icon.placeholder {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
   }
 
   h1 {

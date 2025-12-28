@@ -6,8 +6,9 @@
     loadHypixelItems,
     getItemTextureUrl,
     itemsLoaded,
-    loadFurfskytextures,
-    furfskyCacheLoaded
+    loadItemTextures,
+    furfskyCacheLoaded,
+    vanillaCacheLoaded
   } from '$lib/stores/hypixelItems';
 
   interface FlipRecommendation {
@@ -46,12 +47,12 @@
   let limit = 100; // Default to showing more items
 
   $: itemsReady = $itemsLoaded;
-  $: furfskReady = $furfskyCacheLoaded;
+  $: texturesCacheReady = $texturePackStore === 'furfsky' ? $furfskyCacheLoaded : $vanillaCacheLoaded;
 
-  // Preload textures for current list when using furfsky.
-  $: if ($texturePackStore === 'furfsky' && recommendations.length) {
+  // Preload textures for current list using the selected pack.
+  $: if (recommendations.length) {
     const ids = Array.from(new Set(recommendations.map((r) => r.product_id)));
-    loadFurfskytextures(ids);
+    loadItemTextures(ids, $texturePackStore);
   }
 
   const sortOptions = [
@@ -137,10 +138,27 @@
   });
 
   function getFlipIcon(productId: string): string | null {
-    if (!itemsReady) return null;
-    // Force reactive dependency on furfsky cache updates.
-    void furfskReady;
+    // Force reactive dependency on cache updates.
+    void texturesCacheReady;
     return getItemTextureUrl(productId, $texturePackStore);
+  }
+
+  // Get fallback emoji for items without textures
+  function getFallbackEmoji(productId: string): string {
+    const id = productId.toUpperCase();
+    if (id.startsWith('SHARD_')) return '💎';
+    if (id.startsWith('ENCHANTMENT_') || id.startsWith('ENCHANTED_')) return '✨';
+    if (id.includes('RUNE')) return '🔮';
+    if (id.includes('ESSENCE')) return '⭐';
+    if (id.includes('GEM') || id.includes('GEMSTONE')) return '💠';
+    if (id.includes('FLOWER') || id.includes('ROSE')) return '🌸';
+    if (id.includes('FISH') || id.includes('SHARK')) return '🐟';
+    if (id.includes('POTION') || id.includes('BREW')) return '🧪';
+    if (id.includes('BOOK')) return '📖';
+    if (id.includes('FRAGMENT')) return '🔹';
+    if (id.includes('CRYSTAL')) return '💎';
+    if (id.includes('INK')) return '🖤';
+    return '📦';
   }
 </script>
 
@@ -227,7 +245,7 @@
                     {#if iconSrc}
                       <img class="item-icon" src={iconSrc} alt="" loading="lazy" decoding="async" />
                     {:else}
-                      <span class="item-icon placeholder" aria-hidden="true"></span>
+                      <span class="item-icon placeholder" aria-hidden="true">{getFallbackEmoji(item.product_id)}</span>
                     {/if}
                     <span class="item-text">{item.name}</span>
                   </span>
@@ -379,7 +397,11 @@
   }
 
   .item-icon.placeholder {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
   }
 
   .item-text {

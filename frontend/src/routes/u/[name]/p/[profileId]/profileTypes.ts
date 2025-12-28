@@ -402,31 +402,20 @@ export type InventoryData = {
 export type ShardItem = {
   id: string;
   name: string;
-  mob: string;
-  effect: string;
-  category: string;
-  texture: string;
+  rarity: string;
   owned: boolean;
-  count: number;
 };
 
 export type ShardStats = {
   unique_shards: number;
-  total_shards: number;
-  owned_count: number;
-  progress_percent: number;
-  hunts: {
-    combat: number;
-    fishing: number;
-    forest: number;
-    trap: number;
-    salt: number;
-  };
+  shard_charm_level: number;
+  total_hunts: number;
+  hunts_by_category: Record<string, number>;
 };
 
 export type ShardsData = {
-  owned: ShardItem[];
-  missing: ShardItem[];
   stats: ShardStats;
-  categories: Record<string, string>;
+  shards: ShardItem[];
+  total_owned: number;
+  total_shards: number;
 };

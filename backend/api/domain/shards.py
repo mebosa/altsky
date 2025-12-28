@@ -275,6 +275,14 @@ def extract_player_shards(member_data: Dict[str, Any]) -> Dict[str, Any]:
     shard_trap_hunts = int(player_stats.get("shard_trap_hunts", 0))
     shard_salt_hunts = int(player_stats.get("shard_salt_hunts", 0))
     
+    # Get active effects for shard charm
+    active_effects = member_data.get("active_effects", [])
+    shard_charm_level = 0
+    for effect in active_effects:
+        if effect.get("effect") == "shard_charm":
+            shard_charm_level = int(effect.get("level", 0))
+            break
+
     total_hunts = (
         shard_combat_hunts + 
         shard_fishing_hunts + 
@@ -332,6 +340,7 @@ def extract_player_shards(member_data: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "stats": {
             "unique_shards": unique_shards,
+            "shard_charm_level": shard_charm_level,
             "total_hunts": total_hunts,
             "hunts_by_category": {
                 "combat": shard_combat_hunts,

@@ -30,25 +30,46 @@
   {#if stats}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-surface-800 p-4 rounded-lg border border-surface-700">
-        <div class="text-surface-400 text-sm">Unique Shards</div>
+        <div class="text-surface-400 text-sm">Applied Shards</div>
         <div class="text-2xl font-bold text-primary-400">{stats.unique_shards}</div>
+        <div class="text-xs text-surface-500 mt-1">Consumed on profile</div>
       </div>
+      
+      <div class="bg-surface-800 p-4 rounded-lg border border-surface-700">
+        <div class="text-surface-400 text-sm">Shard Charm</div>
+        <div class="text-2xl font-bold text-yellow-400">
+            {#if stats.shard_charm_level}
+                Lvl {stats.shard_charm_level}
+            {:else}
+                -
+            {/if}
+        </div>
+      </div>
+
       <div class="bg-surface-800 p-4 rounded-lg border border-surface-700">
         <div class="text-surface-400 text-sm">Total Hunts</div>
         <div class="text-2xl font-bold text-secondary-400">{formatNumber(stats.total_hunts)}</div>
       </div>
-      <div class="bg-surface-800 p-4 rounded-lg border border-surface-700 col-span-2">
-        <div class="text-surface-400 text-sm mb-2">Collection Progress</div>
-        <div class="flex items-center gap-4">
-            <div class="text-2xl font-bold">{ownedCount} / {totalShards}</div>
-            <div class="flex-1 h-4 bg-surface-700 rounded-full overflow-hidden">
-                <div class="h-full bg-green-500 transition-all duration-500" style="width: {progress}%"></div>
-            </div>
-            <div class="text-sm text-surface-300">{progress.toFixed(1)}%</div>
-        </div>
+      
+      <div class="bg-surface-800 p-4 rounded-lg border border-surface-700">
+        <div class="text-surface-400 text-sm">Inventory Shards</div>
+        <div class="text-2xl font-bold text-green-400">{ownedCount}</div>
+        <div class="text-xs text-surface-500 mt-1">Found in storage</div>
       </div>
     </div>
   {/if}
+
+  <!-- Info Alert -->
+  <div class="bg-surface-800/50 border border-surface-700 p-4 rounded-lg flex items-start gap-3 text-sm text-surface-300">
+    <div class="text-xl">ℹ️</div>
+    <div>
+      <p class="font-bold text-surface-200 mb-1">About Shard Tracking</p>
+      <p>
+        Hypixel's API only reports the <strong>total count</strong> of applied shards, not the specific ones you've used. 
+        The grid below shows shards found in your inventory/storage, which are likely duplicates or unapplied extras.
+      </p>
+    </div>
+  </div>
 
   <!-- Controls -->
   <div class="flex flex-wrap gap-4 items-center bg-surface-800 p-4 rounded-lg border border-surface-700">
