@@ -36,6 +36,10 @@ from .domain.wardrobe import (
 )
 from . import statscalc_client
 from .http_client import session as _SESSION
+from .domain.bazaar_allocator.calibrator import Calibrator, default_global_params
+from .domain.bazaar_allocator.data import load_caps_from_dict, to_market_snapshot
+from .domain.bazaar_allocator.optimizer import allocate
+from .domain.bazaar_allocator.types import AllocatorConfig
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1992,13 +1996,13 @@ def _calculate_flip_recommendations(products: Dict[str, Any], limit: int = 20) -
         if buy_price <= 0 or sell_price <= 0:
             continue
         
-        # Calculate margin
-        margin = buy_price - sell_price
-        margin_percent = (margin / sell_price * 100) if sell_price > 0 else 0
+        # Flip margin: sell at sellPrice (after tax), buy at buyPrice
+        margin = sell_price * 0.9875 - buy_price
+        margin_percent = (margin / buy_price * 100) if buy_price > 0 else 0
         
         # Calculate potential profit (simplified)
         # This is where the user's custom logic will go
-        potential_profit = margin * min(buy_volume, sell_volume) * 0.01  # Conservative estimate
+        potential_profit = margin * min(buy_volume, sell_volume) * 0.01  # Placeholder
         
         recommendations.append({
             'product_id': product_id,
@@ -2064,3 +2068,87 @@ def bazaar_flips(request: Request) -> Response:
         'last_updated': datetime.now(timezone.utc).isoformat(),
         'total_products': len(products) if products else 0,
     })
+
+
+@api_view(['GET'])
+@rate_limit('bazaar_allocate', requests=30, window=60)
+def bazaar_allocate(request: Request) -> Response:
+    """One-shot allocator endpoint.
+
+    Query params:
+    - slots: int (S_total)
+    - capital: float (W_free)
+    - tax: float (tau) default 0.0125
+    - top: int default 20
+    - refresh: bypass bazaar cache
+    - eta, phi, omega, xi, z, lambda_slot, mu, T_set: optional floats
+
+    Returns AllocationResult JSON.
+    """
+
+    try:
+        S_total = int(request.query_params.get('slots', 0))
+        W_free = float(request.query_params.get('capital', 0))
+    except (TypeError, ValueError):
+        return Response({'error': 'invalid_params', 'detail': 'slots/capital must be numeric'}, status=400)
+
+    if S_total <= 0 or W_free <= 0:
+        return Response({'error': 'invalid_params', 'detail': 'slots and capital are required (>0)'}, status=400)
+
+    def _get_float(name: str, default: float) -> float:
+        raw = request.query_params.get(name)
+        if raw is None:
+            return default
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return default
+
+    tau = _get_float('tax', 0.0125)
+    top_n = int(request.query_params.get('top', 20) or 20)
+
+    cfg = AllocatorConfig(S_total=S_total, W_free=W_free, top_n=max(1, min(100, top_n)))
+    gp = default_global_params(
+        tau=tau,
+        eta=_get_float('eta', 0.8),
+        phi=_get_float('phi', 0.5),
+        omega=_get_float('omega', 0.45),
+        xi=_get_float('xi', 0.15),
+        z=_get_float('z', 2.0),
+        lambda_slot=_get_float('lambda_slot', 0.0),
+        mu=_get_float('mu', 0.0),
+        T_set=_get_float('T_set', 1.5),
+    )
+
+    force_refresh = _should_bypass_cache(request.query_params)
+    products, error = _fetch_bazaar_data(force_refresh=force_refresh)
+    if error:
+        return Response(error, status=error.get('status', 500))
+
+    markets = to_market_snapshot(products or {})
+
+    # Optional caps via JSON string in query (?caps={"ITEM":123})
+    caps: Dict[str, int] = {}
+    raw_caps = request.query_params.get('caps')
+    if raw_caps:
+        try:
+            caps = load_caps_from_dict(json.loads(raw_caps))
+        except Exception:
+            caps = {}
+
+    # Persisted calibrator state (optional). If not writable, still works.
+    state_path = os.path.join(os.path.dirname(__file__), '..', 'tmp', 'bazaar_allocator_state.json')
+    state_path = os.path.abspath(state_path)
+    calibrator = Calibrator(state_path)
+
+    params_by_item: Dict[str, Any] = {}
+    for m in markets:
+        params_by_item[m.item_id] = calibrator.get_item_params(m, cfg)
+
+    result = allocate(markets, cfg, gp, params_by_item, caps=caps)
+    try:
+        calibrator.save()
+    except Exception:
+        pass
+
+    return Response(result.to_jsonable())
