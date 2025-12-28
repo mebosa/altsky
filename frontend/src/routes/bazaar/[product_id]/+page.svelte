@@ -1,4 +1,13 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { texturePackStore } from '$lib/stores/texturePack';
+  import {
+    loadHypixelItems,
+    getItemTextureUrl,
+    itemsLoaded,
+    loadFurfskytextures,
+    furfskyCacheLoaded
+  } from '$lib/stores/hypixelItems';
 
   interface HistoryPoint {
     ts: string;
@@ -36,6 +45,9 @@
     history: HistoryResponse | { error: string; detail?: string };
   };
 
+  $: itemsReady = $itemsLoaded;
+  $: furfskReady = $furfskyCacheLoaded;
+
   $: history = (data?.history && 'success' in data.history && data.history.success) ? (data.history as HistoryResponse) : null;
   $: error = history ? '' : (data?.history as any)?.detail || (data?.history as any)?.error || '';
   $: lastUpdated = history
@@ -48,6 +60,18 @@
         second: '2-digit'
       })
     : '';
+
+  onMount(() => {
+    loadHypixelItems();
+  });
+
+  // Preload this item's furfsky texture if needed.
+  $: if ($texturePackStore === 'furfsky' && data?.productId) {
+    loadFurfskytextures([data.productId]);
+  }
+
+  $: headerIcon = itemsReady ? getItemTextureUrl(data.productId, $texturePackStore) : null;
+  $: void furfskReady;
 
   function formatNumber(num: number): string {
     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + 'B';
@@ -253,7 +277,14 @@
     <div class="header-main">
       <a href="/bazaar" class="back-link">← Back</a>
       <div class="title-section">
-        <h1>{history?.name ?? data.productId}</h1>
+        <div class="title-row">
+          {#if headerIcon}
+            <img class="item-icon" src={headerIcon} alt="" loading="lazy" decoding="async" />
+          {:else}
+            <span class="item-icon placeholder" aria-hidden="true"></span>
+          {/if}
+          <h1>{history?.name ?? data.productId}</h1>
+        </div>
         <p class="muted">Buy/Sell overlay history</p>
       </div>
     </div>
@@ -474,6 +505,26 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .item-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    flex: 0 0 auto;
+    image-rendering: pixelated;
+    border: 1px solid color-mix(in srgb, var(--theme-surface-border) 65%, transparent);
+    background: color-mix(in srgb, var(--theme-surface) 70%, transparent);
+  }
+
+  .item-icon.placeholder {
+    display: inline-block;
   }
 
   h1 {

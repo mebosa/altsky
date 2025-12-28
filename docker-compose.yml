@@ -118,6 +118,9 @@ services:
       dockerfile: Dockerfile
       target: frontend-server
     container_name: altsky-app
+    environment:
+      # Vite dev server proxy target inside the docker network
+      VITE_INTERNAL_API_BASE: http://backend:8000
     ports:
       - "4173:4173"
     depends_on:

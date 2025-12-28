@@ -198,6 +198,7 @@ export type ProfileSummaryResponse = {
   collections?: CollectionsData | null;
   inventory?: InventoryData | null;
   networth?: NetworthData | null;
+  shards?: ShardsData | null;
 };
 
 // ===== Networth Types =====
@@ -394,4 +395,38 @@ export type InventoryData = {
   sacks_bag: (InventoryItem | null)[];
   /** Arrow quiver contents */
   quiver: (InventoryItem | null)[];
+};
+
+// ===== Shard Types =====
+
+export type ShardItem = {
+  id: string;
+  name: string;
+  mob: string;
+  effect: string;
+  category: string;
+  texture: string;
+  owned: boolean;
+  count: number;
+};
+
+export type ShardStats = {
+  unique_shards: number;
+  total_shards: number;
+  owned_count: number;
+  progress_percent: number;
+  hunts: {
+    combat: number;
+    fishing: number;
+    forest: number;
+    trap: number;
+    salt: number;
+  };
+};
+
+export type ShardsData = {
+  owned: ShardItem[];
+  missing: ShardItem[];
+  stats: ShardStats;
+  categories: Record<string, string>;
 };

@@ -1,6 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { get } from '$lib/api';
+  import { texturePackStore } from '$lib/stores/texturePack';
+  import {
+    loadHypixelItems,
+    getItemTextureUrl,
+    itemsLoaded,
+    loadFurfskytextures,
+    furfskyCacheLoaded
+  } from '$lib/stores/hypixelItems';
 
   interface FlipRecommendation {
     product_id: string;
@@ -36,6 +44,15 @@
   let lastUpdated = '';
   let sortBy = 'margin_percent';
   let limit = 100; // Default to showing more items
+
+  $: itemsReady = $itemsLoaded;
+  $: furfskReady = $furfskyCacheLoaded;
+
+  // Preload textures for current list when using furfsky.
+  $: if ($texturePackStore === 'furfsky' && recommendations.length) {
+    const ids = Array.from(new Set(recommendations.map((r) => r.product_id)));
+    loadFurfskytextures(ids);
+  }
 
   const sortOptions = [
     { value: 'margin_percent', label: 'Margin %' },
@@ -115,8 +132,16 @@
   }
 
   onMount(() => {
+    loadHypixelItems();
     fetchFlips();
   });
+
+  function getFlipIcon(productId: string): string | null {
+    if (!itemsReady) return null;
+    // Force reactive dependency on furfsky cache updates.
+    void furfskReady;
+    return getItemTextureUrl(productId, $texturePackStore);
+  }
 </script>
 
 <svelte:head>
@@ -193,9 +218,20 @@
         </thead>
         <tbody>
           {#each recommendations as item}
+            {@const iconSrc = getFlipIcon(item.product_id)}
             <tr>
               <td class="col-item">
-                <a class="item-link" href={`/bazaar/${encodeURIComponent(item.product_id)}`}>{item.name}</a>
+                <a class="item-link" href={`/bazaar/${encodeURIComponent(item.product_id)}`}
+                  >
+                  <span class="item-cell">
+                    {#if iconSrc}
+                      <img class="item-icon" src={iconSrc} alt="" loading="lazy" decoding="async" />
+                    {:else}
+                      <span class="item-icon placeholder" aria-hidden="true"></span>
+                    {/if}
+                    <span class="item-text">{item.name}</span>
+                  </span>
+                </a>
               </td>
               <td class="col-price buy-price">{formatCoins(item.buy_price)}</td>
               <td class="col-price sell-price">{formatCoins(item.sell_price)}</td>
@@ -316,10 +352,38 @@
     color: inherit;
     text-decoration: none;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .item-link:hover {
     text-decoration: underline;
+  }
+
+  .item-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 22px;
+  }
+
+  .item-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex: 0 0 auto;
+    image-rendering: pixelated;
+    border: 1px solid color-mix(in srgb, var(--theme-surface-border) 65%, transparent);
+    background: color-mix(in srgb, var(--theme-surface) 70%, transparent);
+  }
+
+  .item-icon.placeholder {
+    display: inline-block;
+  }
+
+  .item-text {
+    line-height: 1.2;
   }
 
   .quality-wrap {

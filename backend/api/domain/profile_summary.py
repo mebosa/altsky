@@ -14,6 +14,7 @@ from .minions import parse_minions
 from .collections import extract_collections_from_profile
 from .inventory import parse_inventory
 from .networth import calculate_networth
+from .shards import extract_player_shards
 from django.core.cache import cache
 
 NW_LOGGER = logging.getLogger(__name__)
@@ -273,6 +274,7 @@ def summarize_profile(
     skip_collections: bool = False,
     skip_minions: bool = False,
     skip_accessories: bool = False,
+    skip_shards: bool = False,
 ) -> Optional[Dict[str, Any]]:
     members = profile.get("members") or {}
     member = members.get(player_uuid)
@@ -387,6 +389,7 @@ def summarize_profile(
         "collections": collections,
         "inventory": inventory,
         "networth": networth,
+        "shards": {} if skip_shards else extract_player_shards(member),
     }
 
 

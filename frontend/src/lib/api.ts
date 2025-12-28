@@ -238,8 +238,30 @@ export async function get<T>(path: string, opts: GetOpts = {}): Promise<T> {
         'Accept': 'application/json'
       }
     });
-    
-    const data: unknown = await r.json();
+
+    const contentType = r.headers.get('content-type') ?? '';
+    const rawText = await r.text();
+    let data: unknown = null;
+    if (contentType.includes('application/json')) {
+      try {
+        data = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        // fall through to error handling below
+      }
+    } else {
+      // Some misroutes return HTML (e.g. index.html). Keep a short snippet for debugging.
+      data = null;
+    }
+
+    if (contentType.includes('application/json') && data === null && rawText) {
+      const snippet = rawText.slice(0, 200).replace(/\s+/g, ' ').trim();
+      throw new Error(`API returned invalid JSON (HTTP ${r.status}). Snippet: ${snippet}`);
+    }
+
+    if (!contentType.includes('application/json')) {
+      const snippet = rawText.slice(0, 200).replace(/\s+/g, ' ').trim();
+      throw new Error(`API returned non-JSON response (HTTP ${r.status}). Check API base/proxy. Snippet: ${snippet}`);
+    }
 
     if (!r.ok) {
       const body = (data ?? {}) as {

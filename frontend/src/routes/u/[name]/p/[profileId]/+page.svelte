@@ -23,7 +23,8 @@
     museum: () => import('./MuseumTab.svelte'),
     auctions: () => import('./AuctionsTab.svelte'),
     dropcalc: () => import('./DropCalcTab.svelte'),
-    networth: () => import('./NetworthTab.svelte')
+    networth: () => import('./NetworthTab.svelte'),
+    shards: () => import('./ShardsTab.svelte')
   };
 
   // Cache loaded components
@@ -65,6 +66,7 @@
     { id: 'minions', label: 'Minions' },
     { id: 'collections', label: 'Collections' },
     { id: 'pets', label: 'Pets' },
+    { id: 'shards', label: 'Shards' },
     { id: 'accessories', label: 'Accessories' },
     { id: 'weapons', label: 'Weapons' },
     { id: 'wardrobe', label: 'Wardrobe' },
@@ -334,6 +336,8 @@
       <svelte:component this={loadedTabs.collections} {summary} />
     {:else if activeTab === 'pets' && loadedTabs.pets}
       <svelte:component this={loadedTabs.pets} {summary} />
+    {:else if activeTab === 'shards' && loadedTabs.shards}
+      <svelte:component this={loadedTabs.shards} {summary} />
     {:else if activeTab === 'accessories' && loadedTabs.accessories}
       <svelte:component this={loadedTabs.accessories} {summary} />
     {:else if activeTab === 'weapons' && loadedTabs.weapons}
