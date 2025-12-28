@@ -76,22 +76,6 @@
     return getTierForRow(row) <= tier;
   }
 
-  // Get status color classes
-  function getStatusClasses(status: string): string {
-    switch (status) {
-      case 'maxed':
-        return 'bg-purple-900/50 border-purple-500 shadow-purple-500/30';
-      case 'unlocked':
-        return 'bg-green-900/50 border-green-500 shadow-green-500/30';
-      case 'ability':
-        return 'bg-blue-900/50 border-blue-500 shadow-blue-500/30';
-      case 'special':
-        return 'bg-yellow-900/50 border-yellow-500 shadow-yellow-500/30';
-      default:
-        return 'bg-surface-800 border-surface-600 opacity-60';
-    }
-  }
-
   // Selected perk for details panel
   let selectedPerk: (HOTMPerk & { level: number; status: string }) | null = null;
 
@@ -102,9 +86,16 @@
   }
 </script>
 
-<div class="space-y-6">
-  <!-- HOTM Header Stats -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+{#if !hotm || tier === 0}
+  <div class="card empty-card">
+    <div class="empty-icon">⛏️</div>
+    <h3>No HOTM Data</h3>
+    <p>This player hasn't unlocked Heart of the Mountain yet, or the data is not available.</p>
+  </div>
+{:else}
+  <section class="hotm-section">
+    <!-- HOTM Header Stats -->
+    <div class="stats-grid">
     <!-- Tier -->
     <div class="bg-surface-800 p-4 rounded-lg border border-surface-700">
       <div class="text-surface-400 text-sm">HOTM Tier</div>
@@ -240,36 +231,32 @@
               </div>
 
               <!-- Perk cells -->
-              <div class="flex gap-1.5 flex-1">
-                {#each row as perk, colIndex}
+              <div class="perk-cells">
+                {#each row as perk}
                   {#if perk}
                     <button
-                      class="w-12 h-12 md:w-14 md:h-14 rounded-lg border-2 flex items-center justify-center
-                        transition-all duration-200 hover:scale-105 cursor-pointer
-                        shadow-lg {getStatusClasses(perk.status)}"
+                      class="perk-cell {perk.status}"
                       on:click={() => selectPerk(perk)}
                       title={perk.name}
+                      type="button"
                     >
-                      <div class="text-center">
-                        {#if perk.isAbility}
-                          <div class="text-lg">🔮</div>
-                        {:else if perk.isSpecial}
-                          <div class="text-lg">⭐</div>
-                        {:else if perk.status === 'maxed'}
-                          <div class="text-xs font-bold text-purple-400">MAX</div>
-                        {:else if perk.level > 0}
-                          <div class="text-xs font-bold text-green-400">
-                            {perk.level}/{perk.maxLevel}
-                          </div>
-                        {:else}
-                          <div class="text-xs text-surface-500">0</div>
-                        {/if}
-                      </div>
+                      {#if perk.isAbility}
+                        <div class="perk-icon">🔮</div>
+                      {:else if perk.isSpecial}
+                        <div class="perk-icon">⭐</div>
+                      {:else if perk.status === 'maxed'}
+                        <div class="perk-level maxed">MAX</div>
+                      {:else if perk.level > 0}
+                        <div class="perk-level active">
+                          {perk.level}/{perk.maxLevel}
+                        </div>
+                      {:else}
+                        <div class="perk-level inactive">0</div>
+                      {/if}
                     </button>
                   {:else}
                     <!-- Empty cell -->
-                    <div class="w-12 h-12 md:w-14 md:h-14 rounded-lg border border-surface-700/30 bg-surface-900/20">
-                    </div>
+                    <div class="perk-cell empty"></div>
                   {/if}
                 {/each}
               </div>
@@ -482,15 +469,5 @@
       </table>
     </div>
   </div>
-
-  <!-- No Data -->
-  {#if !hotm || tier === 0}
-    <div class="bg-surface-800/50 border border-surface-700 p-8 rounded-lg text-center">
-      <div class="text-4xl mb-4">⛏️</div>
-      <h3 class="text-lg font-bold text-surface-300 mb-2">No HOTM Data</h3>
-      <p class="text-surface-500">
-        This player hasn't unlocked Heart of the Mountain yet, or the data is not available.
-      </p>
-    </div>
-  {/if}
-</div>
+  </section>
+{/if}

@@ -5,6 +5,7 @@
   import type { ProfileSummaryResponse } from './profileTypes';
 
   export let summary: ProfileSummaryResponse;
+  export let loading = false;
 
   const RARITY_ORDER = [
     'DIVINE',
@@ -104,16 +105,24 @@
 
   $: accessories = summary?.accessories;
   $: items = accessories?.items ?? [];
-  $: sortedItems = items
-    .slice()
-    .sort((a, b) => {
-      const rarityDiff = raritySortKey(a.rarity) - raritySortKey(b.rarity);
-      if (rarityDiff !== 0) return rarityDiff;
-      const nameA = a.name?.toLowerCase() ?? '';
-      const nameB = b.name?.toLowerCase() ?? '';
-      if (nameA !== nameB) return nameA.localeCompare(nameB);
-      return a.slot - b.slot;
-    });
+  
+  // Memoize sortedItems to prevent infinite re-sorting
+  let lastItems: typeof items = [];
+  let cachedSortedItems: typeof items = [];
+  $: {
+    if (items !== lastItems) {
+      lastItems = items;
+      cachedSortedItems = items.slice().sort((a, b) => {
+        const rarityDiff = raritySortKey(a.rarity) - raritySortKey(b.rarity);
+        if (rarityDiff !== 0) return rarityDiff;
+        const nameA = a.name?.toLowerCase() ?? '';
+        const nameB = b.name?.toLowerCase() ?? '';
+        if (nameA !== nameB) return nameA.localeCompare(nameB);
+        return a.slot - b.slot;
+      });
+    }
+  }
+  $: sortedItems = cachedSortedItems;
   $: rarityEntries = accessories
     ? Object.entries(accessories.rarity_counts ?? {})
         .map(([rarity, count]) => [normalizeRarity(rarity) || rarity, count] as const)
@@ -128,7 +137,7 @@
         .filter(([, count]) => (count ?? 0) > 0)
         .sort(([, a], [, b]) => Number(b) - Number(a))
     : [];
-  $: formattedUnlockedPowers = accessories
+  $: formattedUnlockedPowers = accessories?.unlocked_powers
     ? accessories.unlocked_powers
         .map((power) => formatIdentifier(power))
         .filter((value): value is string => !!value)
@@ -144,6 +153,10 @@
   let showAllMissing = false;
   let activeAccessorySlot: number | null = null;
   let tooltipClearTimeout: ReturnType<typeof setTimeout> | null = null;
+  
+  // Read texture pack once per render to prevent reactive loops
+  let currentTexturePack: 'vanilla' | 'furfsky' = 'furfsky';
+  $: currentTexturePack = $texturePackStore as 'vanilla' | 'furfsky';
 
   function activateAccessoryTooltip(slot: number) {
     activeAccessorySlot = slot;
@@ -195,7 +208,13 @@
 </script>
 
 <section id="accessories" class="accessories-section">
-  {#if !accessories || !sortedItems.length}
+  {#if loading}
+    <div class="card skeleton">
+      <div class="bar wide"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+  {:else if !accessories || !sortedItems.length}
     <div class="card empty-card">
       <p>No accessories found.</p>
     </div>
@@ -294,16 +313,16 @@
       {#each sortedItems as item (item.slot)}
         {@const rarityColor = rarityToBackground(item.rarity)}
         {@const iconSrcRaw =
-            item.icon_variants?.[$texturePackStore] ??
+            item.icon_variants?.[currentTexturePack] ??
             item.icon_variants?.furfsky ??
             item.icon_variants?.vanilla ??
             item.icon_url ??
             null}
         {@const itemId = (item.id ?? '').toUpperCase()}
         {@const forcedIcon =
-          $texturePackStore !== 'furfsky' && itemId.startsWith('PERSONAL_COMPACTOR')
+          currentTexturePack !== 'furfsky' && itemId.startsWith('PERSONAL_COMPACTOR')
             ? '/icons/accessories/dropper_iso.png'
-            : $texturePackStore !== 'furfsky' && itemId.startsWith('PERSONAL_DELETOR')
+            : currentTexturePack !== 'furfsky' && itemId.startsWith('PERSONAL_DELETOR')
               ? '/icons/accessories/dispenser_iso.png'
               : null}
         {@const iconCandidate = forcedIcon ?? iconSrcRaw}
@@ -435,16 +454,16 @@
         <div class="missing-grid">
           {#each missingPreview as missingItem}
             {@const iconSrcRaw =
-              missingItem.icon_variants?.[$texturePackStore] ??
+              missingItem.icon_variants?.[currentTexturePack] ??
               missingItem.icon_variants?.furfsky ??
               missingItem.icon_variants?.vanilla ??
               missingItem.icon_url ??
               null}
             {@const missingId = (missingItem.id ?? '').toUpperCase()}
             {@const forcedIcon =
-              $texturePackStore !== 'furfsky' && missingId.startsWith('PERSONAL_COMPACTOR')
+              currentTexturePack !== 'furfsky' && missingId.startsWith('PERSONAL_COMPACTOR')
                 ? '/icons/accessories/dropper_iso.png'
-                : $texturePackStore !== 'furfsky' && missingId.startsWith('PERSONAL_DELETOR')
+                : currentTexturePack !== 'furfsky' && missingId.startsWith('PERSONAL_DELETOR')
                   ? '/icons/accessories/dispenser_iso.png'
                   : null}
             {@const iconCandidate = forcedIcon ?? iconSrcRaw}
@@ -463,11 +482,11 @@
                       missingItem.icon_variants?.vanilla ??
                       null}
             {@const isBlockIcon = iconSrc?.includes('/block/')}
-            {@const isIsometric = isBlockIcon && $texturePackStore !== 'furfsky'}
+            {@const isIsometric = isBlockIcon && currentTexturePack !== 'furfsky'}
             {@const buyPrice = missingItem.upgrade_buy_price ?? missingItem.price}
             <div class="missing-chip">
               <div class="row top">
-                <div class="missing-icon {isIsometric ? 'isometric' : ''} {$texturePackStore === 'furfsky' ? 'furfsky' : ''}">
+                <div class="missing-icon {isIsometric ? 'isometric' : ''} {currentTexturePack === 'furfsky' ? 'furfsky' : ''}">
                   {#if iconSrc}
                     <img
                       src={iconSrc}
@@ -1024,6 +1043,40 @@
   .rarity-chip .count {
     color: var(--theme-text-soft);
     font-weight: 600;
+  }
+
+  .skeleton {
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 20px;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .skeleton .bar {
+    background: linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.08) 25%,
+      rgba(148, 163, 184, 0.15) 50%,
+      rgba(148, 163, 184, 0.08) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+    height: 24px;
+    width: 60%;
+  }
+
+  .skeleton .bar.wide {
+    width: 100%;
+    height: 32px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 
 </style>

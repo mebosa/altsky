@@ -104,13 +104,15 @@
 
         <!-- Icon Placeholder -->
         <div class="w-12 h-12 mb-3 rounded bg-surface-700 flex items-center justify-center text-2xl">
-            💎
-        <div class="font-medium text-sm line-clamp-2 h-10 flex items-center justify-center">
-            {shard.name}
+          💎
         </div>
-        
+
+        <div class="font-medium text-sm line-clamp-2 h-10 flex items-center justify-center">
+          {shard.name}
+        </div>
+
         <div class="text-xs text-surface-400 mt-2 uppercase tracking-wider">
-            {shard.rarity}
+          {shard.rarity}
         </div>
       </div>
     {/each}

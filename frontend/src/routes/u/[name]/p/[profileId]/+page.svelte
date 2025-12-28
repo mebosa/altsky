@@ -24,7 +24,6 @@
     auctions: () => import('./AuctionsTab.svelte'),
     dropcalc: () => import('./DropCalcTab.svelte'),
     networth: () => import('./NetworthTab.svelte'),
-    shards: () => import('./ShardsTab.svelte'),
     hotm: () => import('./HOTMTab.svelte')
   };
 
@@ -68,7 +67,6 @@
     { id: 'minions', label: 'Minions' },
     { id: 'collections', label: 'Collections' },
     { id: 'pets', label: 'Pets' },
-    { id: 'shards', label: 'Shards' },
     { id: 'accessories', label: 'Accessories' },
     { id: 'weapons', label: 'Weapons' },
     { id: 'wardrobe', label: 'Wardrobe' },
@@ -90,9 +88,134 @@
   let refreshing = false;
   let statsLoading = false; // stats 별도 로딩 상태
   let inventoryLoading = false; // inventory/wardrobe 로딩 상태
+  let accessoriesLoading = false;
+  let minionsLoading = false;
+  let collectionsLoading = false;
+  let networthLoading = false;
   let activeTab: TabId = 'summary';
   let selectedWeaponSlot: number | null = null;
   let selectedWeaponId: string | null = null;
+
+  function hasAccessoryData(value: unknown): boolean {
+    const hasData = !!value && typeof value === 'object' && Array.isArray((value as any).items);
+    console.log('[DEBUG] hasAccessoryData:', value, '→', hasData);
+    return hasData;
+  }
+
+  function hasMinionsData(value: unknown): boolean {
+    return !!value && typeof value === 'object' && !!(value as any).categories;
+  }
+
+  function hasCollectionsData(value: unknown): boolean {
+    return !!value && typeof value === 'object' && !!(value as any).categories;
+  }
+
+  async function fetchPartialSummary(query: Record<string, string | number>) {
+    if (!player) return null;
+    return await get<ProfileSummaryResponse>(
+      `/api/hypixel/profile/${encodeURIComponent(player.uuid)}/${encodeURIComponent(params.profileId)}`,
+      { query }
+    );
+  }
+
+  async function loadAccessories() {
+    if (!player || accessoriesLoading) return;
+    console.log('[DEBUG] Loading accessories...');
+    accessoriesLoading = true;
+    try {
+      const query: Record<string, string | number> = {
+        skip_stats: 1,
+        skip_museum: 1,
+        skip_networth: 1,
+        skip_inventory: 1,
+        skip_wardrobe: 1,
+        skip_collections: 1,
+        skip_minions: 1,
+      };
+      const fullSummary = await fetchPartialSummary(query);
+      console.log('[DEBUG] Accessories response:', fullSummary?.accessories);
+      if (fullSummary && summary) {
+        summary = { ...summary, accessories: fullSummary.accessories };
+        console.log('[DEBUG] Accessories merged into summary');
+      }
+    } catch (err) {
+      console.error('Failed to load accessories:', err);
+    } finally {
+      accessoriesLoading = false;
+    }
+  }
+
+  async function loadMinions() {
+    if (!player || minionsLoading) return;
+    minionsLoading = true;
+    try {
+      const query: Record<string, string | number> = {
+        skip_stats: 1,
+        skip_museum: 1,
+        skip_networth: 1,
+        skip_inventory: 1,
+        skip_wardrobe: 1,
+        skip_collections: 1,
+        skip_accessories: 1,
+      };
+      const fullSummary = await fetchPartialSummary(query);
+      if (fullSummary && summary) {
+        summary = { ...summary, minions: fullSummary.minions };
+      }
+    } catch (err) {
+      console.error('Failed to load minions:', err);
+    } finally {
+      minionsLoading = false;
+    }
+  }
+
+  async function loadCollections() {
+    if (!player || collectionsLoading) return;
+    collectionsLoading = true;
+    try {
+      const query: Record<string, string | number> = {
+        skip_stats: 1,
+        skip_museum: 1,
+        skip_networth: 1,
+        skip_inventory: 1,
+        skip_wardrobe: 1,
+        skip_minions: 1,
+        skip_accessories: 1,
+      };
+      const fullSummary = await fetchPartialSummary(query);
+      if (fullSummary && summary) {
+        summary = { ...summary, collections: fullSummary.collections };
+      }
+    } catch (err) {
+      console.error('Failed to load collections:', err);
+    } finally {
+      collectionsLoading = false;
+    }
+  }
+
+  async function loadNetworth() {
+    if (!player || networthLoading) return;
+    networthLoading = true;
+    try {
+      const query: Record<string, string | number> = {
+        skip_stats: 1,
+        skip_museum: 1,
+        skip_inventory: 1,
+        skip_wardrobe: 1,
+        skip_collections: 1,
+        skip_minions: 1,
+        skip_accessories: 1,
+      };
+      const fullSummary = await fetchPartialSummary(query);
+      if (fullSummary && summary) {
+        summary = { ...summary, networth: fullSummary.networth };
+      }
+    } catch (err) {
+      console.error('Failed to load networth:', err);
+    } finally {
+      networthLoading = false;
+    }
+  }
 
   function scrollToTab(tab: TabId) {
     if (typeof window !== 'undefined') {
@@ -110,8 +233,10 @@
     loadTab(activeTab);
     scrollToTab(activeTab);
     
-    // If museum tab is selected and museum data is deferred, load stats to fetch museum data
-    if (activeTab === 'museum' && summary?.museum && 'deferred' in summary.museum && !statsLoading) {
+    // If stats/museum data was skipped on SSR, load it on demand
+    if ((activeTab === 'stats' || activeTab === 'museum') && summary && !summary.computed_stats && !statsLoading) {
+      loadStats(selectedWeaponSlot, selectedWeaponId);
+    } else if (activeTab === 'museum' && summary && !summary.museum && !statsLoading) {
       loadStats(selectedWeaponSlot, selectedWeaponId);
     }
     
@@ -121,6 +246,21 @@
         (!summary.inventory?.player_inventory?.length) && 
         !inventoryLoading) {
       loadInventory();
+    }
+
+    if (summary) {
+      if (activeTab === 'accessories' && !hasAccessoryData(summary.accessories) && !accessoriesLoading) {
+        loadAccessories();
+      }
+      if (activeTab === 'minions' && !hasMinionsData(summary.minions) && !minionsLoading) {
+        loadMinions();
+      }
+      if (activeTab === 'collections' && !hasCollectionsData(summary.collections) && !collectionsLoading) {
+        loadCollections();
+      }
+      if (activeTab === 'networth' && !networthLoading && !summary.networth) {
+        loadNetworth();
+      }
     }
   }
 
@@ -185,8 +325,11 @@
     try {
       const query: Record<string, string | number> = {
         skip_networth: 1,
+        skip_inventory: 1,
+        skip_wardrobe: 1,
         skip_collections: 1,
         skip_minions: 1,
+        skip_accessories: 1,
       };
       if (weaponId) {
         query.weapon_id = weaponId;
@@ -382,10 +525,8 @@
       <svelte:component this={loadedTabs.collections} {summary} />
     {:else if activeTab === 'pets' && loadedTabs.pets}
       <svelte:component this={loadedTabs.pets} {summary} />
-    {:else if activeTab === 'shards' && loadedTabs.shards}
-      <svelte:component this={loadedTabs.shards} {summary} />
     {:else if activeTab === 'accessories' && loadedTabs.accessories}
-      <svelte:component this={loadedTabs.accessories} {summary} />
+      <svelte:component this={loadedTabs.accessories} {summary} loading={accessoriesLoading} />
     {:else if activeTab === 'weapons' && loadedTabs.weapons}
       <svelte:component this={loadedTabs.weapons} {summary} on:weaponchange={handleWeaponChange} />
     {:else if activeTab === 'wardrobe' && loadedTabs.wardrobe}
@@ -400,6 +541,14 @@
       <svelte:component this={loadedTabs.auctions} {summary} {player} />
     {:else if activeTab === 'dropcalc' && loadedTabs.dropcalc}
       <svelte:component this={loadedTabs.dropcalc} {summary} />
+    {:else if activeTab === 'hotm' && loadedTabs.hotm}
+      <svelte:component this={loadedTabs.hotm} {summary} />
+    {:else}
+      <div class="card skeleton">
+        <div class="bar wide"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
     {/if}
   {/if}
 </div>
