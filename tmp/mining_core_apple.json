@@ -1,0 +1,74 @@
+{
+  "received_free_tier": true,
+  "tokens": 0,
+  "powder_mithril": 23640,
+  "powder_mithril_total": -326360,
+  "powder_spent_mithril": 4721510,
+  "retroactive_tier2_token": true,
+  "crystals": {
+    "jade_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 28,
+      "total_placed": 28
+    },
+    "amber_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 317,
+      "total_placed": 28
+    },
+    "amethyst_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 43,
+      "total_placed": 28
+    },
+    "sapphire_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 28,
+      "total_placed": 28
+    },
+    "topaz_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 28,
+      "total_placed": 28
+    },
+    "jasper_crystal": {
+      "state": "FOUND",
+      "total_found": 1
+    },
+    "ruby_crystal": {
+      "state": "FOUND",
+      "total_found": 1
+    }
+  },
+  "greater_mines_last_access": 1758722618907,
+  "biomes": {
+    "precursor": {
+      "claiming_with_precursor_apparatus": false,
+      "talked_to_professor": true
+    },
+    "dwarven": {},
+    "goblin": {
+      "king_quest_active": false,
+      "king_quests_completed": 84
+    },
+    "jungle": {
+      "jungle_temple_open": false,
+      "jungle_temple_chest_uses": 2
+    }
+  },
+  "powder_gemstone": 21698,
+  "powder_gemstone_total": 21698,
+  "daily_ores_mined_day_gemstone": 20378,
+  "daily_ores_mined_gemstone": 0,
+  "daily_ores_mined_day_mithril_ore": 20378,
+  "daily_ores_mined_mithril_ore": 0,
+  "powder_spent_gemstone": 5278301,
+  "daily_ores_mined": 0,
+  "daily_ores_mined_day": 20378,
+  "daily_ores_mined_day_glacite": 20378,
+  "daily_ores_mined_glacite": 0,
+  "powder_glacite": 9587,
+  "powder_glacite_total": 9587,
+  "current_daily_effect": "titanium_ore_multiplier",
+  "current_daily_effect_last_changed": 10
+}

@@ -1,0 +1,92 @@
+{
+  "received_free_tier": true,
+  "crystals": {
+    "jade_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 55,
+      "total_placed": 43
+    },
+    "amber_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 53,
+      "total_placed": 43
+    },
+    "amethyst_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 46,
+      "total_placed": 43
+    },
+    "sapphire_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 46,
+      "total_placed": 43
+    },
+    "topaz_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 52,
+      "total_placed": 43
+    },
+    "jasper_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 9
+    },
+    "ruby_crystal": {
+      "state": "FOUND",
+      "total_found": 3
+    },
+    "onyx_crystal": {
+      "state": "FOUND",
+      "total_found": 9
+    },
+    "aquamarine_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 9
+    },
+    "citrine_crystal": {
+      "state": "FOUND",
+      "total_found": 7
+    },
+    "opal_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 6
+    },
+    "peridot_crystal": {
+      "state": "NOT_FOUND",
+      "total_found": 17
+    }
+  },
+  "powder_mithril": 4022824,
+  "powder_mithril_total": 4022824,
+  "powder_spent_mithril": 8611585,
+  "retroactive_tier2_token": true,
+  "greater_mines_last_access": 1766398584603,
+  "biomes": {
+    "precursor": {
+      "claiming_with_precursor_apparatus": false,
+      "talked_to_professor": true
+    },
+    "dwarven": {},
+    "goblin": {
+      "king_quest_active": false,
+      "king_quests_completed": 53
+    },
+    "jungle": {
+      "jungle_temple_open": false,
+      "jungle_temple_chest_uses": 1
+    }
+  },
+  "powder_gemstone": 10603560,
+  "powder_gemstone_total": 10603560,
+  "daily_ores_mined_day_gemstone": 20450,
+  "daily_ores_mined_gemstone": 0,
+  "daily_ores_mined_day_mithril_ore": 20450,
+  "daily_ores_mined_mithril_ore": 0,
+  "daily_ores_mined": 0,
+  "daily_ores_mined_day": 20450,
+  "daily_ores_mined_day_glacite": 20450,
+  "daily_ores_mined_glacite": 0,
+  "powder_spent_gemstone": 9660407,
+  "powder_glacite": 137740,
+  "powder_glacite_total": 137740,
+  "powder_spent_glacite": 31845137
+}

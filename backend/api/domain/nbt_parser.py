@@ -538,9 +538,48 @@ def extract_hotm_from_profile(member_data: Dict[str, Any]) -> Optional[Dict[str,
     if not isinstance(mining, dict):
         return None
     
+    # Hypixel API changed - tier/experience/nodes no longer provided directly
+    # Check if user has unlocked HOTM by looking for any HOTM-related data
+    has_hotm_data = (
+        mining.get('powder_mithril_total', 0) > 0 or
+        mining.get('powder_gemstone_total', 0) > 0 or
+        mining.get('powder_glacite_total', 0) > 0 or
+        mining.get('powder_spent_mithril', 0) > 0 or
+        mining.get('powder_spent_gemstone', 0) > 0 or
+        mining.get('powder_spent_glacite', 0) > 0 or
+        mining.get('received_free_tier') or
+        mining.get('nodes') or
+        mining.get('crystals')
+    )
+    
+    if not has_hotm_data:
+        return None
+    
+    # Estimate tier based on powder spent (very rough estimate)
+    # Each tier unlock costs tokens, and tokens are spent on perks
+    # Tier 10 requires significant powder investment
+    powder_spent_total = (
+        mining.get('powder_spent_mithril', 0) +
+        mining.get('powder_spent_gemstone', 0) +
+        mining.get('powder_spent_glacite', 0)
+    )
+    
+    # Rough tier estimation based on powder spent
+    estimated_tier = 0
+    if powder_spent_total > 0:
+        estimated_tier = 1
+    if powder_spent_total > 100000:
+        estimated_tier = 3
+    if powder_spent_total > 500000:
+        estimated_tier = 5
+    if powder_spent_total > 2000000:
+        estimated_tier = 7
+    if powder_spent_total > 10000000:
+        estimated_tier = 10
+    
     # 파우더 데이터 - 현재 보유량과 총 획득량
     hotm = {
-        'tier': mining.get('tier', 0),
+        'tier': mining.get('tier', estimated_tier),
         'experience': mining.get('experience', 0),
         'perks': {},
         'powder': {
@@ -583,6 +622,7 @@ def extract_hotm_from_profile(member_data: Dict[str, Any]) -> Optional[Dict[str,
         if crystal_data:
             hotm['crystals'] = crystal_data
     
+    # Only return if tier > 0 (estimated or actual)
     return hotm if hotm['tier'] > 0 else None
 
 

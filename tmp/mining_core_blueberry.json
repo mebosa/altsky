@@ -1,0 +1,17 @@
+{
+  "received_free_tier": true,
+  "daily_ores_mined": 0,
+  "daily_ores_mined_day": 20362,
+  "daily_ores_mined_day_gemstone": 20362,
+  "daily_ores_mined_day_glacite": 20362,
+  "daily_ores_mined_day_mithril_ore": 20362,
+  "daily_ores_mined_gemstone": 0,
+  "daily_ores_mined_glacite": 0,
+  "daily_ores_mined_mithril_ore": 0,
+  "powder_mithril": 1023,
+  "powder_mithril_total": 1023,
+  "powder_spent_mithril": 54848,
+  "retroactive_tier2_token": true,
+  "powder_gemstone": 400,
+  "powder_gemstone_total": 400
+}
