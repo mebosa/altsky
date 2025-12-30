@@ -1484,23 +1484,29 @@ def _build_statscalc_payload(
         if accessories:
             payload['accessories'] = [_serialize_accessory(acc) for acc in accessories]
         
-        # Selected Power (from summary if available, as nbt_parser doesn't extract it yet)
-        if summary.get('accessories') and isinstance(summary['accessories'], dict):
-            selected_power = summary['accessories'].get('selected_power')
-            if selected_power:
-                payload['selected_power'] = selected_power
-            
-            # Magical Power (from summary, which is more accurate)
-            magical_power = summary['accessories'].get('magical_power')
-            if magical_power:
-                payload['magical_power'] = magical_power
-            
-            # Tuning Points
-            tuning = summary['accessories'].get('tuning')
-            if not tuning and member_data:
-                tuning = _extract_accessory_tuning(member_data)
-            if tuning:
-                payload['tuning'] = tuning
+        # 악세서리 관련 데이터 (Selected Power, MP, Tuning)
+        acc_summary = summary.get('accessories') if isinstance(summary.get('accessories'), dict) else {}
+        
+        # Selected Power
+        selected_power = acc_summary.get('selected_power')
+        if not selected_power and member_data:
+             storage = member_data.get('accessory_bag_storage', {})
+             if isinstance(storage, dict):
+                 selected_power = storage.get('selected_power')
+        if selected_power:
+            payload['selected_power'] = selected_power
+
+        # Magical Power (from summary, which is more accurate)
+        magical_power = acc_summary.get('magical_power')
+        if magical_power:
+            payload['magical_power'] = magical_power
+        
+        # Tuning Points
+        tuning = acc_summary.get('tuning')
+        if not tuning and member_data:
+            tuning = _extract_accessory_tuning(member_data)
+        if tuning:
+            payload['tuning'] = tuning
 
         # 펫
         pets = extract_pets_from_profile(member_data)
