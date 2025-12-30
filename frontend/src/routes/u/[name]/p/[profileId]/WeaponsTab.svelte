@@ -271,9 +271,6 @@
     weapon: WeaponCandidate,
     pack?: TexturePack
   ): { url: string; source: IconSource } | null {
-    if (weapon.skin_url) {
-      return { url: weapon.skin_url, source: 'legacy' };
-    }
     const variants = weapon.icon_variants ?? {};
     if (pack && variants[pack]) {
       return { url: variants[pack]!, source: pack };

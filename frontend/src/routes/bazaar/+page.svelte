@@ -158,7 +158,53 @@
     if (id.includes('FRAGMENT')) return '🔹';
     if (id.includes('CRYSTAL')) return '💎';
     if (id.includes('INK')) return '🖤';
+    if (id.includes('LOG') || id.includes('WOOD')) return '🪵';
+    if (id.includes('TOOTH')) return '🦷';
     return '📦';
+  }
+
+  let failedImages = new Set<string>();
+  const retryCounts = new Map<string, number>();
+
+  // Clear failed images when texture settings change to allow retrying
+  $: {
+    void $texturePackStore;
+    void texturesCacheReady;
+    failedImages.clear();
+    retryCounts.clear();
+    failedImages = failedImages;
+  }
+
+  function handleImageError(event: Event, productId: string) {
+    const img = event.currentTarget as HTMLImageElement;
+    const count = retryCounts.get(productId) || 0;
+    
+    if (count < 3) {
+      retryCounts.set(productId, count + 1);
+      const delay = 1000 + (count * 500);
+      
+      setTimeout(() => {
+        try {
+          // Check if element is still in DOM
+          if (!img.isConnected) return;
+          
+          const currentSrc = img.src;
+          if (currentSrc) {
+            const url = new URL(currentSrc);
+            url.searchParams.set('retry', Date.now().toString());
+            img.src = url.toString();
+          }
+        } catch (e) {
+          failedImages.add(productId);
+          failedImages = failedImages;
+        }
+      }, delay);
+    } else {
+      // Hide the broken image immediately to prevent ugly icon
+      img.style.display = 'none';
+      failedImages.add(productId);
+      failedImages = failedImages;
+    }
   }
 </script>
 
@@ -242,8 +288,15 @@
                 <a class="item-link" href={`/bazaar/${encodeURIComponent(item.product_id)}`}
                   >
                   <span class="item-cell">
-                    {#if iconSrc}
-                      <img class="item-icon" src={iconSrc} alt="" loading="lazy" decoding="async" />
+                    {#if iconSrc && !failedImages.has(item.product_id)}
+                      <img 
+                        class="item-icon" 
+                        src={iconSrc} 
+                        alt="" 
+                        loading="lazy" 
+                        decoding="async" 
+                        on:error={(e) => handleImageError(e, item.product_id)}
+                      />
                     {:else}
                       <span class="item-icon placeholder" aria-hidden="true">{getFallbackEmoji(item.product_id)}</span>
                     {/if}

@@ -309,7 +309,7 @@
 </script>
 
 <section id="inventory" class="inventory-section">
-  {#if !inventory}
+  {#if !inventory || Object.keys(inventory).length === 0}
     <div class="card loading-card">
       <p>Loading inventory data...</p>
     </div>
@@ -1249,9 +1249,14 @@
     background: rgba(14, 18, 30, 0.95);
     border: 1px solid rgba(148, 163, 184, 0.12);
     border-radius: 10px;
-    overflow: hidden;
+    /* overflow: hidden; */
     transition: all 0.2s ease;
     border-left: 3px solid var(--backpack-color, rgba(148, 163, 184, 0.12));
+    position: relative;
+  }
+
+  .backpack-card:hover {
+    z-index: 20;
   }
 
   .backpack-card.expanded {
@@ -1271,6 +1276,11 @@
     color: inherit;
     text-align: left;
     transition: background 0.12s ease;
+    border-radius: 10px;
+  }
+
+  .backpack-card.expanded .backpack-header {
+    border-radius: 10px 10px 0 0;
   }
 
   .backpack-header:hover {

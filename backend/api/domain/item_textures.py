@@ -4,6 +4,8 @@ import json
 import logging
 import os
 import zipfile
+import threading
+import queue
 from functools import lru_cache
 from io import BytesIO
 from typing import Dict, Iterable, Iterator, Literal, Optional, Set, Tuple
@@ -29,6 +31,17 @@ NEU_ICON_BASE_URL = (
     "https://raw.githubusercontent.com/Moulberry/NotEnoughUpdates-REPO/master/items"
 )
 NEU_TEXTURE_CACHE = os.path.join(os.path.dirname(__file__), "texture_cache")
+VANILLA_TEXTURES_LIST = os.path.join(os.path.dirname(__file__), "vanilla_textures.json")
+
+# Load valid vanilla textures
+_VALID_VANILLA_TEXTURES: Set[str] = set()
+if os.path.exists(VANILLA_TEXTURES_LIST):
+    try:
+        with open(VANILLA_TEXTURES_LIST, "r", encoding="utf-8") as f:
+            _VALID_VANILLA_TEXTURES = set(json.load(f))
+        LOGGER.info("Loaded %d valid vanilla textures", len(_VALID_VANILLA_TEXTURES))
+    except Exception as e:
+        LOGGER.warning("Failed to load vanilla textures list: %s", e)
 
 # Dynamic texture cache for items discovered from player inventories
 DYNAMIC_TEXTURE_CACHE_FILE = os.path.join(
@@ -90,6 +103,37 @@ SESSION = requests.Session()
 _ASSET_CACHE: Dict[str, Optional[str]] = {}
 _TALL_TEXTURE_NOTICE_EMITTED = False
 _NEU_ICON_MISSING: Set[str] = set()
+
+# Background download worker for NEU textures
+_DOWNLOAD_QUEUE = queue.Queue()
+_PENDING_DOWNLOADS = set()
+_DOWNLOAD_LOCK = threading.Lock()
+
+def _neu_download_worker():
+    while True:
+        neu_key, local_path = _DOWNLOAD_QUEUE.get()
+        url = f"{NEU_ICON_BASE_URL}/{neu_key}.png"
+        try:
+            response = SESSION.get(url, timeout=10)
+            if response.status_code == 200 and response.content:
+                # Write to temp file and rename to be atomic
+                tmp_path = local_path + ".tmp"
+                with open(tmp_path, "wb") as handle:
+                    handle.write(response.content)
+                if os.path.exists(tmp_path):
+                    os.replace(tmp_path, local_path)
+            else:
+                _NEU_ICON_MISSING.add(neu_key)
+        except Exception as e:
+            LOGGER.debug(f"Failed to download NEU texture {neu_key}: {e}")
+        finally:
+            with _DOWNLOAD_LOCK:
+                _PENDING_DOWNLOADS.discard(neu_key)
+            _DOWNLOAD_QUEUE.task_done()
+
+# Start worker thread
+_WORKER_THREAD = threading.Thread(target=_neu_download_worker, daemon=True)
+_WORKER_THREAD.start()
 
 TexturePack = Literal["furfsky", "vanilla"]
 TEXTURE_PACKS: Tuple[TexturePack, ...] = ("furfsky", "vanilla")
@@ -899,26 +943,21 @@ def _ensure_neu_texture(identifier: Optional[str]) -> Optional[str]:
     filename = f"neu_{neu_key}.png"
     os.makedirs(NEU_TEXTURE_CACHE, exist_ok=True)
     local_path = os.path.join(NEU_TEXTURE_CACHE, filename)
+    
     if os.path.exists(local_path):
         return filename
 
-    url = f"{NEU_ICON_BASE_URL}/{neu_key}.png"
-    try:
-        response = SESSION.get(url, timeout=6)
-    except requests.RequestException:
-        return None
-
-    if response.status_code != 200 or not response.content:
-        _NEU_ICON_MISSING.add(neu_key)
-        return None
-
-    try:
-        with open(local_path, "wb") as handle:
-            handle.write(response.content)
-    except OSError:
-        return None
-
-    return filename
+    # Check if already pending
+    with _DOWNLOAD_LOCK:
+        if neu_key in _PENDING_DOWNLOADS:
+            return None
+        _PENDING_DOWNLOADS.add(neu_key)
+    
+    # Queue for background download
+    _DOWNLOAD_QUEUE.put((neu_key, local_path))
+    
+    # Return None immediately so we don't block
+    return None
 
 
 @lru_cache(maxsize=1)
@@ -1022,22 +1061,13 @@ def _cached_asset_path(candidate: str) -> Optional[str]:
     # Use local proxy path for all vanilla textures
     proxy_url = f"/api/vanilla/{candidate}"
     
-    if candidate in COMMON_VANILLA_ITEMS:
+    # Fast path: Check against pre-loaded list
+    if candidate in _VALID_VANILLA_TEXTURES or candidate in COMMON_VANILLA_ITEMS:
         _ASSET_CACHE[candidate] = proxy_url
         return proxy_url
     
-    # For other items, still validate with HEAD request to GitHub
-    github_url = f"{ASSET_BASE}/{candidate}"
-    try:
-        response = SESSION.head(github_url, timeout=5)
-    except requests.RequestException:  # pragma: no cover - network failure
-        _ASSET_CACHE[candidate] = None
-        return None
-
-    if response.status_code == 200:
-        _ASSET_CACHE[candidate] = proxy_url  # Use proxy URL even if GitHub check succeeds
-        return proxy_url
-
+    # If not in our valid list, assume it doesn't exist to avoid slow network checks
+    # This is a trade-off: we might miss some obscure textures, but we gain massive performance
     _ASSET_CACHE[candidate] = None
     return None
 

@@ -581,12 +581,23 @@ export function getHOTMProgress(tier: number, experience: number): { current: nu
   const nextTier = tier + 1;
   const nextReq = HOTM_XP_REQUIREMENTS[nextTier];
   
+  // If experience is 0 but tier > 1, it means we have estimated tier data without XP
+  // In this case, we should show 0 progress or full progress depending on context,
+  // but definitely not negative numbers.
+  if (experience === 0 && tier > 1) {
+    if (!nextReq || tier >= HOTM_TIERS) {
+      return { current: 0, next: 0, progress: 100 };
+    }
+    const tierXP = nextReq - currentReq;
+    return { current: 0, next: tierXP, progress: 0 };
+  }
+  
   if (!nextReq || tier >= HOTM_TIERS) {
-    return { current: experience - currentReq, next: 0, progress: 100 };
+    return { current: Math.max(0, experience - currentReq), next: 0, progress: 100 };
   }
   
   const tierXP = nextReq - currentReq;
-  const earnedInTier = experience - currentReq;
+  const earnedInTier = Math.max(0, experience - currentReq);
   const progress = Math.min(100, (earnedInTier / tierXP) * 100);
   
   return { current: earnedInTier, next: tierXP, progress };
