@@ -151,9 +151,9 @@ const MATERIAL_TO_TEXTURE: Record<string, string> = {
   MYCEL: 'block/mycelium_side',
   
   // Missing Items
-  ENCHANTED_JUNGLE_LOG: 'block/jungle_log',
-  NURSE_SHARK_TOOTH: 'item/ghast_tear',
-  ENCHANTED_PAPER: 'item/paper',
+  ENCHANTED_JUNGLE_LOG: '/items/vanilla/jungle_log.png',
+  NURSE_SHARK_TOOTH: '/items/vanilla/ghast_tear.png',
+  ENCHANTED_PAPER: '/items/vanilla/paper.png',
   SULPHURIC_COAL: 'item/coal',
   HALF_EATEN_MUSHROOM: 'block/brown_mushroom',
   SHARD_ABYSSAL_LANTERNFISH: '/items/shards/abyssal_lanternfish_shard.png',
@@ -336,8 +336,8 @@ const MATERIAL_TO_TEXTURE: Record<string, string> = {
   SHARD_ZEALOT: '/items/shards/zealot_shard.png',
   SHARD_ZOMBIE_SOLDIER: '/items/shards/zombie_soldier_shard.png',
   ENCHANTMENT_ULTIMATE_COMBO_5: 'item/enchanted_book',
-  BEZOS: 'item/stone_button',
-  X: 'item/barrier',
+  BEZOS: '/items/vanilla/stone_button.png',
+  X: '/items/vanilla/barrier.png',
   GENERATOR_UPGRADE_STONE_FISHING_12: 'block/sea_lantern',
   RED_SAND: 'block/red_sand',
   SULPHUR_ORE: 'item/gunpowder',
@@ -507,6 +507,11 @@ export function getItemTextureUrl(itemId: string, pack: 'vanilla' | 'furfsky' = 
     // Fall through to local resolution if backend returned null
   }
   
+  // Special handling for Enchanted Books - use local static image
+  if (itemId === 'ENCHANTED_BOOK' || itemId.startsWith('ENCHANTMENT_')) {
+    return '/items/enchanted_book.png';
+  }
+
   // First, try direct lookup in MATERIAL_TO_TEXTURE (for collection items etc.)
   const directTexturePath = MATERIAL_TO_TEXTURE[itemId];
   if (directTexturePath) {

@@ -23,8 +23,7 @@
     museum: () => import('./MuseumTab.svelte'),
     auctions: () => import('./AuctionsTab.svelte'),
     dropcalc: () => import('./DropCalcTab.svelte'),
-    networth: () => import('./NetworthTab.svelte'),
-    hotm: () => import('./HOTMTab.svelte')
+    networth: () => import('./NetworthTab.svelte')
   };
 
   // Cache loaded components
@@ -63,7 +62,6 @@
     { id: 'stats', label: 'Stats' },
     { id: 'slayer', label: 'Slayer' },
     { id: 'dungeons', label: 'Dungeons' },
-    { id: 'hotm', label: 'HOTM' },
     { id: 'minions', label: 'Minions' },
     { id: 'collections', label: 'Collections' },
     { id: 'pets', label: 'Pets' },
@@ -541,8 +539,6 @@
       <svelte:component this={loadedTabs.auctions} {summary} {player} />
     {:else if activeTab === 'dropcalc' && loadedTabs.dropcalc}
       <svelte:component this={loadedTabs.dropcalc} {summary} />
-    {:else if activeTab === 'hotm' && loadedTabs.hotm}
-      <svelte:component this={loadedTabs.hotm} {summary} />
     {:else}
       <div class="card skeleton">
         <div class="bar wide"></div>
