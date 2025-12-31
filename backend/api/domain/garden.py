@@ -1,5 +1,5 @@
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 @dataclass
 class JacobContest:
@@ -25,7 +25,7 @@ class GardenData:
     unique_bronzes: List[str]
     contests: List[JacobContest]
 
-def extract_garden(member: Dict[str, Any]) -> GardenData:
+def extract_garden(member: Dict[str, Any]) -> Dict[str, Any]:
     garden_data = member.get("garden_player_data", {}) or {}
     jacob_data = member.get("jacobs_contest", {}) or {}
     
@@ -96,7 +96,7 @@ def extract_garden(member: Dict[str, Any]) -> GardenData:
 
     contests.sort(key=parse_contest_key, reverse=True)
     
-    return GardenData(
+    return asdict(GardenData(
         level=level,
         xp=xp,
         copper=copper,
@@ -108,4 +108,4 @@ def extract_garden(member: Dict[str, Any]) -> GardenData:
         unique_silvers=unique_silvers,
         unique_bronzes=unique_bronzes,
         contests=contests
-    )
+    ))
