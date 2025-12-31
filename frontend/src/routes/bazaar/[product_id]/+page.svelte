@@ -286,8 +286,8 @@
 </script>
 
 <svelte:head>
-  <title>Bazaar Item · AltSky</title>
-  <meta name="description" content="Hypixel SkyBlock Bazaar item details" />
+  <title>{history?.name || data.productId} | Hypixel SkyBlock Bazaar · AltSky</title>
+  <meta name="description" content={`Check current price, buy order, sell offer, and history for ${history?.name || data.productId} on Hypixel SkyBlock Bazaar. ${history?.name || data.productId} 바자 시세. ${history?.name || data.productId} 价格走势.`} />
 </svelte:head>
 
 <div class="wrap">

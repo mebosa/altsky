@@ -182,8 +182,9 @@
 </script>
 
 <svelte:head>
-  <title>Bazaar Flips · AltSky</title>
-  <meta name="description" content="Hypixel SkyBlock Bazaar flip recommendations" />
+  <title>Hypixel SkyBlock Bazaar Flips · AltSky (바자 플립 / Bazaar翻转)</title>
+  <meta name="description" content="Real-time Hypixel SkyBlock Bazaar flip recommendations. Find the best items to flip for profit. 하이픽셀 스카이블럭 바자 플립 추천. Hypixel空岛Bazaar翻转推荐." />
+  <meta name="keywords" content="Hypixel SkyBlock Bazaar, Bazaar Flips, SkyBlock Economy, Best Flips, AltSky, 하이픽셀 스카이블럭 바자, 바자 플립, Hypixel空岛, Bazaar翻转, 赚钱" />
 </svelte:head>
 
 <div class="wrap">

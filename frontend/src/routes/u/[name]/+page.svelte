@@ -33,7 +33,7 @@
   let activeController: AbortController | null = null;
   let hydrated = false;
   let lastParamsName = params.name;
-  let metaDescription = 'Search Hypixel SkyBlock players and inspect their stats on AltSky.';
+  let metaDescription = `View Hypixel SkyBlock stats for ${params.name}. Armor, Skills, Dungeons, Networth. ${params.name}님의 하이픽셀 스카이블럭 전적 검색. ${params.name} Hypixel空岛战绩查询.`;
 
   function formatErrorFromPayload(payload: Player | null) {
     if (!payload) return '';
@@ -172,9 +172,9 @@
 </script>
 
 <svelte:head>
-  <title>AltSky · {params.name}</title>
+  <title>{params.name}'s SkyBlock Stats · AltSky (전적 검색 / 战绩查询)</title>
   <meta name="description" content={metaDescription} />
-  <meta property="og:title" content={`AltSky · ${params.name}`} />
+  <meta property="og:title" content={`${params.name}'s SkyBlock Stats · AltSky`} />
   <meta property="og:description" content={metaDescription} />
   <meta property="og:type" content="website" />
   <meta property="og:url" content={data.canonicalUrl} />

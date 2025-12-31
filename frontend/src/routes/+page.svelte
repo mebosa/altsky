@@ -113,10 +113,11 @@
 </script>
 
 <svelte:head>
-  <title>AltSky · Hypixel SkyBlock lookup</title>
-  <meta name="description" content="Search Hypixel SkyBlock players and view their profiles with a calm, neumorphic UI." />
-  <meta property="og:title" content="AltSky · Hypixel SkyBlock lookup" />
-  <meta property="og:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
+  <title>AltSky · Hypixel SkyBlock Stats (전적 검색 / 战绩查询)</title>
+  <meta name="description" content="Fast and beautiful Hypixel SkyBlock stats viewer. Check armor, skills, dungeons, and networth. 하이픽셀 스카이블럭 전적 검색. Hypixel空岛战绩查询, 资产估值." />
+  <meta name="keywords" content="Hypixel SkyBlock, SkyBlock Stats, SkyBlock Lookup, Networth, Dungeons, Slayer, AltSky, Minecraft, 하이픽셀 스카이블럭, 스카이블럭 전적, Hypixel空岛, 战绩查询, 资产估值" />
+  <meta property="og:title" content="AltSky · Hypixel SkyBlock Stats (전적 검색 / 战绩查询)" />
+  <meta property="og:description" content="Fast and beautiful Hypixel SkyBlock stats viewer. 하이픽셀 스카이블럭 전적 검색. Hypixel空岛战绩查询." />
   <meta property="og:image" content={sitePreviewImage} />
   <meta property="og:image:secure_url" content={sitePreviewImageSecure} />
   <meta property="og:image:width" content="1200" />
@@ -124,8 +125,8 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content={siteUrl} />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="AltSky · Hypixel SkyBlock lookup" />
-  <meta name="twitter:description" content="Enter a Minecraft username and explore SkyBlock profiles with AltSky." />
+  <meta name="twitter:title" content="AltSky · Hypixel SkyBlock Stats (전적 검색 / 战绩查询)" />
+  <meta name="twitter:description" content="Fast and beautiful Hypixel SkyBlock stats viewer. 하이픽셀 스카이블럭 전적 검색. Hypixel空岛战绩查询." />
   <meta name="twitter:image" content={sitePreviewImage} />
   <link rel="canonical" href={siteUrl} />
   <script type="application/ld+json">
