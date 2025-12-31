@@ -130,7 +130,7 @@
   <meta name="twitter:image" content={sitePreviewImage} />
   <link rel="canonical" href={siteUrl} />
   <script type="application/ld+json">
-    {JSON.stringify(structuredData)}
+    {@html JSON.stringify(structuredData)}
   </script>
 </svelte:head>
 
