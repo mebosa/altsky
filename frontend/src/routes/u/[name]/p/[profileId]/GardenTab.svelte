@@ -24,146 +24,198 @@
   function formatCropName(crop: string): string {
     return crop.replace(/_/g, ' ').replace('ITEM', '').replace('COLLECTION', '').replace('INK SACK:3', 'COCOA BEANS').trim();
   }
+
+  // Calculate total medals
+  $: totalMedals = garden.medals.gold + garden.medals.silver + garden.medals.bronze;
+  $: totalUniqueGolds = garden.unique_golds.length;
 </script>
 
-<div class="space-y-6">
-  <!-- Overview Stats -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Garden Stats Card -->
-    <div class="bg-surface-800 rounded-xl p-5 border border-surface-700 shadow-lg relative overflow-hidden group">
-      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <img src="/api/vanilla/item/wheat.png" alt="Garden" class="w-16 h-16 pixelated" />
-      </div>
-      <h3 class="text-lg font-bold mb-4 text-primary-400 flex items-center gap-2">
-        <span class="text-2xl">🌾</span> Garden Stats
-      </h3>
-      <div class="space-y-3 relative z-10">
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg">
-          <span class="text-surface-300 font-medium">Level</span>
-          <span class="font-mono text-lg text-white">{garden.level}</span>
-        </div>
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg">
-          <span class="text-surface-300 font-medium">XP</span>
-          <span class="font-mono text-lg text-white">{formatNumber(garden.xp)}</span>
-        </div>
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg">
-          <span class="text-surface-300 font-medium">Copper</span>
-          <span class="font-mono text-lg text-yellow-500">{formatNumber(garden.copper)}</span>
-        </div>
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg">
-          <span class="text-surface-300 font-medium">Visitors</span>
-          <span class="font-mono text-lg text-white">{formatNumber(garden.visitors_served)}</span>
+<div class="garden-container">
+  <!-- Overview Section -->
+  <div class="overview-section">
+    <h2>🌱 Garden Overview</h2>
+    <div class="stats-row">
+      <div class="stat-card featured">
+        <div class="stat-icon">🌾</div>
+        <div class="stat-content">
+          <div class="stat-value">{garden.level}</div>
+          <div class="stat-label">Garden Level</div>
+          <div class="stat-sub">{formatNumber(garden.xp)} XP</div>
         </div>
       </div>
-    </div>
 
-    <!-- Jacob's Medals Card -->
-    <div class="bg-surface-800 rounded-xl p-5 border border-surface-700 shadow-lg relative overflow-hidden group">
-      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <img src="/api/vanilla/item/gold_ingot.png" alt="Medals" class="w-16 h-16 pixelated" />
-      </div>
-      <h3 class="text-lg font-bold mb-4 text-yellow-400 flex items-center gap-2">
-        <span class="text-2xl">🏅</span> Jacob's Medals
-      </h3>
-      <div class="space-y-3 relative z-10">
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg border-l-4 border-yellow-500">
-          <span class="text-surface-300 font-medium">Gold</span>
-          <div class="flex flex-col items-end">
-            <span class="font-mono text-lg text-yellow-400 font-bold">{garden.medals.gold}</span>
-            <span class="text-xs text-surface-400">{garden.unique_golds.length} unique</span>
-          </div>
-        </div>
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg border-l-4 border-gray-400">
-          <span class="text-surface-300 font-medium">Silver</span>
-          <div class="flex flex-col items-end">
-            <span class="font-mono text-lg text-gray-300 font-bold">{garden.medals.silver}</span>
-            <span class="text-xs text-surface-400">{garden.unique_silvers.length} unique</span>
-          </div>
-        </div>
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg border-l-4 border-orange-600">
-          <span class="text-surface-300 font-medium">Bronze</span>
-          <div class="flex flex-col items-end">
-            <span class="font-mono text-lg text-orange-400 font-bold">{garden.medals.bronze}</span>
-            <span class="text-xs text-surface-400">{garden.unique_bronzes.length} unique</span>
-          </div>
+      <div class="stat-card copper">
+        <div class="stat-icon">🪙</div>
+        <div class="stat-content">
+          <div class="stat-value">{formatNumber(garden.copper)}</div>
+          <div class="stat-label">Copper</div>
+          <div class="stat-sub">Garden currency</div>
         </div>
       </div>
-    </div>
 
-    <!-- Perks Card -->
-    <div class="bg-surface-800 rounded-xl p-5 border border-surface-700 shadow-lg relative overflow-hidden group">
-      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <img src="/api/vanilla/item/emerald.png" alt="Perks" class="w-16 h-16 pixelated" />
-      </div>
-      <h3 class="text-lg font-bold mb-4 text-green-400 flex items-center gap-2">
-        <span class="text-2xl">✨</span> Perks
-      </h3>
-      <div class="space-y-3 relative z-10">
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg">
-          <span class="text-surface-300 font-medium">Double Drops</span>
-          <span class="font-mono text-lg text-green-400">{garden.perks.double_drops || 0}%</span>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-value">{formatNumber(garden.visitors_served)}</div>
+          <div class="stat-label">Visitors Served</div>
+          <div class="stat-sub">Lifetime visitors</div>
         </div>
-        <div class="flex justify-between items-center p-2 bg-surface-900/50 rounded-lg">
-          <span class="text-surface-300 font-medium">Farming Cap</span>
-          <span class="font-mono text-lg text-green-400">+{garden.perks.farming_level_cap || 0}</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🏅</div>
+        <div class="stat-content">
+          <div class="stat-value">{formatNumber(totalMedals)}</div>
+          <div class="stat-label">Total Medals</div>
+          <div class="stat-sub">{totalUniqueGolds}/10 unique golds</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Recent Contests -->
-  <div class="bg-surface-800 rounded-xl border border-surface-700 shadow-lg overflow-hidden">
-    <div class="p-5 border-b border-surface-700 bg-surface-800/50">
-      <h3 class="text-lg font-bold text-primary-400 flex items-center gap-2">
-        <span class="text-2xl">📊</span> Recent Contests
-      </h3>
+  <!-- Medals & Perks Row -->
+  <div class="cards-row">
+    <!-- Jacob's Medals Card -->
+    <div class="card medals-card">
+      <div class="card-header">
+        <div class="card-icon medals">
+          <img src="/api/vanilla/item/gold_ingot.png" alt="Medals" class="icon-img" />
+        </div>
+        <div class="card-title">
+          <h3>Jacob's Medals</h3>
+          <span class="card-subtitle">Contest rewards</span>
+        </div>
+      </div>
+      <div class="medals-grid">
+        <div class="medal-item gold">
+          <div class="medal-icon">🥇</div>
+          <div class="medal-info">
+            <span class="medal-count">{garden.medals.gold}</span>
+            <span class="medal-label">Gold</span>
+          </div>
+          <div class="medal-unique">{garden.unique_golds.length} unique</div>
+        </div>
+        <div class="medal-item silver">
+          <div class="medal-icon">🥈</div>
+          <div class="medal-info">
+            <span class="medal-count">{garden.medals.silver}</span>
+            <span class="medal-label">Silver</span>
+          </div>
+          <div class="medal-unique">{garden.unique_silvers.length} unique</div>
+        </div>
+        <div class="medal-item bronze">
+          <div class="medal-icon">🥉</div>
+          <div class="medal-info">
+            <span class="medal-count">{garden.medals.bronze}</span>
+            <span class="medal-label">Bronze</span>
+          </div>
+          <div class="medal-unique">{garden.unique_bronzes.length} unique</div>
+        </div>
+      </div>
     </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-surface-900/80 text-surface-300 uppercase text-xs font-bold tracking-wider">
+
+    <!-- Perks Card -->
+    <div class="card perks-card">
+      <div class="card-header">
+        <div class="card-icon perks">
+          <img src="/api/vanilla/item/emerald.png" alt="Perks" class="icon-img" />
+        </div>
+        <div class="card-title">
+          <h3>Garden Perks</h3>
+          <span class="card-subtitle">Unlocked bonuses</span>
+        </div>
+      </div>
+      <div class="perks-list">
+        <div class="perk-item">
+          <div class="perk-header">
+            <span class="perk-icon">🍀</span>
+            <span class="perk-name">Double Drops</span>
+          </div>
+          <div class="perk-value-wrap">
+            <span class="perk-value">{garden.perks.double_drops || 0}%</span>
+          </div>
+          <div class="perk-bar">
+            <div class="perk-progress" style="width: {Math.min(100, garden.perks.double_drops || 0)}%"></div>
+          </div>
+        </div>
+        <div class="perk-item">
+          <div class="perk-header">
+            <span class="perk-icon">⬆️</span>
+            <span class="perk-name">Farming Level Cap</span>
+          </div>
+          <div class="perk-value-wrap">
+            <span class="perk-value">+{garden.perks.farming_level_cap || 0}</span>
+          </div>
+          <div class="perk-bar">
+            <div class="perk-progress" style="width: {((garden.perks.farming_level_cap || 0) / 10) * 100}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contests Section -->
+  <div class="contests-section">
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-icon">📊</span>
+        <h3>Recent Contests</h3>
+      </div>
+      <span class="contests-count">{garden.contests.length} total</span>
+    </div>
+    
+    <div class="contests-table-wrap">
+      <table class="contests-table">
+        <thead>
           <tr>
-            <th class="p-4">Crop</th>
-            <th class="p-4 text-right">Collected</th>
-            <th class="p-4 text-center">Medal</th>
-            <th class="p-4 text-right">Position</th>
-            <th class="p-4 text-right">Participants</th>
-            <th class="p-4 text-right">Top %</th>
+            <th class="col-crop">Crop</th>
+            <th class="col-collected">Collected</th>
+            <th class="col-medal">Medal</th>
+            <th class="col-position">Position</th>
+            <th class="col-participants">Participants</th>
+            <th class="col-top">Top %</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-surface-700/50">
+        <tbody>
           {#each garden.contests.slice(0, 20) as contest}
-            <tr class="hover:bg-surface-700/30 transition-colors group">
-              <td class="p-4 flex items-center gap-3">
-                <div class="w-10 h-10 bg-surface-700/50 rounded-lg flex items-center justify-center border border-surface-600 group-hover:border-surface-500 transition-colors">
-                  <img src={getCropIcon(contest.crop)} alt={contest.crop} class="w-6 h-6 pixelated" />
+            <tr>
+              <td class="col-crop">
+                <div class="crop-cell">
+                  <div class="crop-icon">
+                    <img src={getCropIcon(contest.crop)} alt={contest.crop} class="crop-img" />
+                  </div>
+                  <span class="crop-name">{formatCropName(contest.crop)}</span>
                 </div>
-                <span class="font-medium text-surface-100">{formatCropName(contest.crop)}</span>
               </td>
-              <td class="p-4 text-right font-mono text-surface-200">{formatNumber(contest.collected)}</td>
-              <td class="p-4 text-center">
+              <td class="col-collected">
+                <span class="value-num">{formatNumber(contest.collected)}</span>
+              </td>
+              <td class="col-medal">
                 {#if contest.medal === 'gold'}
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">GOLD</span>
+                  <span class="medal-badge gold">GOLD</span>
                 {:else if contest.medal === 'silver'}
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-500/10 text-gray-300 border border-gray-500/20">SILVER</span>
+                  <span class="medal-badge silver">SILVER</span>
                 {:else if contest.medal === 'bronze'}
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">BRONZE</span>
+                  <span class="medal-badge bronze">BRONZE</span>
                 {:else}
-                  <span class="text-surface-600">-</span>
+                  <span class="medal-badge none">—</span>
                 {/if}
               </td>
-              <td class="p-4 text-right font-mono text-surface-300">
+              <td class="col-position">
                 {#if contest.position > 0}
-                  #{formatNumber(contest.position)}
+                  <span class="value-num">#{formatNumber(contest.position)}</span>
                 {:else}
-                  -
+                  <span class="value-dim">—</span>
                 {/if}
               </td>
-              <td class="p-4 text-right font-mono text-surface-300">{formatNumber(contest.participants)}</td>
-              <td class="p-4 text-right font-mono">
+              <td class="col-participants">
+                <span class="value-dim">{formatNumber(contest.participants)}</span>
+              </td>
+              <td class="col-top">
                 {#if contest.participants > 0}
-                  <span class="text-surface-200">{((contest.position / contest.participants) * 100).toFixed(1)}%</span>
+                  <span class="top-percent">{((contest.position / contest.participants) * 100).toFixed(1)}%</span>
                 {:else}
-                  <span class="text-surface-600">-</span>
+                  <span class="value-dim">—</span>
                 {/if}
               </td>
             </tr>
@@ -171,16 +223,520 @@
         </tbody>
       </table>
     </div>
+    
     {#if garden.contests.length > 20}
-      <div class="p-4 text-center border-t border-surface-700 bg-surface-800/30">
-        <span class="text-surface-400 text-sm">Showing 20 of {garden.contests.length} contests</span>
+      <div class="contests-footer">
+        <span>Showing 20 of {garden.contests.length} contests</span>
       </div>
     {/if}
   </div>
 </div>
 
 <style>
-  .pixelated {
+  .garden-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Overview Section */
+  .overview-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .overview-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--theme-text-primary);
+    margin: 0;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: rgba(148, 163, 184, 0.06);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .stat-card.featured {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.12), rgba(76, 175, 80, 0.04));
+    border-color: rgba(76, 175, 80, 0.3);
+  }
+
+  .stat-card.copper {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.12), rgba(255, 193, 7, 0.04));
+    border-color: rgba(255, 193, 7, 0.3);
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .stat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--theme-text-primary);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: var(--theme-text-soft);
+    font-weight: 500;
+  }
+
+  .stat-sub {
+    font-size: 0.8rem;
+    color: var(--theme-text-soft);
+    opacity: 0.7;
+  }
+
+  /* Cards Row */
+  .cards-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(148, 163, 184, 0.12);
+  }
+
+  .card-icon.medals {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 152, 0, 0.1));
+  }
+
+  .card-icon.perks {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(56, 142, 60, 0.1));
+  }
+
+  .icon-img {
+    width: 28px;
+    height: 28px;
     image-rendering: pixelated;
+  }
+
+  .card-title h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--theme-text-primary);
+    margin: 0;
+  }
+
+  .card-subtitle {
+    font-size: 0.8rem;
+    color: var(--theme-text-soft);
+  }
+
+  /* Medals Grid */
+  .medals-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .medal-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(148, 163, 184, 0.06);
+    border-left: 4px solid transparent;
+    transition: background 0.2s ease;
+  }
+
+  .medal-item:hover {
+    background: rgba(148, 163, 184, 0.1);
+  }
+
+  .medal-item.gold {
+    border-left-color: #ffd700;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.08), transparent);
+  }
+
+  .medal-item.silver {
+    border-left-color: #c0c0c0;
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.08), transparent);
+  }
+
+  .medal-item.bronze {
+    border-left-color: #cd7f32;
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.08), transparent);
+  }
+
+  .medal-icon {
+    font-size: 1.5rem;
+  }
+
+  .medal-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .medal-count {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--theme-text-primary);
+  }
+
+  .medal-label {
+    font-size: 0.8rem;
+    color: var(--theme-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .medal-unique {
+    font-size: 0.75rem;
+    color: var(--theme-text-soft);
+    padding: 4px 10px;
+    background: rgba(148, 163, 184, 0.1);
+    border-radius: 20px;
+  }
+
+  /* Perks List */
+  .perks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .perk-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .perk-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .perk-icon {
+    font-size: 1rem;
+  }
+
+  .perk-name {
+    font-size: 0.9rem;
+    color: var(--theme-text-soft);
+    font-weight: 500;
+  }
+
+  .perk-value-wrap {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .perk-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #4caf50;
+  }
+
+  .perk-bar {
+    height: 8px;
+    background: rgba(148, 163, 184, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .perk-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #81c784);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  /* Contests Section */
+  .contests-section {
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-surface-border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--theme-surface-border);
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-icon {
+    font-size: 1.25rem;
+  }
+
+  .section-title h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--theme-text-primary);
+    margin: 0;
+  }
+
+  .contests-count {
+    font-size: 0.85rem;
+    color: var(--theme-text-soft);
+    padding: 6px 12px;
+    background: rgba(148, 163, 184, 0.1);
+    border-radius: 20px;
+  }
+
+  .contests-table-wrap {
+    overflow-x: auto;
+  }
+
+  .contests-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .contests-table thead {
+    background: rgba(148, 163, 184, 0.06);
+  }
+
+  .contests-table th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--theme-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .contests-table th.col-collected,
+  .contests-table th.col-position,
+  .contests-table th.col-participants,
+  .contests-table th.col-top {
+    text-align: right;
+  }
+
+  .contests-table th.col-medal {
+    text-align: center;
+  }
+
+  .contests-table tbody tr {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    transition: background 0.15s ease;
+  }
+
+  .contests-table tbody tr:hover {
+    background: rgba(148, 163, 184, 0.06);
+  }
+
+  .contests-table td {
+    padding: 14px 20px;
+  }
+
+  .contests-table td.col-collected,
+  .contests-table td.col-position,
+  .contests-table td.col-participants,
+  .contests-table td.col-top {
+    text-align: right;
+  }
+
+  .contests-table td.col-medal {
+    text-align: center;
+  }
+
+  .crop-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .crop-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(148, 163, 184, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  tr:hover .crop-icon {
+    border-color: rgba(148, 163, 184, 0.25);
+    background: rgba(148, 163, 184, 0.15);
+  }
+
+  .crop-img {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+  }
+
+  .crop-name {
+    font-weight: 500;
+    color: var(--theme-text-primary);
+    text-transform: capitalize;
+  }
+
+  .value-num {
+    font-family: var(--font-mono, monospace);
+    color: var(--theme-text-primary);
+    font-weight: 500;
+  }
+
+  .value-dim {
+    color: var(--theme-text-soft);
+    opacity: 0.6;
+  }
+
+  .top-percent {
+    font-family: var(--font-mono, monospace);
+    color: var(--theme-text-secondary);
+    font-weight: 500;
+  }
+
+  .medal-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .medal-badge.gold {
+    background: rgba(255, 215, 0, 0.15);
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+  }
+
+  .medal-badge.silver {
+    background: rgba(192, 192, 192, 0.15);
+    color: #c0c0c0;
+    border: 1px solid rgba(192, 192, 192, 0.25);
+  }
+
+  .medal-badge.bronze {
+    background: rgba(205, 127, 50, 0.15);
+    color: #cd7f32;
+    border: 1px solid rgba(205, 127, 50, 0.25);
+  }
+
+  .medal-badge.none {
+    background: transparent;
+    color: var(--theme-text-soft);
+    opacity: 0.4;
+  }
+
+  .contests-footer {
+    padding: 16px 24px;
+    text-align: center;
+    border-top: 1px solid var(--theme-surface-border);
+    background: rgba(148, 163, 184, 0.03);
+  }
+
+  .contests-footer span {
+    font-size: 0.85rem;
+    color: var(--theme-text-soft);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cards-row {
+      grid-template-columns: 1fr;
+    }
+
+    .contests-table th,
+    .contests-table td {
+      padding: 12px 14px;
+    }
+
+    .stat-card {
+      padding: 16px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row {
+      grid-template-columns: 1fr;
+    }
+
+    .crop-name {
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 </style>
