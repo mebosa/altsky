@@ -23,7 +23,8 @@
     museum: () => import('./MuseumTab.svelte'),
     auctions: () => import('./AuctionsTab.svelte'),
     dropcalc: () => import('./DropCalcTab.svelte'),
-    networth: () => import('./NetworthTab.svelte')
+    networth: () => import('./NetworthTab.svelte'),
+    garden: () => import('./GardenTab.svelte')
   };
 
   // Cache loaded components
@@ -64,6 +65,7 @@
     { id: 'dungeons', label: 'Dungeons' },
     { id: 'minions', label: 'Minions' },
     { id: 'collections', label: 'Collections' },
+    { id: 'garden', label: 'Garden' },
     { id: 'pets', label: 'Pets' },
     { id: 'accessories', label: 'Accessories' },
     { id: 'weapons', label: 'Weapons' },
@@ -521,6 +523,8 @@
       <svelte:component this={loadedTabs.minions} {summary} />
     {:else if activeTab === 'collections' && loadedTabs.collections}
       <svelte:component this={loadedTabs.collections} {summary} />
+    {:else if activeTab === 'garden' && loadedTabs.garden}
+      <svelte:component this={loadedTabs.garden} garden={summary.garden} />
     {:else if activeTab === 'pets' && loadedTabs.pets}
       <svelte:component this={loadedTabs.pets} {summary} />
     {:else if activeTab === 'accessories' && loadedTabs.accessories}

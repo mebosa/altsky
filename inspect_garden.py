@@ -4,7 +4,7 @@ def find_garden_keys(data, path=""):
     if isinstance(data, dict):
         for key, value in data.items():
             new_path = f"{path}.{key}" if path else key
-            if "garden" in key.lower():
+            if "jacob" in key.lower():
                 print(f"Found key: {new_path}")
             find_garden_keys(value, new_path)
     elif isinstance(data, list):

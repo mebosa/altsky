@@ -85,6 +85,34 @@ export type DungeonFloor = {
   best_score: number;
 };
 
+export type JacobContest = {
+  key: string;
+  crop: string;
+  collected: number;
+  position: number;
+  participants: number;
+  medal?: string | null;
+  timestamp: number;
+};
+
+export type GardenData = {
+  level: number;
+  xp: number;
+  copper: number;
+  visitors_served: number;
+  larva_consumed: number;
+  medals: {
+    gold: number;
+    silver: number;
+    bronze: number;
+  };
+  perks: Record<string, number>;
+  unique_golds: string[];
+  unique_silvers: string[];
+  unique_bronzes: string[];
+  contests: JacobContest[];
+};
+
 export type ProfileSummaryResponse = {
   ok: boolean;
   last_updated?: string | number;
@@ -209,8 +237,7 @@ export type ProfileSummaryResponse = {
   inventory?: InventoryData | null;
   networth?: NetworthData | null;
   shards?: ShardsData | null;
-  hotm?: HOTMData | null;
-};
+  hotm?: HOTMData | null;  garden?: GardenData | null;};
 
 // ===== Networth Types =====
 
