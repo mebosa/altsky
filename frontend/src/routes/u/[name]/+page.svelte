@@ -33,7 +33,7 @@
   let activeController: AbortController | null = null;
   let hydrated = false;
   let lastParamsName = params.name;
-  let metaDescription = `View Hypixel SkyBlock stats for ${params.name}. Armor, Skills, Dungeons, Networth. ${params.name}님의 하이픽셀 스카이블럭 전적 검색. ${params.name} Hypixel空岛战绩查询.`;
+  let metaDescription = `Check ${params.name}'s Hypixel SkyBlock stats, networth, skills, armor, and dungeons. The best SkyBlock profile viewer and tracker. ${params.name} 전적 검색.`;
 
   function formatErrorFromPayload(payload: Player | null) {
     if (!payload) return '';
@@ -81,8 +81,8 @@
   applyPlayerPayload(data?.player ?? null, data?.fetchError);
 
   $: metaDescription = player
-    ? `${params.name} has ${profiles.length} SkyBlock profile${profiles.length === 1 ? '' : 's'}. Inspect skills, dungeons, and gear on AltSky.`
-    : 'Search Hypixel SkyBlock players and inspect their stats on AltSky.';
+    ? `${params.name}'s Hypixel SkyBlock Stats. Networth, Skills, Dungeons, Slayer, and Minions. View ${profiles.length} profile${profiles.length === 1 ? '' : 's'} on AltSky.`
+    : `Check ${params.name}'s Hypixel SkyBlock stats, networth, skills, armor, and dungeons. The best SkyBlock profile viewer and tracker.`;
 
   onMount(() => {
     hydrated = true;
@@ -184,9 +184,9 @@
 </script>
 
 <svelte:head>
-  <title>{params.name}'s SkyBlock Stats · AltSky (전적 검색 / 战绩查询)</title>
+  <title>{params.name} SkyBlock Stats & Networth | AltSky</title>
   <meta name="description" content={metaDescription} />
-  <meta property="og:title" content={`${params.name}'s SkyBlock Stats · AltSky`} />
+  <meta property="og:title" content={`${params.name} SkyBlock Stats & Networth | AltSky`} />
   <meta property="og:description" content={metaDescription} />
   <meta property="og:type" content="website" />
   <meta property="og:url" content={data.canonicalUrl} />
@@ -195,7 +195,7 @@
     <meta name="twitter:image" content={data.ogImageUrl} />
   {/if}
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content={`AltSky · ${params.name}`} />
+  <meta name="twitter:title" content={`${params.name} SkyBlock Stats & Networth | AltSky`} />
   <meta name="twitter:description" content={metaDescription} />
 </svelte:head>
 

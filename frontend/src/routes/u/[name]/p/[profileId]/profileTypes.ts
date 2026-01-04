@@ -24,6 +24,21 @@ export type SlayerBoss = {
   kills?: SlayerKills;
 };
 
+export type Pet = {
+  uuid: string | null;
+  type: string;
+  xp: number;
+  active: boolean;
+  tier: string;
+  held_item: string | null;
+  candy_used: number;
+  skin: string | null;
+  level: number;
+  xpMax: number;
+  progress: number;
+  stats: Record<string, number>;
+};
+
 export type WardrobeItem = {
   slot: number;
   id: string;
@@ -237,7 +252,11 @@ export type ProfileSummaryResponse = {
   inventory?: InventoryData | null;
   networth?: NetworthData | null;
   shards?: ShardsData | null;
-  hotm?: HOTMData | null;  garden?: GardenData | null;};
+  hotm?: HOTMData | null;
+  garden?: GardenData | null;
+  pets?: Pet[];
+  pet_score?: number;
+};
 
 // ===== Networth Types =====
 

@@ -408,12 +408,12 @@
 
   $: profileTitle =
     summary && player
-      ? `${player.name} (${summary.profile.cute_name ?? 'SkyBlock'}) Stats · AltSky (전적 검색 / 战绩查询)`
-      : 'AltSky Profile (전적 검색 / 战绩查询)';
+      ? `${player.name} (${summary.profile.cute_name ?? 'SkyBlock'}) SkyBlock Stats & Networth | AltSky`
+      : 'AltSky Profile - Hypixel SkyBlock Stats & Networth';
 
   $: profileDescription = summary
-    ? `Level ${summary.skyblock_level.level} | Avg Skill ${summary.skills.average_level} | Slayer XP ${formatNumber(summary.slayer.total_xp)} | Coins ${formatLargeNumber(summary.currencies.total_coins)} | 하이픽셀 스카이블럭 전적 검색 | Hypixel空岛战绩查询`
-    : 'Inspect Hypixel SkyBlock stats with AltSky. 하이픽셀 스카이블럭 전적 검색. Hypixel空岛战绩查询.';
+    ? `Level ${summary.skyblock_level.level} | Networth ${summary.networth ? formatLargeNumber(summary.networth.total) : 'Calculating...'} | Avg Skill ${summary.skills.average_level} | Slayer ${formatNumber(summary.slayer.total_xp)}. Check ${player?.name ?? params.name}'s full SkyBlock stats on AltSky.`
+    : 'Inspect Hypixel SkyBlock stats with AltSky. Check networth, skills, dungeons, and more.';
 
   $: shareImage = `${SITE_BASE}/api/og/player/${encodeURIComponent(params.name)}.png?v=${summary?.last_updated ?? Date.now()}`;
   $: if (summary) {

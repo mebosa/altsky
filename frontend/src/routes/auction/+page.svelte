@@ -10,6 +10,8 @@
     furfskyCacheLoaded,
     vanillaCacheLoaded
   } from '$lib/stores/hypixelItems';
+  import MinecraftSlot from '$lib/components/MinecraftSlot.svelte';
+  import MinecraftTooltip from '$lib/components/MinecraftTooltip.svelte';
 
   interface FlipScore {
     score: number;
@@ -86,6 +88,21 @@
   let selectedItem: ItemDetails | null = null;
   let isLoadingDetails = false;
 
+  let hoveredItem: any = null;
+  let mouseX = 0;
+  let mouseY = 0;
+
+  function handleMouseMove(e: MouseEvent) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  }
+
+  $: displayItems = searchResults.map(item => ({
+    ...item,
+    tierColor: getTierColor(item.tier),
+    lore: `§7Price: §6${item.price?.median ? formatCoins(item.price.median) : 'N/A'}\n§7Volume: §e${item.price?.volume || 0}`
+  }));
+
   $: itemsReady = $itemsLoaded;
   $: texturesCacheReady = $texturePackStore === 'furfsky' ? $furfskyCacheLoaded : $vanillaCacheLoaded;
 
@@ -127,16 +144,32 @@
   async function loadItemDetails(itemTag: string) {
     isLoadingDetails = true;
     activeTab = 'details';
+    error = '';
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
     try {
-      const data = await get<ItemDetails & { success: boolean }>(`/api/auction/item/${encodeURIComponent(itemTag)}`);
+      console.log('Loading details for:', itemTag);
+      const data = await get<ItemDetails & { success: boolean }>(
+        `/api/auction/item/${encodeURIComponent(itemTag)}`,
+        { signal: controller.signal }
+      );
       
       if (data.success) {
         selectedItem = data;
+      } else {
+        error = 'Failed to load item data';
       }
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load item details';
+      console.error('Load details error:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        error = 'Request timed out. The server took too long to respond.';
+      } else {
+        error = err instanceof Error ? err.message : 'Failed to load item details';
+      }
     } finally {
+      clearTimeout(timeoutId);
       isLoadingDetails = false;
     }
   }
@@ -192,9 +225,12 @@
 </script>
 
 <svelte:head>
-  <title>Auction Helper · AltSky (경매 시세 / 拍卖助手)</title>
-  <meta name="description" content="Hypixel SkyBlock Auction price tracker and lowballing helper. Find underpriced items and flip for profit. 하이픽셀 스카이블럭 경매 시세, lowballing 도우미." />
+  <title>Hypixel SkyBlock Auction Prices & Lowballing Helper | AltSky</title>
+  <meta name="description" content="Check Hypixel SkyBlock Auction prices, history, and lowballing margins. The best tool for auction flipping and price checking. 하이픽셀 스카이블럭 경매장 시세 및 로우볼 계산기." />
+  <meta name="keywords" content="Hypixel SkyBlock Auction, Auction Prices, Price Checker, Lowballing Helper, Auction Flipping, SkyBlock Economy, AltSky, 하이픽셀 스카이블럭 경매장, 시세 확인, 로우볼, Hypixel空岛, 拍卖助手, 价格查询" />
 </svelte:head>
+
+<svelte:window on:mousemove={handleMouseMove} />
 
 <div class="wrap">
   <div class="header">
@@ -254,30 +290,17 @@
       </div>
 
       {#if searchResults.length > 0}
-        <div class="search-results">
-          {#each searchResults as item}
-            <button
-              class="search-result-card"
-              on:click={() => loadItemDetails(item.tag)}
-            >
-              <div class="result-header">
-                <span class="result-name" style="color: {getTierColor(item.tier)}">{item.name}</span>
-                <span class="result-tier">{item.tier}</span>
-              </div>
-              {#if item.price}
-                <div class="result-prices">
-                  {#if item.price.median}
-                    <span class="result-price">Median: {formatCoins(item.price.median)}</span>
-                  {/if}
-                  {#if item.price.volume}
-                    <span class="result-volume">Vol: {formatNumber(item.price.volume)}</span>
-                  {/if}
-                </div>
-              {:else}
-                <span class="result-no-data">No price data</span>
-              {/if}
-            </button>
-          {/each}
+        <div class="chest-gui">
+          <div class="chest-grid">
+            {#each displayItems as item}
+              <MinecraftSlot 
+                item={item} 
+                on:click={() => loadItemDetails(item.tag)}
+                on:mouseenter={() => hoveredItem = item}
+                on:mouseleave={() => hoveredItem = null}
+              />
+            {/each}
+          </div>
         </div>
       {:else if searchQuery && !isSearching}
         <div class="empty-panel">
@@ -370,9 +393,29 @@
       </div>
     {/if}
   {/if}
+  {#if hoveredItem}
+    <MinecraftTooltip item={hoveredItem} x={mouseX} y={mouseY} />
+  {/if}
 </div>
 
 <style>
+  .chest-gui {
+    background-color: #c6c6c6;
+    padding: 18px;
+    border: 2px solid;
+    border-color: #fff #555 #555 #fff;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    margin-top: 20px;
+  }
+
+  .chest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 48px);
+    gap: 4px;
+    justify-content: center;
+  }
+
   .wrap {
     max-width: 1200px;
     margin: 40px auto 64px;

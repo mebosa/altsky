@@ -11,6 +11,10 @@
     isFallbackIcon,
     peekTintedIcon,
     rarityToBackground,
+    toEquippedItems,
+    deriveSetLabel,
+    aggregateSetStats,
+    gatherSetBonusLines
   } from '$lib/utils/wardrobe';
 
   export let summary: ProfileSummaryResponse;
@@ -116,6 +120,9 @@
 
   // Reactive declarations
   let iconVersion = 0;
+  let firstBankColumns: (WardrobeItem | null)[][] = [];
+  let secondBankColumns: (WardrobeItem | null)[][] = [];
+
   $: wardrobeItems = summary?.wardrobe?.items ?? [];
   $: wardrobeHasItems = wardrobeItems.some((item) => !!item);
   $: {
@@ -133,11 +140,11 @@
 
 <section class="wardrobe-section">
   <div class="wardrobe-grid">
-    {#if data?.summary?.wardrobe}
+    {#if summary?.wardrobe}
       <div class="wardrobe-container">
         <div class="equipped-section">
           <div class="wardrobe-column">
-            {#each column as item}
+            {#each equippedItems as item}
               {@const rarityColor = item ? rarityToBackground(item.rarity) : null}
               {@const iconSrc = resolveIconUrl(item, iconVersion, $texturePackStore)}
               {@const hasIcon = !!iconSrc}

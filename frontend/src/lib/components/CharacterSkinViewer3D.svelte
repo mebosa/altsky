@@ -5,7 +5,9 @@
 
 	export let uuid: string;
 	export let autoRotate = true;
-	export let armor: { helmet?: string, chestplate?: string, leggings?: string, boots?: string } | undefined = undefined;
+	
+	type ArmorPiece = { id: string, color?: string | null, skin_url?: string | null };
+	export let armor: { helmet?: ArmorPiece | null, chestplate?: ArmorPiece | null, leggings?: ArmorPiece | null, boots?: ArmorPiece | null } | undefined = undefined;
 
 	let canvasEl: HTMLCanvasElement | null = null;
 	let containerEl: HTMLDivElement | null = null;
@@ -166,7 +168,7 @@
 		const createArmorLayer = async (itemId: string | undefined, color: string | undefined, skinUrl: string | undefined, layer: 1 | 2, scale: number, visibleParts: string[]) => {
 			if (!itemId) return [];
 
-			let urls: { url: string, isOverlay: boolean }[] = [];
+			let urls: { url: string, isOverlay: boolean, useColor?: boolean }[] = [];
 
 			if ($texturePackStore === 'furfsky') {
 				if (skinUrl) {

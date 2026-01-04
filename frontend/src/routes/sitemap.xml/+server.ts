@@ -2,7 +2,8 @@ export async function GET() {
   const site = 'https://altsky.info';
   const pages = [
     '',
-    '/bazaar'
+    '/bazaar',
+    '/auction'
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -21,7 +22,7 @@ ${pages
 
   return new Response(sitemap, {
     headers: {
-      'Content-Type': 'application/xml',
+      'Content-Type': 'application/xml; charset=utf-8',
       'Cache-Control': 'max-age=0, s-maxage=3600'
     }
   });

@@ -3108,13 +3108,18 @@ def auction_item_details(request: Request, item_id: str) -> Response:
     if not item_id:
         return Response({'error': 'invalid_item_id'}, status=400)
 
+    LOGGER.info(f"Fetching auction details for {item_id}")
+
     # Fetch price data from Coflnet
+    LOGGER.info(f"Fetching price data for {item_id}")
     price_data = _fetch_coflnet_item_price(item_id)
     
     # Fetch recent auction sales
+    LOGGER.info(f"Fetching recent sales for {item_id}")
     recent_sales = _fetch_coflnet_recent_auctions(item_id)
 
     # Calculate statistics from recent sales
+    LOGGER.info(f"Calculating stats for {item_id}")
     if recent_sales:
         prices = [s.get('price', 0) for s in recent_sales if s.get('price', 0) > 0]
         if prices:
@@ -3130,6 +3135,7 @@ def auction_item_details(request: Request, item_id: str) -> Response:
 
     # Get current lowest BIN from Hypixel if available
     current_lowest = None
+    LOGGER.info(f"Fetching auction page 0 for {item_id}")
     page_data, _ = _fetch_auction_page(0)
     if page_data:
         for auction in page_data.get('auctions', []):
