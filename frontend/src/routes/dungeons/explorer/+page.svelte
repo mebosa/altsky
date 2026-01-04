@@ -10,19 +10,76 @@
   let camera: THREE.PerspectiveCamera;
   let controls: OrbitControls;
   let animationId: number;
+  let group: THREE.Group;
+  let selectedRoomId = 'tic_tac_toe';
 
-  // Mock Data Generator for a Dungeon Room
-  function generateRoomData() {
+  // --- Room Generators ---
+
+  function getTicTacToeRoom() {
     const width = 15;
-    const height = 6;
+    const height = 8;
     const depth = 15;
     const blocks: { x: number; y: number; z: number; type: string }[] = [];
 
     // Floor & Ceiling
     for (let x = 0; x < width; x++) {
       for (let z = 0; z < depth; z++) {
-        blocks.push({ x, y: 0, z, type: 'stone_brick' }); // Floor
-        if (Math.random() > 0.9) blocks.push({ x, y: height - 1, z, type: 'cracked_stone' }); // Sparse Ceiling
+        blocks.push({ x, y: 0, z, type: 'stone_brick' });
+        if (x === 0 || x === width - 1 || z === 0 || z === depth - 1) {
+           blocks.push({ x, y: height - 1, z, type: 'stone_brick' });
+        }
+      }
+    }
+
+    // Walls
+    for (let y = 1; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        blocks.push({ x, y, z: 0, type: 'stone_brick' });
+        if (x < 6 || x > 8 || y > 4) blocks.push({ x, y, z: depth - 1, type: 'stone_brick' });
+      }
+      for (let z = 0; z < depth; z++) {
+        blocks.push({ x: 0, y, z, type: 'stone_brick' });
+        blocks.push({ x: width - 1, y, z, type: 'stone_brick' });
+      }
+    }
+    
+    // Front Wall (South) fix
+    for (let y = 1; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+             if (x < 6 || x > 8 || y > 4) blocks.push({ x, y, z: depth - 1, type: 'stone_brick' });
+        }
+    }
+
+    // Board
+    const boardStartX = 5;
+    const boardStartY = 2;
+    for(let bx = 0; bx < 5; bx++) {
+        for(let by = 0; by < 5; by++) {
+            blocks.push({ x: boardStartX + bx, y: boardStartY + by, z: 1, type: 'obsidian' });
+        }
+    }
+    for(let r=0; r<3; r++) {
+        for(let c=0; c<3; c++) {
+            blocks.push({ x: boardStartX + 1 + (c*1), y: boardStartY + 1 + (r*1), z: 2, type: 'quartz' });
+        }
+    }
+
+    // Secret
+    blocks.push({ x: 13, y: 1, z: 13, type: 'chest' });
+
+    return { width, height, depth, blocks };
+  }
+
+  function getThreeWeirdosRoom() {
+    const width = 13;
+    const height = 7;
+    const depth = 13;
+    const blocks: { x: number; y: number; z: number; type: string }[] = [];
+
+    // Floor
+    for (let x = 0; x < width; x++) {
+      for (let z = 0; z < depth; z++) {
+        blocks.push({ x, y: 0, z, type: 'stone_brick' });
       }
     }
 
@@ -38,18 +95,103 @@
       }
     }
 
-    // Random Pillars & Secrets
-    blocks.push({ x: 3, y: 1, z: 3, type: 'chest' }); // Secret Chest
-    blocks.push({ x: 3, y: 1, z: 4, type: 'stone_brick' });
-    blocks.push({ x: 4, y: 1, z: 3, type: 'stone_brick' });
+    // The 3 Chests (Weirdos)
+    blocks.push({ x: 4, y: 1, z: 6, type: 'chest' });
+    blocks.push({ x: 6, y: 1, z: 6, type: 'chest' });
+    blocks.push({ x: 8, y: 1, z: 6, type: 'chest' });
+
+    // Water trough
+    for(let x=3; x<10; x++) {
+        blocks.push({ x, y: 0, z: 8, type: 'water' });
+    }
 
     return { width, height, depth, blocks };
   }
 
-  const roomData = generateRoomData();
+  function getEntranceRoom() {
+    const width = 11;
+    const height = 6;
+    const depth = 11;
+    const blocks: { x: number; y: number; z: number; type: string }[] = [];
+
+    // Floor (Green Carpet feel)
+    for (let x = 0; x < width; x++) {
+      for (let z = 0; z < depth; z++) {
+        blocks.push({ x, y: 0, z, type: 'grass' });
+      }
+    }
+
+    // Walls
+    for (let y = 1; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        blocks.push({ x, y, z: 0, type: 'stone_brick' });
+        blocks.push({ x, y, z: depth - 1, type: 'stone_brick' });
+      }
+      for (let z = 1; z < depth - 1; z++) {
+        blocks.push({ x: 0, y, z, type: 'stone_brick' });
+        blocks.push({ x: width - 1, y, z, type: 'stone_brick' });
+      }
+    }
+
+    // Blood Door (Redstone Block)
+    blocks.push({ x: 5, y: 1, z: 0, type: 'redstone' });
+    blocks.push({ x: 5, y: 2, z: 0, type: 'redstone' });
+
+    return { width, height, depth, blocks };
+  }
+
+  const rooms: Record<string, () => { width: number, height: number, depth: number, blocks: any[] }> = {
+    'tic_tac_toe': getTicTacToeRoom,
+    'three_weirdos': getThreeWeirdosRoom,
+    'entrance': getEntranceRoom
+  };
+
+  // Materials
+  let materials: Record<string, THREE.Material>;
+
+  function initMaterials() {
+    materials = {
+      stone_brick: new THREE.MeshStandardMaterial({ color: 0x888888 }),
+      cracked_stone: new THREE.MeshStandardMaterial({ color: 0x666666 }),
+      chest: new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x332200 }),
+      obsidian: new THREE.MeshStandardMaterial({ color: 0x111111 }),
+      quartz: new THREE.MeshStandardMaterial({ color: 0xffffff }),
+      water: new THREE.MeshStandardMaterial({ color: 0x0000ff, transparent: true, opacity: 0.6 }),
+      grass: new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
+      redstone: new THREE.MeshStandardMaterial({ color: 0xff0000 }),
+    };
+  }
+
+  function loadRoom(id: string) {
+    if (!group || !rooms[id]) return;
+
+    // Clear existing
+    while(group.children.length > 0){ 
+        group.remove(group.children[0]); 
+    }
+
+    const data = rooms[id]();
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+
+    data.blocks.forEach(block => {
+      const material = materials[block.type] || materials.stone_brick;
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(block.x, block.y, block.z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+    });
+
+    // Adjust camera target if needed, or just let user pan
+    if (controls) {
+        controls.target.set(data.width / 2, data.height / 2, data.depth / 2);
+    }
+  }
 
   onMount(() => {
     if (!canvas) return;
+
+    initMaterials();
 
     // 1. Scene Setup
     scene = new THREE.Scene();
@@ -59,9 +201,8 @@
     // 2. Camera Setup
     const aspect = container.clientWidth / container.clientHeight;
     camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
-    camera.position.set(roomData.width * 1.5, roomData.height * 3, roomData.depth * 1.5);
-    camera.lookAt(roomData.width / 2, roomData.height / 2, roomData.depth / 2);
-
+    camera.position.set(20, 20, 20); // Default position
+    
     // 3. Renderer Setup
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -72,8 +213,7 @@
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.target.set(roomData.width / 2, roomData.height / 2, roomData.depth / 2);
-
+    
     // 5. Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
@@ -83,34 +223,14 @@
     dirLight.castShadow = true;
     scene.add(dirLight);
 
-    // 6. Build Room (Simple Voxel Rendering)
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    
-    // Materials
-    const materials: Record<string, THREE.Material> = {
-      stone_brick: new THREE.MeshStandardMaterial({ color: 0x888888 }),
-      cracked_stone: new THREE.MeshStandardMaterial({ color: 0x666666 }),
-      chest: new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x332200 }),
-    };
-
-    const group = new THREE.Group();
-
-    roomData.blocks.forEach(block => {
-      const material = materials[block.type] || materials.stone_brick;
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(block.x, block.y, block.z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      group.add(mesh);
-    });
-
-    // Center the room
-    // group.position.set(-roomData.width / 2, 0, -roomData.depth / 2);
+    // 6. Build Room
+    group = new THREE.Group();
     scene.add(group);
+    
+    loadRoom(selectedRoomId);
 
     // Grid Helper
     const gridHelper = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
-    // gridHelper.position.y = -0.5;
     scene.add(gridHelper);
 
     // 7. Animation Loop
@@ -163,15 +283,19 @@
     <div class="controls-overlay">
       <div class="control-group">
         <label>Room ID</label>
-        <select>
-          <option>1x1 Normal</option>
-          <option>1x1 Puzzle (Tic Tac Toe)</option>
-          <option>2x2 Boss</option>
+        <select bind:value={selectedRoomId} on:change={() => loadRoom(selectedRoomId)}>
+          <option value="tic_tac_toe">1x1 Puzzle (Tic Tac Toe)</option>
+          <option value="three_weirdos">1x1 Puzzle (Three Weirdos)</option>
+          <option value="entrance">1x1 Entrance</option>
         </select>
       </div>
       <div class="legend">
         <div class="legend-item"><span class="color-box chest"></span> Secret Chest</div>
         <div class="legend-item"><span class="color-box stone"></span> Wall/Floor</div>
+        <div class="legend-item"><span class="color-box obsidian"></span> Obsidian</div>
+        <div class="legend-item"><span class="color-box quartz"></span> Quartz</div>
+        <div class="legend-item"><span class="color-box water"></span> Water</div>
+        <div class="legend-item"><span class="color-box redstone"></span> Redstone</div>
       </div>
     </div>
   </div>
@@ -307,4 +431,8 @@
 
   .color-box.chest { background: #ffaa00; }
   .color-box.stone { background: #888888; }
+  .color-box.obsidian { background: #111111; border: 1px solid #333; }
+  .color-box.quartz { background: #ffffff; }
+  .color-box.water { background: #0000ff; opacity: 0.6; }
+  .color-box.redstone { background: #ff0000; }
 </style>

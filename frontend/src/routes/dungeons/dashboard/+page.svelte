@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { get } from '$lib/api';
-  import { loadRecent, formatNumber } from '$lib/utils';
+  import { loadRecent, formatNumber, formatTime } from '$lib/utils';
   import { iconPack, iconPath } from '$lib/iconPack';
   import { dungeonClassLabels } from '../../u/[name]/p/[profileId]/profileConstants';
 
@@ -148,10 +148,10 @@
               </span>
               <span class="dungeon-name">{dungeonClassLabels[key] ?? key}</span>
             </div>
-            <span class="dungeon-level">Lv. {info.level}</span>
-            <span class="sub">{formatNumber(info.xp)} XP</span>
-            {#if info.overflow > 0}
-              <span class="sub accent">Overflow {formatNumber(info.overflow)} XP</span>
+            <span class="dungeon-level">Lv. {(info as any).level}</span>
+            <span class="sub">{formatNumber((info as any).xp)} XP</span>
+            {#if (info as any).overflow > 0}
+              <span class="sub accent">Overflow {formatNumber((info as any).overflow)} XP</span>
             {/if}
           </div>
         {/each}
@@ -173,22 +173,22 @@
                     class="head-icon"
                   />
                 </span>
-                <span class="dungeon-name">{floor.name}</span>
+                <span class="dungeon-name">{(floor as any).name}</span>
               </div>
               <div class="floor-stats">
                 <div class="stat-row">
                   <span class="label">Completions</span>
-                  <span class="value">{formatNumber(floor.stats.tier_completions)}</span>
+                  <span class="value">{formatNumber((floor as any).completions)}</span>
                 </div>
                 <div class="stat-row">
                   <span class="label">Best Score</span>
-                  <span class="value" style="color: {getScoreColor(floor.stats.best_score)}">
-                    {floor.stats.best_score} ({getScoreRank(floor.stats.best_score)})
+                  <span class="value" style="color: {getScoreColor((floor as any).best_score)}">
+                    {(floor as any).best_score} ({getScoreRank((floor as any).best_score)})
                   </span>
                 </div>
                 <div class="stat-row">
                   <span class="label">Fastest Run</span>
-                  <span class="value">{floor.stats.fastest_time_s_plus ? formatTime(floor.stats.fastest_time_s_plus) : '-'}</span>
+                  <span class="value">{(floor as any).fastest_time ? formatTime((floor as any).fastest_time) : '-'}</span>
                 </div>
               </div>
             </div>

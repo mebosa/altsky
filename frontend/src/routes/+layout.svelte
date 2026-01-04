@@ -34,8 +34,8 @@
     const pointerQuery = window.matchMedia('(pointer: coarse)');
 
     let frame = 0;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-    let idleTimeout: ReturnType<typeof setTimeout> | null = null;
+    let intervalId: number | ReturnType<typeof setInterval> | null = null;
+    let idleTimeout: number | ReturnType<typeof setTimeout> | null = null;
     let pointerActive = false;
     let currentX = 50;
     let currentY = 50;
