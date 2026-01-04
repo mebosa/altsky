@@ -2705,6 +2705,79 @@ SKYCOFL_ITEM_SEARCH_URL = 'https://sky.coflnet.com/api/item/search'
 SKYCOFL_AUCTIONS_URL = 'https://sky.coflnet.com/api/auctions/tag'
 AUCTION_CACHE_SECONDS = _read_int_env('AUCTION_CACHE_SECONDS', 120)
 
+HYPIXEL_ITEMS_CACHE = None
+
+def _get_hypixel_items() -> List[Dict[str, Any]]:
+    global HYPIXEL_ITEMS_CACHE
+    if HYPIXEL_ITEMS_CACHE is not None:
+        return HYPIXEL_ITEMS_CACHE
+    
+    try:
+        # Path relative to backend/api/views.py -> backend/hypixel_items.json
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'hypixel_items.json')
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict) and 'items' in data:
+                    HYPIXEL_ITEMS_CACHE = data['items']
+                elif isinstance(data, list):
+                    HYPIXEL_ITEMS_CACHE = data
+                else:
+                    HYPIXEL_ITEMS_CACHE = []
+        else:
+            print(f"hypixel_items.json not found at {path}")
+            HYPIXEL_ITEMS_CACHE = []
+    except Exception as e:
+        print(f"Error loading hypixel_items.json: {e}")
+        HYPIXEL_ITEMS_CACHE = []
+    
+    return HYPIXEL_ITEMS_CACHE
+
+def _local_item_search(query: str, limit: int = 20) -> List[Dict[str, Any]]:
+    """Search items locally using hypixel_items.json."""
+    items = _get_hypixel_items()
+    if not items:
+        return []
+        
+    query = query.lower().strip()
+    results = []
+    seen_ids = set()
+    
+    # Helper to add item if unique
+    def add_item(item):
+        if item['id'] not in seen_ids:
+            results.append(item)
+            seen_ids.add(item['id'])
+            return True
+        return False
+
+    # 1. Exact match on ID or Name
+    for item in items:
+        if item.get('id', '').lower() == query or item.get('name', '').lower() == query:
+            add_item(item)
+
+    # 2. Starts with Name
+    for item in items:
+        if len(results) >= limit: break
+        if item.get('name', '').lower().startswith(query):
+            add_item(item)
+            
+    # 3. Starts with ID
+    for item in items:
+        if len(results) >= limit: break
+        if item.get('id', '').lower().startswith(query):
+            add_item(item)
+
+    # 4. Contains in Name
+    if len(results) < limit:
+        for item in items:
+            if len(results) >= limit: break
+            if query in item.get('name', '').lower():
+                add_item(item)
+                
+    return results
+
+
 
 def _fetch_auction_page(page: int = 0) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
     """Fetch a single page of active auctions from Hypixel API."""
@@ -2987,12 +3060,17 @@ def auction_search(request: Request) -> Response:
     except (TypeError, ValueError):
         limit = 20
 
-    # Search using Coflnet
-    search_results = _fetch_coflnet_item_search(query, limit)
+    # Search using local Hypixel items database
+    search_results = _local_item_search(query, limit)
+    
+    # If local search yields nothing, try Coflnet as fallback (optional, but maybe redundant if we have full DB)
+    if not search_results:
+        search_results = _fetch_coflnet_item_search(query, limit)
 
     items = []
     for item in search_results:
-        item_tag = item.get('tag') or item.get('id')
+        # Handle both local item structure and Coflnet structure
+        item_tag = item.get('id') or item.get('tag')
         if not item_tag:
             continue
 
@@ -3004,7 +3082,7 @@ def auction_search(request: Request) -> Response:
             'name': item.get('name', item_tag.replace('_', ' ').title()),
             'tier': item.get('tier', 'COMMON'),
             'category': item.get('category'),
-            'icon': item.get('icon') or item.get('iconUrl'),
+            'icon': item.get('material') or item.get('icon') or item.get('iconUrl'), # 'material' is from hypixel_items.json
             'price': price_data,
         })
 

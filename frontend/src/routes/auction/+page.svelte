@@ -72,16 +72,10 @@
     flip_target: number | null;
   }
 
-  let activeTab: 'flips' | 'search' | 'details' = 'flips';
+  let activeTab: 'search' | 'details' = 'search';
   let isLoading = true;
   let error = '';
   let lastUpdated = '';
-
-  // Flips tab state
-  let flips: AuctionFlip[] = [];
-  let minProfit = 100000;
-  let minProfitPercent = 10;
-  let sortBy = 'profit';
 
   // Search tab state
   let searchQuery = '';
@@ -107,62 +101,6 @@
     VERY_SPECIAL: '#FF5555',
     SUPREME: '#55FFFF',
   };
-
-  const sortOptions = [
-    { value: 'profit', label: 'Profit' },
-    { value: 'profit_percent', label: 'Profit %' },
-    { value: 'score', label: 'Score' },
-    { value: 'volume', label: 'Volume' },
-  ];
-
-  async function fetchFlips(refresh = false) {
-    isLoading = true;
-    error = '';
-    
-    try {
-      const params: Record<string, string> = {
-        limit: '100',
-        min_profit: String(minProfit),
-        min_profit_percent: String(minProfitPercent),
-      };
-      if (refresh) params.refresh = '1';
-      
-      const data = await get<{
-        success: boolean;
-        flips: AuctionFlip[];
-        last_updated: string;
-      }>('/api/auction/flips', { query: params });
-      
-      if (data.success) {
-        flips = data.flips;
-        lastUpdated = new Date(data.last_updated).toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-        sortFlips();
-      } else {
-        error = 'Failed to fetch auction data';
-      }
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to fetch auction data';
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  function sortFlips() {
-    const sortKeys: Record<string, (x: AuctionFlip) => number> = {
-      profit: (x) => x.profit,
-      profit_percent: (x) => x.profit_percent,
-      score: (x) => x.flip_score?.score || 0,
-      volume: (x) => x.volume,
-    };
-    const keyFn = sortKeys[sortBy] || sortKeys.profit;
-    flips = [...flips].sort((a, b) => keyFn(b) - keyFn(a));
-  }
 
   async function handleSearch() {
     if (!searchQuery.trim() || searchQuery.length < 2) return;
@@ -214,23 +152,8 @@
     return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
 
-  function getScoreColor(label: string): string {
-    switch (label) {
-      case 'Excellent': return '#4ade80';
-      case 'Good': return '#a3e635';
-      case 'Fair': return '#fbbf24';
-      case 'Low': return '#fb923c';
-      default: return '#f87171';
-    }
-  }
-
   function getTierColor(tier: string): string {
     return tierColors[tier] || tierColors.COMMON;
-  }
-
-  function handleSort(newSort: string) {
-    sortBy = newSort;
-    sortFlips();
   }
 
   function onSearchKey(event: KeyboardEvent) {
@@ -241,7 +164,6 @@
 
   onMount(() => {
     loadHypixelItems();
-    fetchFlips();
   });
 
   function getItemIcon(itemName: string): string | null {
@@ -280,7 +202,7 @@
       <a href="/" class="back-link">← Back</a>
       <div class="title-section">
         <h1>Auction Helper</h1>
-        <p class="muted">Find underpriced auctions and flip for profit (Coflnet-style)</p>
+        <p class="muted">Search for items and calculate lowballing prices.</p>
       </div>
     </div>
     {#if lastUpdated}
@@ -289,13 +211,6 @@
   </div>
 
   <div class="tabs">
-    <button
-      class="tab"
-      class:active={activeTab === 'flips'}
-      on:click={() => { activeTab = 'flips'; if (flips.length === 0) fetchFlips(); }}
-    >
-      🔥 Flip Finder
-    </button>
     <button
       class="tab"
       class:active={activeTab === 'search'}
@@ -316,114 +231,6 @@
 
   {#if error}
     <div class="error-message">{error}</div>
-  {/if}
-
-  {#if activeTab === 'flips'}
-    <div class="controls panel">
-      <div class="control-row">
-        <div class="control-group">
-          <span class="control-label">Min Profit</span>
-          <input
-            type="number"
-            class="control-input"
-            bind:value={minProfit}
-            min="0"
-            step="10000"
-          />
-        </div>
-        <div class="control-group">
-          <span class="control-label">Min %</span>
-          <input
-            type="number"
-            class="control-input small"
-            bind:value={minProfitPercent}
-            min="0"
-            max="100"
-          />
-        </div>
-        <div class="control-group">
-          <span class="control-label">Sort by</span>
-          <div class="chips">
-            {#each sortOptions as option}
-              <button
-                type="button"
-                class="chip"
-                class:active={sortBy === option.value}
-                on:click={() => handleSort(option.value)}
-              >
-                {option.label}
-              </button>
-            {/each}
-          </div>
-        </div>
-        <button type="button" class="refresh-btn" on:click={() => fetchFlips(true)} disabled={isLoading}>
-          {isLoading ? 'Loading...' : 'Refresh'}
-        </button>
-      </div>
-    </div>
-
-    {#if isLoading && flips.length === 0}
-      <div class="panel loading-panel">
-        <div class="loading-spinner"></div>
-        <p>Loading auction data...</p>
-      </div>
-    {:else if flips.length === 0}
-      <div class="panel empty-panel">
-        <p>No flip opportunities found. Try lowering the minimum profit threshold.</p>
-      </div>
-    {:else}
-      <div class="table-container panel">
-        <table class="flip-table">
-          <thead>
-            <tr>
-              <th class="col-item">Item</th>
-              <th class="col-price">Lowest BIN</th>
-              <th class="col-price">Avg Price</th>
-              <th class="col-margin">Profit</th>
-              <th class="col-percent">Profit %</th>
-              <th class="col-score">Score</th>
-              <th class="col-volume">Volume</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each flips as flip}
-              {@const iconSrc = getItemIcon(flip.item_name)}
-              <tr on:click={() => loadItemDetails(flip.item_name.toUpperCase().replace(/\s+/g, '_'))}>
-                <td class="col-item">
-                  <span class="item-cell">
-                    {#if iconSrc && !failedImages.has(flip.item_name)}
-                      <img
-                        class="item-icon"
-                        src={iconSrc}
-                        alt=""
-                        loading="lazy"
-                        on:error={(e) => handleImageError(e, flip.item_name)}
-                      />
-                    {:else}
-                      <span class="item-icon placeholder">{getFallbackEmoji(flip.tier)}</span>
-                    {/if}
-                    <span class="item-info">
-                      <span class="item-name" style="color: {getTierColor(flip.tier)}">{flip.item_name}</span>
-                      <span class="item-tier">{flip.tier}</span>
-                    </span>
-                  </span>
-                </td>
-                <td class="col-price sell-price">{formatCoins(flip.lowest_price)}</td>
-                <td class="col-price">{formatCoins(flip.avg_price)}</td>
-                <td class="col-margin positive">+{formatCoins(flip.profit)}</td>
-                <td class="col-percent positive">+{flip.profit_percent.toFixed(1)}%</td>
-                <td class="col-score">
-                  <span class="score-badge" style="background: {getScoreColor(flip.flip_score.label)}20; color: {getScoreColor(flip.flip_score.label)}">
-                    {flip.flip_score.label}
-                  </span>
-                </td>
-                <td class="col-volume">{flip.volume}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
   {/if}
 
   {#if activeTab === 'search'}
