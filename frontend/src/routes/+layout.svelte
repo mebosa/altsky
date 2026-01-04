@@ -317,9 +317,9 @@
     --bg-radial-1: rgba(95, 113, 245, 0.18);
     --bg-radial-2: rgba(31, 182, 166, 0.12);
     --bg-radial-3: rgba(148, 163, 184, 0.12);
-    --neu-elevated: 12px 12px 28px rgba(0, 0, 0, 0.35), -12px -12px 28px rgba(80, 110, 160, 0.14);
-    --neu-soft: 8px 8px 18px rgba(0, 0, 0, 0.32), -8px -8px 18px rgba(80, 110, 160, 0.12);
-    --neu-inset: inset 6px 6px 14px rgba(0, 0, 0, 0.28), inset -6px -6px 14px rgba(80, 110, 160, 0.16);
+    --neu-elevated: 9px 9px 16px var(--theme-shadow-dark), -9px -9px 16px var(--theme-shadow-light);
+    --neu-soft: 6px 6px 12px var(--theme-shadow-dark), -6px -6px 12px var(--theme-shadow-light);
+    --neu-inset: inset 6px 6px 12px var(--theme-shadow-dark), inset -6px -6px 12px var(--theme-shadow-light);
   }
 
   :global(html),

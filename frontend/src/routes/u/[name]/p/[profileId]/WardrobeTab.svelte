@@ -427,7 +427,7 @@
     markPlaceholder(target, true);
     clearRetryTimer(target);
     const delay = computeRetryDelay(attempt);
-    const timerId = setTimeout(() => {
+    const timerId = window.setTimeout(() => {
       pendingRetryTimers.delete(target);
       if (!target.isConnected) return;
       const nextSrc = buildCacheBustedUrl(iconUrl, nextAttempt);

@@ -31,7 +31,7 @@
     border-radius: 12px;
     border: 1px solid var(--theme-control-border);
     background: var(--theme-control-bg);
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.24);
+    box-shadow: var(--neu-elevated);
   }
 
   h1 {

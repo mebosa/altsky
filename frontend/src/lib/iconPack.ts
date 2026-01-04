@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 
 export type IconCategoryPaths = {
 	skills: string;
@@ -45,7 +45,7 @@ export const iconPackOptions: IconPackDefinition[] = [
 const STORAGE_KEY = 'altsky_icon_pack';
 
 type IconPackStore = {
-	subscribe: typeof writable<IconPackDefinition>['subscribe'];
+	subscribe: Writable<IconPackDefinition>['subscribe'];
 	init: () => void;
 	select: (id: string) => void;
 };

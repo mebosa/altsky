@@ -274,7 +274,7 @@
           target.src = buildCacheBustedUrl(resolvedUrl, nextAttempt);
         }
       }, delay);
-      pendingRetryTimers.set(target, timerId);
+      pendingRetryTimers.set(target, timerId as unknown as number);
       return;
     }
     

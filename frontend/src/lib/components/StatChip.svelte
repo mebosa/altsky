@@ -27,7 +27,7 @@
     color: var(--theme-chip-text);
     font-size: 0.9rem;
     font-weight: 500;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+    box-shadow: var(--neu-elevated);
     backdrop-filter: blur(12px);
     transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease,
       transform 0.3s ease;
@@ -35,7 +35,7 @@
 
   .chip:hover {
     transform: translateY(-2px);
-    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
+    box-shadow: var(--neu-elevated);
   }
 
   strong {

@@ -311,7 +311,7 @@
                       width="24"
                       height="24"
                       on:error={(e) => {
-                        e.currentTarget.style.display = 'none';
+                        (e.currentTarget as HTMLElement).style.display = 'none';
                       }}
                     />
                   {:else}
@@ -398,7 +398,7 @@
                         width="24"
                         height="24"
                         on:error={(e) => {
-                          e.currentTarget.style.display = 'none';
+                          (e.currentTarget as HTMLElement).style.display = 'none';
                         }}
                       />
                     {:else}
@@ -469,8 +469,9 @@
                         width="32"
                         height="32"
                         on:error={(e) => {
-                          if (fallbackIcon && e.currentTarget.src !== fallbackIcon) {
-                            e.currentTarget.src = fallbackIcon;
+                          const target = e.currentTarget as HTMLImageElement;
+                          if (fallbackIcon && target.src !== fallbackIcon) {
+                            target.src = fallbackIcon;
                           }
                         }}
                       />
@@ -532,8 +533,9 @@
                         width="32"
                         height="32"
                         on:error={(e) => {
-                          if (fallbackIcon && e.currentTarget.src !== fallbackIcon) {
-                            e.currentTarget.src = fallbackIcon;
+                          const target = e.currentTarget as HTMLImageElement;
+                          if (fallbackIcon && target.src !== fallbackIcon) {
+                            target.src = fallbackIcon;
                           }
                         }}
                       />

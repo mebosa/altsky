@@ -70,7 +70,7 @@
       category: string;
       categoryColor: string;
       nextTier: number;
-      cost: { craftCost: number | null; materials: string } | null;
+      cost: { craftOnly: boolean; bazaarCost: number | null } | null;
     }> = [];
 
     Object.entries(categories).forEach(([catKey, catData]) => {
@@ -90,8 +90,8 @@
 
     // Sort by craft cost (cheapest first), then by tier
     missing.sort((a, b) => {
-      const aCost = a.cost?.craftCost || Infinity;
-      const bCost = b.cost?.craftCost || Infinity;
+      const aCost = a.cost?.bazaarCost || Infinity;
+      const bCost = b.cost?.bazaarCost || Infinity;
       if (aCost !== bCost) return aCost - bCost;
       return a.nextTier - b.nextTier;
     });

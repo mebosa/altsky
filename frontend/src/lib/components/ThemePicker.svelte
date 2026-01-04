@@ -393,21 +393,22 @@
     gap: 4px;
     padding: 8px 4px 10px;
     border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    background: rgba(12, 18, 32, 0.6);
+    border: 1px solid var(--theme-surface-border);
+    background: var(--theme-surface);
     color: var(--theme-text-secondary);
     cursor: pointer;
+    box-shadow: var(--neu-elevated);
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
       background 0.25s ease;
   }
 
   .swatches button.light {
-    background: rgba(255, 255, 255, 0.78);
-    color: #1e293b;
+    background: var(--theme-surface);
+    color: var(--theme-text-primary);
   }
 
   .swatches button.light .name {
-    color: #1e293b;
+    color: var(--theme-text-secondary);
   }
 
   .swatches button.special {
@@ -418,19 +419,20 @@
   .swatches button:focus-visible {
     transform: translateY(-2px);
     border-color: var(--theme-accent-alpha-32);
-    background: rgba(12, 18, 32, 0.72);
+    background: var(--theme-surface);
+    box-shadow: var(--neu-elevated);
     outline: none;
   }
 
   .swatches button.selected {
     border-color: var(--theme-accent);
-    box-shadow: 0 10px 18px var(--theme-glow);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    box-shadow: var(--neu-inset);
+    background: var(--theme-surface);
   }
 
   .swatches button.light.selected {
-    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.16);
-    border-color: rgba(15, 23, 42, 0.2);
+    box-shadow: var(--neu-inset);
+    border-color: var(--theme-accent);
   }
 
   .swatches button.special.selected {

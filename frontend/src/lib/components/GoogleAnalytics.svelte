@@ -4,6 +4,14 @@
 
   export let id: string;
 
+  declare global {
+    interface Window {
+      dataLayer: any[];
+      gtag: (...args: any[]) => void;
+    }
+    const gtag: (...args: any[]) => void;
+  }
+
   $: if (typeof gtag !== 'undefined') {
     gtag('config', id, {
       page_path: $page.url.pathname + $page.url.search

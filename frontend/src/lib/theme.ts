@@ -32,6 +32,8 @@ export type ThemeDefinition = {
   tagBg: string;
   tagBorder: string;
   glow: string;
+  shadowLight: string;
+  shadowDark: string;
   special?: boolean;
 };
 
@@ -56,48 +58,53 @@ function rgba(hex: string, alpha: number) {
 
 const darkBase = {
   mode: 'dark' as ThemeMode,
-  background: '#020617',
-  backgroundMuted: '#0f172a',
-  surface: 'rgba(15, 23, 42, 0.85)',
-  surfaceElevated: 'rgba(15, 23, 42, 0.75)',
-  border: 'rgba(148, 163, 184, 0.25)',
+  background: '#2e323b',
+  backgroundMuted: '#252830',
+  surface: '#2e323b',
+  surfaceElevated: '#2e323b',
+  border: 'rgba(255, 255, 255, 0.05)',
   textPrimary: '#e2e8f0',
-  textSecondary: '#cbd5f5',
-  textSoft: '#cbd5f5',
-  chipBackground: 'rgba(15, 23, 42, 0.65)',
-  chipBorder: 'rgba(148, 163, 184, 0.25)',
+  textSecondary: '#a0aec0',
+  textSoft: '#718096',
+  chipBackground: '#2e323b',
+  chipBorder: 'rgba(255, 255, 255, 0.05)',
   chipText: '#e2e8f0',
-  cardShadow: '0 12px 30px rgba(8, 13, 26, 0.32)',
-  controlBg: 'rgba(15, 23, 42, 0.75)',
-  controlHover: 'rgba(30, 41, 59, 0.85)',
-  controlBorder: 'rgba(148, 163, 184, 0.35)',
-  formBg: 'rgba(15, 23, 42, 0.85)',
-  formBorder: 'rgba(148, 163, 184, 0.4)',
+  cardShadow: '8px 8px 16px #252830, -8px -8px 16px #373c46',
+  controlBg: '#2e323b',
+  controlHover: '#323640',
+  controlBorder: 'rgba(255, 255, 255, 0.05)',
+  formBg: '#2e323b',
+  formBorder: 'rgba(255, 255, 255, 0.05)',
   tagBg: 'rgba(59, 130, 246, 0.2)',
-  tagBorder: 'rgba(59, 130, 246, 0.35)'
+  tagBorder: 'rgba(59, 130, 246, 0.35)',
+  shadowLight: '#373c46',
+  shadowDark: '#252830'
 };
 
 const lightBase = {
   mode: 'light' as ThemeMode,
-  background: '#f6f7fb',
-  backgroundMuted: '#eef2ff',
-  surface: '#ffffff',
-  surfaceElevated: '#ffffff',
-  border: 'rgba(15, 23, 42, 0.08)',
-  textPrimary: '#0f172a',
-  textSecondary: '#1e293b',
-  textSoft: '#475569',
-  chipBackground: '#f1f5f9',
-  chipBorder: 'rgba(15, 23, 42, 0.08)',
-  chipText: '#0f172a',
-  cardShadow: '0 12px 26px rgba(15, 23, 42, 0.08)',
-  controlBg: 'rgba(241, 245, 249, 0.95)',
-  controlHover: '#e2e8f0',
-  controlBorder: 'rgba(15, 23, 42, 0.12)',
-  formBg: '#ffffff',
-  formBorder: 'rgba(15, 23, 42, 0.12)',
+  background: '#e0e5ec',
+  backgroundMuted: '#d1d9e6',
+  surface: '#e0e5ec',
+  surfaceElevated: '#e0e5ec',
+  border: 'rgba(255, 255, 255, 0.4)',
+  textPrimary: '#4a5568',
+  textSecondary: '#718096',
+  textSoft: '#a0aec0',
+  chipBackground: '#e0e5ec',
+  chipBorder: 'rgba(255, 255, 255, 0.4)',
+  chipText: '#4a5568',
+  cardShadow: '9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff',
+  controlBg: '#e0e5ec',
+  controlHover: '#e6ebf2',
+  controlBorder: 'rgba(255, 255, 255, 0.4)',
+  formBg: '#e0e5ec',
+  formBorder: 'rgba(255, 255, 255, 0.4)',
   tagBg: 'rgba(99, 102, 241, 0.16)',
-  tagBorder: 'rgba(99, 102, 241, 0.2)'
+  tagBorder: 'rgba(99, 102, 241, 0.2)',
+  shadowLight: '#ffffff',
+  shadowDark: '#a3b1c6'
+
 };
 
 export const themeOptions: ThemeDefinition[] = [
@@ -279,8 +286,11 @@ function setCssVariables(theme: ThemeDefinition) {
   root.style.setProperty('--theme-tag-bg', theme.tagBg);
   root.style.setProperty('--theme-tag-border', theme.tagBorder);
   root.style.setProperty('--theme-glow', theme.glow);
+  root.style.setProperty('--theme-shadow-light', theme.shadowLight);
+  root.style.setProperty('--theme-shadow-dark', theme.shadowDark);
 
   document.body.dataset.themeMode = theme.mode;
+
   document.body.dataset.theme = theme.id;
   if (theme.special) document.body.dataset.themeSpecial = 'true';
   else delete document.body.dataset.themeSpecial;

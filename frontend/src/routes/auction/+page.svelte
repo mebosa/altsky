@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { get } from '$lib/api';
   import { texturePackStore } from '$lib/stores/texturePack';
   import {
@@ -142,9 +142,14 @@
   }
 
   async function loadItemDetails(itemTag: string) {
+    if (isLoadingDetails || !itemTag) return;
     isLoadingDetails = true;
     activeTab = 'details';
+    selectedItem = null;
+    hoveredItem = null;
     error = '';
+    
+    await tick();
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
@@ -157,6 +162,10 @@
       );
       
       if (data.success) {
+        // Limit recent sales to avoid performance issues
+        if (data.recent_sales && data.recent_sales.length > 50) {
+          data.recent_sales = data.recent_sales.slice(0, 50);
+        }
         selectedItem = data;
       } else {
         error = 'Failed to load item data';
