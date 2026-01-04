@@ -358,8 +358,9 @@
     transform: translateY(-2px);
     color: var(--theme-accent);
     box-shadow: var(--neu-elevated);
+  }
 
-.tool-icon {
+  .tool-icon {
   font-size: 20px;
 }
 
