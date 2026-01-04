@@ -190,14 +190,13 @@
             </div>
 
             <div class="missing-cost">
-              <div class="cost-label">Craft cost:</div>
-              {#if item.cost?.craftCost}
+              <div class="cost-label">Upgrade cost:</div>
+              {#if item.cost?.bazaarCost}
                 <div class="cost-value bazaar-price">
-                  💰 {formatCoins(item.cost.craftCost)}
+                  💰 {formatCoins(item.cost.bazaarCost)}
                 </div>
-                {#if item.cost?.materials}
-                  <div class="cost-materials">{item.cost.materials}</div>
-                {/if}
+              {:else if item.cost?.craftOnly}
+                 <div class="cost-value craft-only">Craft Only</div>
               {:else}
                 <div class="cost-value unknown">Price unknown</div>
               {/if}

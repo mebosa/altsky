@@ -235,14 +235,17 @@ function formatStat(label: string, value: number) {
   return `${value}`;
 }
 
-export type LegacySegment = {
-  text: string;
+export type LegacyStyle = {
   color?: string;
   bold?: boolean;
   italic?: boolean;
   underline?: boolean;
   strikethrough?: boolean;
   obfuscated?: boolean;
+};
+
+export type LegacySegment = LegacyStyle & {
+  text: string;
 };
 
 const LEGACY_COLORS: Record<string, string> = {
@@ -264,7 +267,7 @@ const LEGACY_COLORS: Record<string, string> = {
   f: '#FFFFFF'
 };
 
-const DEFAULT_SEGMENT_STYLE: LegacySegment = {
+const DEFAULT_SEGMENT_STYLE: LegacyStyle = {
   color: '#f5f5f5',
   bold: false,
   italic: false,
@@ -276,7 +279,7 @@ const DEFAULT_SEGMENT_STYLE: LegacySegment = {
 export function parseLegacyText(line: string): LegacySegment[] {
   const segments: LegacySegment[] = [];
   let buffer = '';
-  let style: LegacySegment = { ...DEFAULT_SEGMENT_STYLE };
+  let style: LegacyStyle = { ...DEFAULT_SEGMENT_STYLE };
 
   const pushSegment = () => {
     if (!buffer) return;

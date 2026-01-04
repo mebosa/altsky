@@ -181,9 +181,9 @@
     flex: 1;
     padding: 14px 16px;
     font-size: 17px;
-    border: 1px solid color-mix(in srgb, var(--theme-form-border) 90%, transparent);
+    border: 1px solid transparent;
     border-radius: 12px;
-    background: color-mix(in srgb, var(--theme-form-bg) 92%, #040915 8%);
+    background: var(--theme-surface);
     color: var(--theme-text-primary);
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
     box-shadow: var(--neu-inset);
@@ -196,15 +196,15 @@
   input:focus {
     outline: none;
     border-color: var(--theme-accent);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+    box-shadow: var(--neu-inset), 0 0 0 2px var(--theme-accent-alpha-25);
   }
 
   button {
     padding: 13px 18px;
     border-radius: 12px;
-    border: 1px solid color-mix(in srgb, var(--theme-accent) 70%, #ffffff 10%);
-    background: color-mix(in srgb, var(--theme-accent) 95%, #0b1020 5%);
-    color: #0b1020;
+    border: 1px solid transparent;
+    background: var(--theme-surface);
+    color: var(--theme-text-primary);
     cursor: pointer;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -218,11 +218,12 @@
 
   button:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 14px 28px rgba(5, 7, 14, 0.35);
+    box-shadow: var(--neu-elevated);
+    color: var(--theme-accent);
   }
 
   button:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--theme-accent) 80%, #ffffff 20%);
+    outline: 2px solid var(--theme-accent);
     outline-offset: 3px;
   }
 
@@ -242,19 +243,19 @@
   .chip {
     padding: 8px 12px;
     border-radius: 14px;
-    background: color-mix(in srgb, var(--theme-chip-bg) 95%, transparent);
-    border: 1px solid color-mix(in srgb, var(--theme-chip-border) 90%, transparent);
+    background: var(--theme-surface);
+    border: 1px solid transparent;
     cursor: pointer;
     transition: background 0.25s ease, border 0.25s ease, transform 0.2s ease;
-    color: var(--theme-chip-text);
-    box-shadow: var(--neu-soft);
+    color: var(--theme-text-secondary);
+    box-shadow: var(--neu-elevated);
   }
 
   .chip:hover,
   .chip:focus-visible {
     transform: translateY(-1px);
-    background: color-mix(in srgb, var(--theme-accent-alpha-25) 70%, transparent);
-    border-color: color-mix(in srgb, var(--theme-accent) 60%, #ffffff 10%);
+    color: var(--theme-accent);
+    box-shadow: var(--neu-elevated);
     outline: none;
   }
 
@@ -281,12 +282,11 @@
   }
 
   .panel {
-    border: 1px solid color-mix(in srgb, var(--theme-surface-border) 80%, transparent);
+    border: 1px solid transparent;
     border-radius: 18px;
-    background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
+    background: var(--theme-surface);
     padding: 22px;
-    box-shadow: var(--neu-elevated), inset 4px 4px 10px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(14px);
+    box-shadow: var(--neu-elevated);
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -344,27 +344,20 @@
   gap: 10px;
   padding: 14px 20px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
-  border: 1px solid color-mix(in srgb, var(--theme-surface-border) 80%, transparent);
-  text-decoration: none;
-  color: var(--theme-text-primary);
-  font-weight: 600;
-  font-size: 14px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  box-shadow: var(--neu-soft);
-  backdrop-filter: blur(14px);
-}
+    background: var(--theme-surface);
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: var(--theme-text-primary);
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--neu-elevated);
+  }
 
-.tool-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--theme-accent) 60%, #ffffff 10%);
-  box-shadow: 0 12px 24px rgba(5, 7, 14, 0.3);
-}
-
-.tool-card:focus-visible {
-  outline: 2px solid var(--theme-accent);
-  outline-offset: 2px;
-}
+  .tool-card:hover {
+    transform: translateY(-2px);
+    color: var(--theme-accent);
+    box-shadow: var(--neu-elevated);
 
 .tool-icon {
   font-size: 20px;
@@ -408,6 +401,10 @@
     <a href="/auction" class="tool-card">
       <span class="tool-icon">🔨</span>
       <span class="tool-label">Auction Helper</span>
+    </a>
+    <a href="/dungeons" class="tool-card">
+      <span class="tool-icon">🗝️</span>
+      <span class="tool-label">Dungeons</span>
     </a>
   </div>
 

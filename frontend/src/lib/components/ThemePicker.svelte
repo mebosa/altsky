@@ -277,24 +277,23 @@
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    background: rgba(9, 13, 24, 0.8);
+    border: 1px solid transparent;
+    background: var(--theme-surface);
     color: var(--theme-text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    backdrop-filter: blur(8px);
     pointer-events: auto;
     overflow: hidden;
+    box-shadow: var(--neu-elevated);
     transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   }
 
   .toggle:hover,
   .toggle:focus-visible {
-    background: rgba(95, 113, 245, 0.2);
-    border-color: rgba(95, 113, 245, 0.6);
-    box-shadow: 0 6px 16px rgba(5, 7, 14, 0.4);
+    color: var(--theme-accent);
+    box-shadow: var(--neu-elevated);
     outline: none;
   }
 
@@ -334,10 +333,9 @@
     gap: 10px;
     padding: 14px 16px;
     border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.24);
-    background: rgba(7, 11, 20, 0.88);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 14px 28px rgba(5, 7, 14, 0.38);
+    border: 1px solid transparent;
+    background: var(--theme-surface);
+    box-shadow: var(--neu-elevated);
     max-width: 280px;
     opacity: 0;
     transform: translateX(-12px) scale(0.96);
