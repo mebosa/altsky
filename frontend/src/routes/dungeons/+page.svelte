@@ -15,7 +15,7 @@
       description: 'Explore dungeon rooms in 3D and learn secrets.',
       icon: '🗺️',
       link: '/dungeons/explorer',
-      status: 'In Development'
+      status: 'Beta'
     },
     {
       title: 'Profit Calculator',
