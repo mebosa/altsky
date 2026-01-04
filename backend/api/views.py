@@ -2693,3 +2693,389 @@ def bazaar_allocate(request: Request) -> Response:
         pass
 
     return Response(result.to_jsonable())
+
+
+# ============================================================================
+# Auction Helper API Endpoints
+# ============================================================================
+
+HYPIXEL_AUCTIONS_URL = 'https://api.hypixel.net/v2/skyblock/auctions'
+SKYCOFL_ITEM_PRICE_URL = 'https://sky.coflnet.com/api/item/price'
+SKYCOFL_ITEM_SEARCH_URL = 'https://sky.coflnet.com/api/item/search'
+SKYCOFL_AUCTIONS_URL = 'https://sky.coflnet.com/api/auctions/tag'
+AUCTION_CACHE_SECONDS = _read_int_env('AUCTION_CACHE_SECONDS', 120)
+
+
+def _fetch_auction_page(page: int = 0) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """Fetch a single page of active auctions from Hypixel API."""
+    cache_key = f'hypixel_auctions_page:{page}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached, None
+
+    try:
+        response = _SESSION.get(
+            HYPIXEL_AUCTIONS_URL,
+            params={'page': page},
+            timeout=15,
+        )
+    except requests.RequestException as exc:
+        return None, {'error': 'request_failed', 'detail': str(exc), 'status': 502}
+
+    if response.status_code == 429:
+        return None, {'error': 'rate_limited', 'status': 429}
+
+    if response.status_code != 200:
+        return None, {'error': 'http_error', 'status': response.status_code}
+
+    body = response.json()
+    if not body.get('success'):
+        return None, {'error': 'api_error', 'status': 502}
+
+    if AUCTION_CACHE_SECONDS > 0:
+        cache.set(cache_key, body, AUCTION_CACHE_SECONDS)
+
+    return body, None
+
+
+def _fetch_coflnet_item_price(item_tag: str) -> Optional[Dict[str, Any]]:
+    """Fetch item price data from Coflnet API."""
+    cache_key = f'coflnet_price:{item_tag}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        response = _SESSION.get(
+            f'{SKYCOFL_ITEM_PRICE_URL}/{item_tag}',
+            timeout=10,
+        )
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        cache.set(cache_key, data, 300)  # Cache for 5 minutes
+        return data
+    except Exception:
+        return None
+
+
+def _fetch_coflnet_item_search(query: str, limit: int = 20) -> List[Dict[str, Any]]:
+    """Search items using Coflnet API."""
+    cache_key = f'coflnet_search:{query}:{limit}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        response = _SESSION.get(
+            SKYCOFL_ITEM_SEARCH_URL,
+            params={'name': query},
+            timeout=10,
+        )
+        if response.status_code != 200:
+            return []
+        data = response.json()
+        results = data[:limit] if isinstance(data, list) else []
+        cache.set(cache_key, results, 300)
+        return results
+    except Exception:
+        return []
+
+
+def _fetch_coflnet_recent_auctions(item_tag: str) -> List[Dict[str, Any]]:
+    """Fetch recent auction sales for an item from Coflnet."""
+    cache_key = f'coflnet_auctions:{item_tag}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        response = _SESSION.get(
+            f'{SKYCOFL_AUCTIONS_URL}/{item_tag}/sold',
+            params={'page': 0, 'pageSize': 50},
+            timeout=10,
+        )
+        if response.status_code != 200:
+            return []
+        data = response.json()
+        results = data if isinstance(data, list) else []
+        cache.set(cache_key, results, 120)
+        return results
+    except Exception:
+        return []
+
+
+def _calculate_auction_flip_score(
+    current_price: float,
+    avg_price: float,
+    median_price: float,
+    volume: int,
+    min_price: float,
+) -> Dict[str, Any]:
+    """Calculate flip potential score for an auction item."""
+    if avg_price <= 0 or current_price <= 0:
+        return {'score': 0, 'label': 'Unknown', 'profit_potential': 0}
+
+    # Calculate profit margin
+    profit_margin = (avg_price - current_price) / current_price * 100
+
+    # Volume factor (higher volume = safer flip)
+    volume_factor = min(1.0, volume / 100)
+
+    # Price stability factor (median close to avg = stable)
+    stability_factor = 1.0 - abs(median_price - avg_price) / avg_price if avg_price > 0 else 0
+
+    # Calculate overall score
+    score = (profit_margin * 0.5 + volume_factor * 30 + stability_factor * 20)
+    score = max(0, min(100, score))
+
+    # Determine label
+    if profit_margin >= 30 and volume >= 50:
+        label = 'Excellent'
+    elif profit_margin >= 20 and volume >= 20:
+        label = 'Good'
+    elif profit_margin >= 10 and volume >= 10:
+        label = 'Fair'
+    elif profit_margin >= 5:
+        label = 'Low'
+    else:
+        label = 'Poor'
+
+    return {
+        'score': round(score, 2),
+        'label': label,
+        'profit_potential': round(avg_price - current_price, 2),
+        'profit_percent': round(profit_margin, 2),
+        'volume_factor': round(volume_factor, 2),
+        'stability_factor': round(stability_factor, 2),
+    }
+
+
+@api_view(['GET'])
+@rate_limit('auction_flips', requests=30, window=60)
+def auction_flips(request: Request) -> Response:
+    """
+    Get auction flip recommendations based on underpriced items.
+    
+    Query params:
+    - limit: Number of recommendations (default 50, max 200)
+    - min_profit: Minimum profit in coins (default 100000)
+    - min_profit_percent: Minimum profit percentage (default 10)
+    - category: Filter by category (optional)
+    """
+    try:
+        limit = int(request.query_params.get('limit', 50))
+        limit = max(1, min(limit, 200))
+    except (TypeError, ValueError):
+        limit = 50
+
+    try:
+        min_profit = float(request.query_params.get('min_profit', 100000))
+    except (TypeError, ValueError):
+        min_profit = 100000
+
+    try:
+        min_profit_percent = float(request.query_params.get('min_profit_percent', 10))
+    except (TypeError, ValueError):
+        min_profit_percent = 10
+
+    category = request.query_params.get('category', '').strip()
+
+    # Fetch first page of auctions
+    page_data, error = _fetch_auction_page(0)
+    if error:
+        return Response(error, status=error.get('status', 500))
+
+    auctions = page_data.get('auctions', [])
+    total_pages = page_data.get('totalPages', 1)
+
+    # For now, only process first page to avoid rate limits
+    # In production, you could paginate or use Coflnet's pre-calculated data
+
+    flip_opportunities = []
+
+    # Group auctions by item type
+    item_groups: Dict[str, List[Dict[str, Any]]] = {}
+    for auction in auctions:
+        if auction.get('bin') and not auction.get('claimed'):
+            item_name = auction.get('item_name', 'Unknown')
+            tier = auction.get('tier', 'COMMON')
+            key = f"{item_name}:{tier}"
+            if key not in item_groups:
+                item_groups[key] = []
+            item_groups[key].append(auction)
+
+    # Analyze each item group
+    for key, group in item_groups.items():
+        if len(group) < 2:
+            continue
+
+        # Sort by price
+        group.sort(key=lambda x: x.get('starting_bid', 0))
+
+        prices = [a.get('starting_bid', 0) for a in group]
+        lowest_price = prices[0]
+        avg_price = sum(prices) / len(prices)
+        median_idx = len(prices) // 2
+        median_price = prices[median_idx]
+
+        # Calculate profit potential
+        profit = avg_price - lowest_price
+        profit_percent = (profit / lowest_price * 100) if lowest_price > 0 else 0
+
+        if profit >= min_profit and profit_percent >= min_profit_percent:
+            lowest_auction = group[0]
+            
+            # Apply category filter
+            if category and category.lower() not in (lowest_auction.get('category', '') or '').lower():
+                continue
+
+            flip_score = _calculate_auction_flip_score(
+                current_price=lowest_price,
+                avg_price=avg_price,
+                median_price=median_price,
+                volume=len(group),
+                min_price=lowest_price,
+            )
+
+            flip_opportunities.append({
+                'item_name': lowest_auction.get('item_name', 'Unknown'),
+                'tier': lowest_auction.get('tier', 'COMMON'),
+                'category': lowest_auction.get('category'),
+                'lowest_price': lowest_price,
+                'avg_price': round(avg_price, 2),
+                'median_price': round(median_price, 2),
+                'profit': round(profit, 2),
+                'profit_percent': round(profit_percent, 2),
+                'volume': len(group),
+                'flip_score': flip_score,
+                'auction_uuid': lowest_auction.get('uuid'),
+                'seller': lowest_auction.get('auctioneer'),
+                'end_time': lowest_auction.get('end'),
+                'lore': lowest_auction.get('item_lore', ''),
+            })
+
+    # Sort by profit potential
+    flip_opportunities.sort(key=lambda x: x['profit'], reverse=True)
+
+    return Response({
+        'success': True,
+        'flips': flip_opportunities[:limit],
+        'total_auctions': len(auctions),
+        'total_pages': total_pages,
+        'last_updated': datetime.now(timezone.utc).isoformat(),
+    })
+
+
+@api_view(['GET'])
+@rate_limit('auction_search', requests=60, window=60)
+def auction_search(request: Request) -> Response:
+    """
+    Search for items and their price history.
+    
+    Query params:
+    - query: Search query (required)
+    - limit: Number of results (default 20, max 50)
+    """
+    query = (request.query_params.get('query') or '').strip()
+    if not query or len(query) < 2:
+        return Response({'error': 'invalid_query', 'detail': 'Query must be at least 2 characters'}, status=400)
+
+    try:
+        limit = int(request.query_params.get('limit', 20))
+        limit = max(1, min(limit, 50))
+    except (TypeError, ValueError):
+        limit = 20
+
+    # Search using Coflnet
+    search_results = _fetch_coflnet_item_search(query, limit)
+
+    items = []
+    for item in search_results:
+        item_tag = item.get('tag') or item.get('id')
+        if not item_tag:
+            continue
+
+        # Fetch price data
+        price_data = _fetch_coflnet_item_price(item_tag)
+
+        items.append({
+            'tag': item_tag,
+            'name': item.get('name', item_tag.replace('_', ' ').title()),
+            'tier': item.get('tier', 'COMMON'),
+            'category': item.get('category'),
+            'icon': item.get('icon') or item.get('iconUrl'),
+            'price': price_data,
+        })
+
+    return Response({
+        'success': True,
+        'query': query,
+        'items': items,
+        'last_updated': datetime.now(timezone.utc).isoformat(),
+    })
+
+
+@api_view(['GET'])
+@rate_limit('auction_item', requests=60, window=60)
+def auction_item_details(request: Request, item_id: str) -> Response:
+    """
+    Get detailed price information for a specific item.
+    
+    Path params:
+    - item_id: The item tag/id
+    
+    Returns price history, recent sales, and flip opportunities.
+    """
+    if not item_id:
+        return Response({'error': 'invalid_item_id'}, status=400)
+
+    # Fetch price data from Coflnet
+    price_data = _fetch_coflnet_item_price(item_id)
+    
+    # Fetch recent auction sales
+    recent_sales = _fetch_coflnet_recent_auctions(item_id)
+
+    # Calculate statistics from recent sales
+    if recent_sales:
+        prices = [s.get('price', 0) for s in recent_sales if s.get('price', 0) > 0]
+        if prices:
+            avg_price = sum(prices) / len(prices)
+            min_price = min(prices)
+            max_price = max(prices)
+            median_idx = len(prices) // 2
+            median_price = sorted(prices)[median_idx]
+        else:
+            avg_price = min_price = max_price = median_price = 0
+    else:
+        avg_price = min_price = max_price = median_price = 0
+
+    # Get current lowest BIN from Hypixel if available
+    current_lowest = None
+    page_data, _ = _fetch_auction_page(0)
+    if page_data:
+        for auction in page_data.get('auctions', []):
+            item_name = (auction.get('item_name') or '').upper().replace(' ', '_')
+            if item_id.upper() in item_name and auction.get('bin') and not auction.get('claimed'):
+                bid = auction.get('starting_bid', 0)
+                if current_lowest is None or bid < current_lowest:
+                    current_lowest = bid
+
+    return Response({
+        'success': True,
+        'item_id': item_id,
+        'name': item_id.replace('_', ' ').title(),
+        'price_data': price_data,
+        'statistics': {
+            'avg_price': round(avg_price, 2),
+            'median_price': round(median_price, 2),
+            'min_price': round(min_price, 2),
+            'max_price': round(max_price, 2),
+            'sample_size': len(recent_sales),
+        },
+        'current_lowest_bin': current_lowest,
+        'recent_sales': recent_sales[:20],
+        'lowball_target': round(avg_price * 0.7, 2) if avg_price > 0 else None,
+        'flip_target': round(avg_price * 0.85, 2) if avg_price > 0 else None,
+        'last_updated': datetime.now(timezone.utc).isoformat(),
+    })

@@ -129,9 +129,7 @@
   <meta name="twitter:description" content="Fast and beautiful Hypixel SkyBlock stats viewer. 하이픽셀 스카이블럭 전적 검색. Hypixel空岛战绩查询." />
   <meta name="twitter:image" content={sitePreviewImage} />
   <link rel="canonical" href={siteUrl} />
-  <script type="application/ld+json">
-    {@html JSON.stringify(structuredData)}
-  </script>
+  {@html `<script type="application/ld+json">${JSON.stringify(structuredData)}</script>`}
 </svelte:head>
 
 <style>
@@ -406,6 +404,10 @@
     <a href="/bazaar" class="tool-card">
       <span class="tool-icon">📊</span>
       <span class="tool-label">Bazaar Flips</span>
+    </a>
+    <a href="/auction" class="tool-card">
+      <span class="tool-icon">🔨</span>
+      <span class="tool-label">Auction Helper</span>
     </a>
   </div>
 
