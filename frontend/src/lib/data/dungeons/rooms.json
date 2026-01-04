@@ -1,0 +1,87 @@
+[
+  {
+    "id": "tic_tac_toe",
+    "name": "Puzzle: Tic Tac Toe",
+    "type": "puzzle",
+    "size": { "width": 15, "height": 8, "depth": 15 },
+    "blocks": [
+      { "x": 0, "y": 0, "z": 0, "type": "stone_brick", "repeat": { "x": 15, "z": 15 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 7, "x": 15 } },
+      { "x": 0, "y": 1, "z": 14, "type": "stone_brick", "repeat": { "y": 7, "x": 15 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 7, "z": 15 } },
+      { "x": 14, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 7, "z": 15 } },
+      { "x": 5, "y": 2, "z": 1, "type": "obsidian", "repeat": { "x": 5, "y": 5 } },
+      { "x": 6, "y": 3, "z": 2, "type": "quartz" }, { "x": 8, "y": 3, "z": 2, "type": "quartz" }, { "x": 10, "y": 3, "z": 2, "type": "quartz" },
+      { "x": 6, "y": 5, "z": 2, "type": "quartz" }, { "x": 8, "y": 5, "z": 2, "type": "quartz" }, { "x": 10, "y": 5, "z": 2, "type": "quartz" },
+      { "x": 6, "y": 7, "z": 2, "type": "quartz" }, { "x": 8, "y": 7, "z": 2, "type": "quartz" }, { "x": 10, "y": 7, "z": 2, "type": "quartz" },
+      { "x": 13, "y": 1, "z": 13, "type": "chest" }
+    ]
+  },
+  {
+    "id": "three_weirdos",
+    "name": "Puzzle: Three Weirdos",
+    "type": "puzzle",
+    "size": { "width": 13, "height": 7, "depth": 13 },
+    "blocks": [
+      { "x": 0, "y": 0, "z": 0, "type": "stone_brick", "repeat": { "x": 13, "z": 13 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 6, "x": 13 } },
+      { "x": 0, "y": 1, "z": 12, "type": "stone_brick", "repeat": { "y": 6, "x": 13 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 6, "z": 13 } },
+      { "x": 12, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 6, "z": 13 } },
+      { "x": 4, "y": 1, "z": 6, "type": "chest" },
+      { "x": 6, "y": 1, "z": 6, "type": "chest" },
+      { "x": 8, "y": 1, "z": 6, "type": "chest" },
+      { "x": 3, "y": 0, "z": 8, "type": "water", "repeat": { "x": 7 } }
+    ]
+  },
+  {
+    "id": "entrance",
+    "name": "Entrance",
+    "type": "normal",
+    "size": { "width": 11, "height": 6, "depth": 11 },
+    "blocks": [
+      { "x": 0, "y": 0, "z": 0, "type": "grass", "repeat": { "x": 11, "z": 11 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 5, "x": 11 } },
+      { "x": 0, "y": 1, "z": 10, "type": "stone_brick", "repeat": { "y": 5, "x": 11 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 5, "z": 11 } },
+      { "x": 10, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 5, "z": 11 } },
+      { "x": 5, "y": 1, "z": 0, "type": "redstone" },
+      { "x": 5, "y": 2, "z": 0, "type": "redstone" }
+    ]
+  },
+  {
+    "id": "blaze",
+    "name": "Puzzle: Blaze",
+    "type": "puzzle",
+    "size": { "width": 15, "height": 12, "depth": 15 },
+    "blocks": [
+      { "x": 0, "y": 0, "z": 0, "type": "stone_brick", "repeat": { "x": 15, "z": 15 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 11, "x": 15 } },
+      { "x": 0, "y": 1, "z": 14, "type": "stone_brick", "repeat": { "y": 11, "x": 15 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 11, "z": 15 } },
+      { "x": 14, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 11, "z": 15 } },
+      { "x": 7, "y": 1, "z": 7, "type": "stone_brick", "repeat": { "y": 8 } },
+      { "x": 7, "y": 9, "z": 7, "type": "chest" },
+      { "x": 3, "y": 1, "z": 3, "type": "gold_block" },
+      { "x": 11, "y": 1, "z": 11, "type": "gold_block" }
+    ]
+  },
+  {
+    "id": "water_board",
+    "name": "Puzzle: Water Board",
+    "type": "puzzle",
+    "size": { "width": 15, "height": 8, "depth": 15 },
+    "blocks": [
+      { "x": 0, "y": 0, "z": 0, "type": "stone_brick", "repeat": { "x": 15, "z": 15 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 7, "x": 15 } },
+      { "x": 0, "y": 1, "z": 14, "type": "stone_brick", "repeat": { "y": 7, "x": 15 } },
+      { "x": 0, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 7, "z": 15 } },
+      { "x": 14, "y": 1, "z": 0, "type": "stone_brick", "repeat": { "y": 7, "z": 15 } },
+      { "x": 2, "y": 2, "z": 1, "type": "obsidian", "repeat": { "x": 11, "y": 4 } },
+      { "x": 3, "y": 5, "z": 2, "type": "water" },
+      { "x": 7, "y": 5, "z": 2, "type": "water" },
+      { "x": 11, "y": 5, "z": 2, "type": "water" },
+      { "x": 13, "y": 1, "z": 13, "type": "chest" }
+    ]
+  }
+]

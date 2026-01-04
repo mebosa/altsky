@@ -111,14 +111,22 @@ export const themeOptions: ThemeDefinition[] = [
   {
     id: 'ocean',
     label: 'Ocean Blue',
-    primary: '#2563eb',
-    secondary: '#9333ea',
-    headerGradient: 'linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(147, 51, 234, 0.25))',
-    featuredGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(147, 51, 234, 0.28))',
-    progressStart: '#38bdf8',
-    progressEnd: '#8b5cf6',
+    primary: '#3b82f6',
+    secondary: '#8b5cf6',
+    headerGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25))',
+    featuredGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(139, 92, 246, 0.28))',
+    progressStart: '#60a5fa',
+    progressEnd: '#a78bfa',
     glow: 'rgba(59, 130, 246, 0.34)',
-    ...darkBase
+    ...darkBase,
+    background: '#282c34',
+    surface: '#282c34',
+    surfaceElevated: '#282c34',
+    controlBg: '#282c34',
+    formBg: '#282c34',
+    chipBackground: '#282c34',
+    shadowLight: '#323842',
+    shadowDark: '#1e2026'
   },
   {
     id: 'emerald',
@@ -132,7 +140,15 @@ export const themeOptions: ThemeDefinition[] = [
     glow: 'rgba(16, 185, 129, 0.36)',
     ...darkBase,
     tagBg: 'rgba(16, 185, 129, 0.22)',
-    tagBorder: 'rgba(16, 185, 129, 0.32)'
+    tagBorder: 'rgba(16, 185, 129, 0.32)',
+    background: '#202925',
+    surface: '#202925',
+    surfaceElevated: '#202925',
+    controlBg: '#202925',
+    formBg: '#202925',
+    chipBackground: '#202925',
+    shadowLight: '#2a3630',
+    shadowDark: '#161c1a'
   },
   {
     id: 'daylight',
@@ -163,7 +179,15 @@ export const themeOptions: ThemeDefinition[] = [
     glow: 'rgba(239, 68, 68, 0.33)',
     ...darkBase,
     tagBg: 'rgba(239, 68, 68, 0.24)',
-    tagBorder: 'rgba(249, 115, 22, 0.32)'
+    tagBorder: 'rgba(249, 115, 22, 0.32)',
+    background: '#2d2424',
+    surface: '#2d2424',
+    surfaceElevated: '#2d2424',
+    controlBg: '#2d2424',
+    formBg: '#2d2424',
+    chipBackground: '#2d2424',
+    shadowLight: '#382d2d',
+    shadowDark: '#221b1b'
   },
   {
     id: 'forest',
@@ -176,12 +200,18 @@ export const themeOptions: ThemeDefinition[] = [
     progressEnd: '#bbf7d0',
     special: true,
     ...darkBase,
-    // background: '#02140a',
-    // backgroundMuted: '#042010',
     chipBorder: 'rgba(74, 222, 128, 0.28)',
     tagBg: 'rgba(34, 197, 94, 0.24)',
     tagBorder: 'rgba(34, 197, 94, 0.34)',
-    glow: 'rgba(34, 197, 94, 0.36)'
+    glow: 'rgba(34, 197, 94, 0.36)',
+    background: '#1a211e',
+    surface: '#1a211e',
+    surfaceElevated: '#1a211e',
+    controlBg: '#1a211e',
+    formBg: '#1a211e',
+    chipBackground: '#1a211e',
+    shadowLight: '#222b27',
+    shadowDark: '#121715'
   },
   {
     id: 'catgirl',
@@ -194,21 +224,22 @@ export const themeOptions: ThemeDefinition[] = [
     progressEnd: '#c4b5fd',
     special: true,
     ...darkBase,
-    // background: '#18041f',
-    // backgroundMuted: '#24072d',
-    // surface: 'rgba(39, 10, 52, 0.88)',
-    // surfaceElevated: 'rgba(44, 12, 60, 0.82)',
-    controlBg: 'rgba(79, 22, 104, 0.65)',
     controlHover: 'rgba(101, 32, 132, 0.78)',
     controlBorder: 'rgba(244, 114, 182, 0.38)',
-    formBg: 'rgba(32, 8, 44, 0.85)',
     formBorder: 'rgba(244, 114, 182, 0.42)',
-    chipBackground: 'rgba(244, 114, 182, 0.18)',
     chipBorder: 'rgba(244, 114, 182, 0.38)',
     chipText: '#fce7f3',
     tagBg: 'rgba(244, 114, 182, 0.28)',
     tagBorder: 'rgba(244, 114, 182, 0.4)',
-    glow: 'rgba(244, 114, 182, 0.2)'
+    glow: 'rgba(244, 114, 182, 0.2)',
+    background: '#2d242e',
+    surface: '#2d242e',
+    surfaceElevated: '#2d242e',
+    controlBg: '#2d242e',
+    formBg: '#2d242e',
+    chipBackground: '#2d242e',
+    shadowLight: '#382d39',
+    shadowDark: '#221b23'
   },
   {
     id: 'starlight',
@@ -220,9 +251,15 @@ export const themeOptions: ThemeDefinition[] = [
     progressStart: '#38bdf8',
     progressEnd: '#22d3ee',
     ...darkBase,
-    // background: '#010b14',
-    // backgroundMuted: '#021524',
-    glow: 'rgba(56, 189, 248, 0.35)'
+    glow: 'rgba(56, 189, 248, 0.35)',
+    background: '#20262e',
+    surface: '#20262e',
+    surfaceElevated: '#20262e',
+    controlBg: '#20262e',
+    formBg: '#20262e',
+    chipBackground: '#20262e',
+    shadowLight: '#2a323c',
+    shadowDark: '#161a20'
   }
 ];
 
