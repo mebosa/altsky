@@ -22,9 +22,9 @@
     gap: 0.5rem;
     padding: 0.35rem 0.8rem;
     border-radius: 9999px;
-    background: var(--theme-chip-bg);
-    border: 1px solid var(--theme-chip-border);
-    color: var(--theme-chip-text);
+    background: var(--theme-surface);
+    border: 1px solid transparent;
+    color: var(--theme-text-primary);
     font-size: 0.9rem;
     font-weight: 500;
     box-shadow: var(--neu-elevated);

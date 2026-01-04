@@ -228,8 +228,9 @@
   .model-toggle {
     display: inline-flex;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--theme-form-border) 85%, transparent);
-    background: color-mix(in srgb, var(--theme-form-bg) 80%, transparent);
+    border: 1px solid transparent;
+    background: var(--theme-surface);
+    box-shadow: var(--neu-elevated);
     overflow: hidden;
   }
 
@@ -245,8 +246,8 @@
   }
 
   .model-toggle button.selected {
-    background: color-mix(in srgb, var(--theme-accent) 22%, transparent);
-    color: var(--theme-text-primary);
+    box-shadow: var(--neu-inset);
+    color: var(--theme-accent);
   }
 
   .model-stage {

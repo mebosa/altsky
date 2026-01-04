@@ -37,30 +37,28 @@
   button {
     padding: 8px 16px;
     border-radius: 999px;
-    border: 1px solid var(--theme-control-border);
-    background: var(--theme-control-bg);
+    border: 1px solid transparent;
+    background: var(--theme-surface);
     color: var(--theme-text-secondary);
     cursor: pointer;
     font-size: 0.95rem;
     transition: all 0.25s ease;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    box-shadow: var(--neu-elevated);
   }
 
   button:hover {
-    background: var(--theme-control-hover);
+    color: var(--theme-accent);
     transform: translateY(-2px);
   }
 
   button.value-active {
-    background: var(--theme-accent);
-    color: white;
-    border-color: var(--theme-accent);
+    box-shadow: var(--neu-inset);
+    color: var(--theme-accent);
+    font-weight: 600;
   }
 
   .value-active {
-    background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-secondary));
-    color: #ffffff;
+    /* Removed gradient to maintain neumorphic surface */
     border-color: transparent;
-    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.28);
   }
 </style>
