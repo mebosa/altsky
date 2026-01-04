@@ -169,6 +169,18 @@
       navigating = false; /* Set navigating to false after navigation (or on error) */
     }
   }
+
+  let shareText = 'Share';
+  async function shareProfile() {
+    if (typeof navigator === 'undefined') return;
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      shareText = 'Copied!';
+      setTimeout(() => shareText = 'Share', 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  }
 </script>
 
 <svelte:head>
@@ -375,6 +387,9 @@
       <button on:click={() => refreshPlayer(true)} disabled={loading}>
         {#if loading}<span class="spinner" style="vertical-align:-3px;margin-right:6px;"></span>{/if}
         Refresh
+      </button>
+      <button class="ghost" on:click={shareProfile}>
+        {shareText}
       </button>
       {#if lastUpdated}
         <span class="muted">Cached: {timeAgo(lastUpdated)}</span>

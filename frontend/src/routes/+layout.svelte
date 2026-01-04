@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import ThemePicker from '$lib/components/ThemePicker.svelte';
+  import GoogleAnalytics from '$lib/components/GoogleAnalytics.svelte';
   import { theme, gradient } from '$lib/theme';
+
+  const gaId = import.meta.env.VITE_GA_ID;
   import { iconPack } from '$lib/iconPack';
 
   let teardownBackground: (() => void) | undefined;
@@ -251,12 +254,23 @@
   }
 </script>
 
-<div class="container">
+<div class="app-shell">
+  {#if gaId}
+    <GoogleAnalytics id={gaId} />
+  {/if}
   <ThemePicker />
-  <slot />
+  <div class="container">
+    <slot />
+  </div>
 </div>
 
 <style>
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
   :global(:root) {
     --theme-accent: #5f71f5;
     --theme-accent-secondary: #1fb6a6;
@@ -336,8 +350,11 @@
   }
 
   .container {
+    flex: 1;
+    width: 100%;
     max-width: 960px;
     margin: 40px auto;
     padding: 0 18px;
+    box-sizing: border-box;
   }
 </style>
