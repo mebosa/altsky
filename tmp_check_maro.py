@@ -2,7 +2,7 @@ import requests
 
 # Check maro.skyhelper.kr API or SkyCrypt items endpoint
 urls_to_try = [
-    "https://sky.shiiyu.moe/api/v2/items/SHARD_SEER",
+    "https://sky.shiiiyu.moe/api/v2/items/SHARD_SEER",
     "https://raw.githubusercontent.com/SkyCryptWebsite/SkyCrypt/master/src/constants/items.json",
 ]
 
