@@ -145,7 +145,7 @@
     const currentSrc = img.src;
     
     // If currently loading from local, try mc-heads.net
-    if (!currentSrc.includes('mc-heads.net') && !currentSrc.includes('sky.shiiyu.moe')) {
+    if (!currentSrc.includes('mc-heads.net') && !currentSrc.includes('sky.shiiiyu.moe')) {
       const texture = petTextures[petType];
       const hash = typeof texture === 'string' ? texture : (texture as Record<string, string>)?.default;
       if (hash) {

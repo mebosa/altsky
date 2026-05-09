@@ -238,8 +238,16 @@ export async function get<T>(path: string, opts: GetOpts = {}): Promise<T> {
         'Accept': 'application/json'
       }
     });
-    
-    const data: unknown = await r.json();
+
+    const text = await r.text();
+    let data: unknown = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text;
+      }
+    }
 
     if (!r.ok) {
       const body = (data ?? {}) as {
@@ -251,6 +259,7 @@ export async function get<T>(path: string, opts: GetOpts = {}): Promise<T> {
         (typeof body.message === 'string' && body.message.trim()) ||
         (typeof body.detail === 'string' && body.detail.trim()) ||
         (typeof body.error === 'string' && body.error.trim()) ||
+        (typeof data === 'string' && data.trim()) ||
         `HTTP error! status: ${r.status}`;
       throw new Error(message);
     }

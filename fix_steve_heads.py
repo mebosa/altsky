@@ -47,7 +47,7 @@ def fix_steve_heads():
                 success += 1
                 continue
         
-        url = f"https://sky.shiiyu.moe/api/head/{texture_hash}"
+        url = f"https://sky.shiiiyu.moe/api/head/{texture_hash}"
         print(f"→ {pet_name}: 다운로드 중...")
         
         try:

@@ -1,7 +1,7 @@
 import requests
 
 # Check SkyCrypt's item texture API
-SKYCRYPT_ITEMS_URL = "https://sky.shiiyu.moe/api/v2/items"
+SKYCRYPT_ITEMS_URL = "https://sky.shiiiyu.moe/api/v2/items"
 
 try:
     resp = requests.get(SKYCRYPT_ITEMS_URL, timeout=10)
